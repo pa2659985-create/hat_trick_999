@@ -1,22 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
   await UserData.loadData();
-  
-  // Notification ခွင့်ပြုချက်တောင်းခြင်း
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
-  await messaging.requestPermission(
-    alert: true,
-    badge: true,
-    sound: true,
-  );
-
   runApp(const HatTrickApp());
 }
 
@@ -49,16 +36,7 @@ class UserData {
   static double balance = 11500.94;
   static int points = 150;
   static double totalBetAmount = 10900.0;
-  static List<Map<String, dynamic>> activeBets = [
-    {'betId': '972031975', 'moung': '5', 'bet': 5400.0, 'return': 0.0, 'status': 'ACTIVE', 'time': '26-08-2026 1:00 pm'},
-  ];
-
-  static Future<void> saveData() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('user_balance', balance);
-    await prefs.setInt('user_points', points);
-  }
-
+  
   static Future<void> loadData() async {
     final prefs = await SharedPreferences.getInstance();
     balance = prefs.getDouble('user_balance') ?? 11500.94;
@@ -66,9 +44,7 @@ class UserData {
   }
 }
 
-// -------------------------------------------------------------
-// 1. Login Screen (အကောင့်ဝင်ရန် စာမျက်နှာ)
-// -------------------------------------------------------------
+// 1. Login Screen
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -150,9 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-// -------------------------------------------------------------
-// 2. Dashboard Screen (ပင်မစာမျက်နှာ - မီနူး (၈) ခုပါဝင်သည်)
-// -------------------------------------------------------------
+// 2. Dashboard Screen
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -198,17 +172,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               decoration: const BoxDecoration(color: Color(0xFF1B263B)),
             ),
             ListTile(
-              leading: const Icon(Icons.description, color: Colors.grey),
-              title: const Text('စည်းကမ်းသတ်မှတ်ချက်များ', style: TextStyle(color: Colors.black87)),
-              onTap: () {},
-            ),
-            ListTile(
-              leading: const Icon(Icons.lock, color: Colors.grey),
-              title: const Text('စကားဝှက် ပြောင်းရန်', style: TextStyle(color: Colors.black87)),
-              onTap: () {},
-            ),
-            const Divider(),
-            ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text('ထွက်ရန်', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
               onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginScreen())),
@@ -221,28 +184,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Colors.amber),
-              ),
-              child: Row(
-                children: const [
-                  Icon(Icons.campaign, color: Colors.amber, size: 18),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'ငွေနာမည်မှန်ကန်စွာထည့်မှသာ ထုတ်ယူ၍နိုင်ပါမည်။',
-                      style: TextStyle(color: Colors.amberAccent, fontSize: 11),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
@@ -273,19 +214,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ],
                   ),
-                  const Divider(color: Colors.white24, height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('လောင်းထားသောငွေ', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                      Text('${UserData.totalBetAmount} Ks', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-            // မီနူးကတ် (၈) ခု
             GridView.count(
               crossAxisCount: 2,
               shrinkWrap: true,
@@ -294,14 +226,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisSpacing: 10,
               childAspectRatio: 2.2,
               children: [
-                _buildMenuCard(context, 'မောင်း', Icons.sports_score, Colors.green, const ParlayScreen()),
-                _buildMenuCard(context, 'ဘော်ဒီ/ဂိုးပေါင်း', Icons.sports_soccer, Colors.blue, const FootballOddsScreen()),
-                _buildMenuCard(context, 'လောင်းထားသောပွဲစဉ်များ', Icons.receipt_long, Colors.orange, const MyBetsScreen()),
-                _buildMenuCard(context, 'ပွဲစဉ်ဟောင်းများ', Icons.calendar_today, Colors.purple, const OldMatchesScreen()),
+                _buildMenuCard(context, 'မောင်း', Icons.sports_score, Colors.green, const PlaceholderScreen(title: 'မောင်း')),
+                _buildMenuCard(context, 'ဘော်ဒီ/ဂိုးပေါင်း', Icons.sports_soccer, Colors.blue, const PlaceholderScreen(title: 'ဘော်ဒီ/ဂိုးပေါင်း')),
+                _buildMenuCard(context, 'လောင်းထားသောပွဲစဉ်များ', Icons.receipt_long, Colors.orange, const PlaceholderScreen(title: 'လောင်းထားသောပွဲစဉ်များ')),
+                _buildMenuCard(context, 'ပွဲစဉ်ဟောင်းများ', Icons.calendar_today, Colors.purple, const PlaceholderScreen(title: 'ပွဲစဉ်ဟောင်းများ')),
                 _buildMenuCard(context, 'ငွေစာရင်း', Icons.account_balance_wallet, Colors.teal, const WalletScreen()),
-                _buildMenuCard(context, 'ပွဲပြီး ရလဒ်များ', Icons.live_tv, Colors.redAccent, const LiveResultsScreen()),
-                _buildMenuCard(context, 'အဆင့်ဇယား', Icons.emoji_events, Colors.amber, const StandingsScreen()),
-                _buildMenuCard(context, 'ပွိုင့်လဲလှယ်', Icons.monetization_on, Colors.indigo, const PointsExchangeScreen()),
+                _buildMenuCard(context, 'ပွဲပြီး ရလဒ်များ', Icons.live_tv, Colors.redAccent, const PlaceholderScreen(title: 'ပွဲပြီး ရလဒ်များ')),
+                _buildMenuCard(context, 'အဆင့်ဇယား', Icons.emoji_events, Colors.amber, const PlaceholderScreen(title: 'အဆင့်ဇယား')),
+                _buildMenuCard(context, 'ပွိုင့်လဲလှယ်', Icons.monetization_on, Colors.indigo, const PlaceholderScreen(title: 'ပွိုင့်လဲလှယ်')),
               ],
             ),
           ],
@@ -313,14 +245,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildMenuCard(BuildContext context, String title, IconData icon, Color color, Widget targetScreen) {
     return InkWell(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => targetScreen)).then((_) => setState(() {}));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => targetScreen));
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8),
-          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4, offset: const Offset(0, 2))],
         ),
         child: Row(
           children: [
@@ -339,9 +270,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-// -------------------------------------------------------------
-// 3. ငွေစာရင်း Screen (ငွေသွင်း/ငွေထုတ် တကယ့်ပုံစံခွက်များပါဝင်သည်)
-// -------------------------------------------------------------
+// 3. Wallet Screen (ငွေသွင်း/ငွေထုတ်)
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
 
@@ -351,15 +280,14 @@ class WalletScreen extends StatefulWidget {
 
 class _WalletScreenState extends State<WalletScreen> {
   final _amountController = TextEditingController();
-  final _accountNameController = TextEditingController();
   final _accountNoController = TextEditingController();
   String _selectedMethod = 'KPay';
   String _transactionType = 'ငွေသွင်း';
 
-  void _submitTransaction() {
+  void _submit() {
     if (_amountController.text.isNotEmpty && _accountNoController.text.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$_transactionType တောင်းဆိုမှု အောင်မြင်ပါသည်။ Admin အတည်ပြုချက် စောင့်ဆိုင်းနေပါသည်။')),
+        SnackBar(content: Text('$_transactionType တောင်းဆိုမှု အောင်မြင်ပါသည်။')),
       );
       Navigator.pop(context);
     } else {
@@ -376,90 +304,45 @@ class _WalletScreenState extends State<WalletScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _transactionType == 'ငွေသွင်း' ? Colors.green : Colors.grey.shade800,
-                    ),
+                    style: ElevatedButton.styleFrom(backgroundColor: _transactionType == 'ငွေသွင်း' ? Colors.green : Colors.grey),
                     onPressed: () => setState(() => _transactionType = 'ငွေသွင်း'),
-                    child: const Text('ငွေသွင်းမည်', style: TextStyle(color: Colors.white)),
+                    child: const Text('ငွေသွင်း'),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _transactionType == 'ငွေထုတ်' ? Colors.red : Colors.grey.shade800,
-                    ),
+                    style: ElevatedButton.styleFrom(backgroundColor: _transactionType == 'ငွေထုတ်' ? Colors.red : Colors.grey),
                     onPressed: () => setState(() => _transactionType = 'ငွေထုတ်'),
-                    child: const Text('ငွေထုတ်မည်', style: TextStyle(color: Colors.white)),
+                    child: const Text('ငွေထုတ်'),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            const Text('ငွေပေးချေသည့် နည်းလမ်း', style: TextStyle(color: Colors.grey, fontSize: 13)),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               value: _selectedMethod,
-              dropdownColor: const Color(0xFF1B263B),
-              items: ['KPay', 'WaveMoney', 'KBZ Banking'].map((String method) {
-                return DropdownMenuItem(value: method, child: Text(method));
-              }).toList(),
-              onChanged: (value) => setState(() => _selectedMethod = value!),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: const Color(0xFF1B263B),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              ),
+              items: ['KPay', 'WaveMoney', 'KBZ Banking'].map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
+              onChanged: (v) => setState(() => _selectedMethod = v!),
+              decoration: const InputDecoration(border: OutlineInputBorder(), filled: true),
             ),
             const SizedBox(height: 16),
-            TextField(
-              controller: _amountController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'ငွေပမာဏ (Ks)',
-                filled: true,
-                fillColor: const Color(0xFF1B263B),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-            ),
+            TextField(controller: _amountController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'ငွေပမာဏ (Ks)', border: OutlineInputBorder(), filled: true)),
             const SizedBox(height: 16),
-            TextField(
-              controller: _accountNameController,
-              decoration: InputDecoration(
-                labelText: 'အကောင့်ပိုင်ရှင် အမည်',
-                filled: true,
-                fillColor: const Color(0xFF1B263B),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _accountNoController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'ဖုန်းနံပါတ် (သို့) အကောင့်နံပါတ်',
-                filled: true,
-                fillColor: const Color(0xFF1B263B),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-            ),
+            TextField(controller: _accountNoController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'ဖုန်းနံပါတ် (သို့) အကောင့်နံပါတ်', border: OutlineInputBorder(), filled: true)),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                onPressed: _submitTransaction,
-                child: Text('အတည်ပြုရန် ($_transactionType)', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                onPressed: _submit,
+                child: Text('အတည်ပြုရန် ($_transactionType)', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -469,48 +352,15 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 }
 
-// -------------------------------------------------------------
-// 4. ကျန်ရှိသော မီနူးအသေးစား မျက်နှာပြင်များ
-// -------------------------------------------------------------
-class ParlayScreen extends StatelessWidget {
-  const ParlayScreen({super.key});
-  @override
-  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text('မောင်း')), body: const Center(child: Text('ပွဲစဉ်များ မရှိသေးပါ။')));
-}
+class PlaceholderScreen extends StatelessWidget {
+  final String title;
+  const PlaceholderScreen({super.key, required this.title});
 
-class FootballOddsScreen extends StatelessWidget {
-  const FootballOddsScreen({super.key});
   @override
-  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text('ဘော်ဒီ/ဂိုးပေါင်း')), body: const Center(child: Text('ပွဲစဉ်များ မရှိသေးပါ။')));
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: Center(child: Text('$title စာမျက်နှာ', style: const TextStyle(fontSize: 18))),
+    );
+  }
 }
-
-class MyBetsScreen extends StatelessWidget {
-  const MyBetsScreen({super.key});
-  @override
-  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text('လောင်းထားသောပွဲစဉ်များ')), body: const Center(child: Text('စာရင်း မရှိပါ။')));
-}
-
-class OldMatchesScreen extends StatelessWidget {
-  const OldMatchesScreen({super.key});
-  @override
-  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text('ပွဲစဉ်ဟောင်းများ')), body: const Center(child: Text('မှတ်တမ်း မရှိပါ။')));
-}
-
-class LiveResultsScreen extends StatelessWidget {
-  const LiveResultsScreen({super.key});
-  @override
-  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text('ပွဲပြီး ရလဒ်များ')), body: const Center(child: Text('ရလဒ်များ မရှိသေးပါ။')));
-}
-
-class StandingsScreen extends StatelessWidget {
-  const StandingsScreen({super.key});
-  @override
-  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text('အဆင့်ဇယား')), body: const Center(child: Text('အချက်အလက် မရှိသေးပါ။')));
-}
-
-class PointsExchangeScreen extends StatelessWidget {
-  const PointsExchangeScreen({super.key});
-  @override
-  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text('ပွိုင့်လဲလှယ်')), body: const Center(child: Text('ပွိုင့်လဲလှယ်ရန် မရှိသေးပါ။')));
-}
-
