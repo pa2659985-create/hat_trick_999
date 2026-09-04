@@ -7,18 +7,23 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 // Firebase Background Notification Handler
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  print("Background Message Received: ${message.messageId}");
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    print('Firebase Background Init Error: $e');
+  }
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Firebase ကို စတင်ချိတ်ဆက်ခြင်း
-  await Firebase.initializeApp();
-  
-  // Firebase Background Messaging ချိတ်ဆက်ခြင်း
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  // Firebase ကို အမှားအယွင်းမရှိစေရန် try-catch ဖြင့် ဖုံးအုပ်ထားခြင်း (White Screen ကာကွယ်ရန်)
+  try {
+    await Firebase.initializeApp();
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  } catch (e) {
+    print('Firebase Init Error (Running offline/local mode): $e');
+  }
 
   await AppData.loadData();
   runApp(const HatTrickApp());
@@ -119,7 +124,6 @@ class AppStrings {
 
 // API Service for Football Data
 class ApiService {
-  // ထည့်သွင်းပြီးသား API Token အမှန်
   static const String apiKey = '5a87133d1c764efb8525d81e82d605fd'; 
   static const String baseUrl = 'https://api.football-data.org/v4/matches';
 
@@ -960,3 +964,4 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen> {
     );
   }
 }
+
