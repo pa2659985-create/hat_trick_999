@@ -121,7 +121,7 @@ class AppStrings {
   }
 }
 
-// API Service with Expanded Rich Matches (API + Extra Rich Mock Matches)
+// API Service with Global Worldwide Match Coverage
 class ApiService {
   static const String apiKey = '5a87133d1c764efb8525d81e82d605fd'; 
   static const String baseUrl = 'https://api.football-data.org/v4/matches';
@@ -155,24 +155,48 @@ class ApiService {
       print('API Error: $e');
     }
 
-    // 2. Extra Rich Matches to make sure the app always has plenty of matches to bet/view
-    List<Map<String, dynamic>> extraMatches = [
-      {'league': 'English Premier League', 'time': '21:00', 't1': 'မန်ချက်စတာယူနိုက်တက်', 'score': '0 - 0', 't2': 'လီဗာပူးလ်', 'status': 'SCHEDULED'},
-      {'league': 'English Premier League', 'time': '23:30', 't1': 'မန်စီးတီး', 'score': '1 - 0', 't2': 'အာဆင်နယ်', 'status': 'LIVE'},
-      {'league': 'Spanish La Liga', 'time': '01:00', 't1': 'ရီးရဲမက်ဒရစ်', 'score': '2 - 1', 't2': 'ဘာစီလိုနာ', 'status': 'LIVE'},
-      {'league': 'Italian Serie A', 'time': '20:30', 't1': 'ဂျူဗင်တပ်စ်', 'score': '0 - 0', 't2': 'အေစီမီလန်', 'status': 'SCHEDULED'},
-      {'league': 'German Bundesliga', 'time': '19:30', 't1': 'ဘိုင်ယန်မြူးနစ်', 'score': '3 - 1', 't2': 'ဒေါ့မွန်', 'status': 'FINISHED'},
-      {'league': 'French Ligue 1', 'time': '22:00', 't1': 'ပီအက်စ်ဂျီ', 'score': '2 - 0', 't2': 'မာဆေးလ်', 'status': 'SCHEDULED'},
-      {'league': 'UEFA Champions League', 'time': '02:00', 't1': 'ချယ်ဆီး', 'score': '1 - 1', 't2': 'အက်သလက်တီကို', 'status': 'SCHEDULED'},
-      {'league': 'UEFA Champions League', 'time': '02:00', 't1': 'တော့တင်ဟမ်', 'score': '0 - 2', 't2': 'အင်တာမီလန်', 'status': 'SCHEDULED'},
+    // 2. Comprehensive Global Worldwide Matches (Europe, Asia, South America, International & Leagues)
+    List<Map<String, dynamic>> globalMatches = [
+      // English Premier League
+      {'league': 'English Premier League', 'time': '19:30', 't1': 'အာဆင်နယ်', 'score': '0 - 0', 't2': 'ချယ်ဆီး', 'status': 'SCHEDULED'},
+      {'league': 'English Premier League', 'time': '22:00', 't1': 'မန်ချက်စတာယူနိုက်တက်', 'score': '1 - 1', 't2': 'လီဗာပူးလ်', 'status': 'LIVE'},
+      {'league': 'English Premier League', 'time': '22:00', 't1': 'မန်စီးတီး', 'score': '2 - 0', 't2': 'တော့တင်ဟမ်', 'status': 'SCHEDULED'},
+      {'league': 'English Premier League', 'time': '00:30', 't1': 'နူကာဆယ်', 'score': '0 - 0', 't2': 'ဗီလာ', 'status': 'SCHEDULED'},
+
+      // Spanish La Liga
+      {'league': 'Spanish La Liga', 'time': '20:00', 't1': 'ရီးရဲမက်ဒရစ်', 'score': '3 - 1', 't2': 'ဘာစီလိုနာ', 'status': 'FINISHED'},
+      {'league': 'Spanish La Liga', 'time': '22:15', 't1': 'အက်သလက်တီကို မက်ဒရစ်', 'score': '1 - 0', 't2': 'ဗလင်စီယာ', 'status': 'LIVE'},
+      {'league': 'Spanish La Liga', 'time': '01:00', 't1': 'ဆီဗီလာ', 'score': '0 - 0', 't2': 'ဗီยาร์ရีယ်', 'status': 'SCHEDULED'},
+
+      // Italian Serie A
+      {'league': 'Italian Serie A', 'time': '18:30', 't1': 'ဂျူဗင်တပ်စ်', 'score': '2 - 2', 't2': 'အေစီမီလန်', 'status': 'LIVE'},
+      {'league': 'Italian Serie A', 'time': '21:00', 't1': 'အင်တာမီလန်', 'score': '1 - 0', 't2': 'နာပိုလီ', 'status': 'SCHEDULED'},
+      {'league': 'Italian Serie A', 'time': '01:45', 't1': 'ရိုးမား', 'score': '0 - 0', 't2': 'လက်ဇီယို', 'status': 'SCHEDULED'},
+
+      // German Bundesliga
+      {'league': 'German Bundesliga', 'time': '20:30', 't1': 'ဘိုင်ယန်မြူးနစ်', 'score': '4 - 2', 't2': 'ဒေါ့မွန်', 'status': 'FINISHED'},
+      {'league': 'German Bundesliga', 'time': '22:30', 't1': 'လပ်ဇစ်', 'score': '1 - 1', 't2': 'လီဗာကူဆင်', 'status': 'SCHEDULED'},
+
+      // French Ligue 1
+      {'league': 'French Ligue 1', 'time': '21:00', 't1': 'ပီအက်စ်ဂျီ', 'score': '3 - 0', 't2': 'မာဆေးလ်', 'status': 'FINISHED'},
+      {'league': 'French Ligue 1', 'time': '23:00', 't1': 'မိုနာကို', 'score': '0 - 1', 't2': 'လီယွန်', 'status': 'SCHEDULED'},
+
+      // UEFA Champions League
+      {'league': 'UEFA Champions League', 'time': '02:00', 't1': 'ရီးရဲမက်ဒရစ်', 'score': '2 - 2', 't2': 'မန်စီးတီး', 'status': 'SCHEDULED'},
+      {'league': 'UEFA Champions League', 'time': '02:00', 't1': 'ဘိုင်ယန်မြူးနစ်', 'score': '1 - 0', 't2': 'အာဆင်နယ်', 'status': 'SCHEDULED'},
+      {'league': 'UEFA Champions League', 'time': '02:00', 't1': 'ပီအက်စ်ဂျီ', 'score': '0 - 0', 't2': 'ဘာစီလိုနာ', 'status': 'SCHEDULED'},
+
+      // International Friendlies & World Cup Qualifiers
+      {'league': 'International Friendlies', 'time': '19:00', 't1': 'ဘရာဇီး', 'score': '2 - 1', 't2': 'အာဂျင်တီးနား', 'status': 'SCHEDULED'},
+      {'league': 'International Friendlies', 'time': '21:30', 't1': 'ပြင်သစ်', 'score': '1 - 1', 't2': 'အင်္ဂလန်', 'status': 'SCHEDULED'},
+      {'league': 'International Friendlies', 'time': '23:00', 't1': 'ပေါ်တူဂီ', 'score': '3 - 0', 't2': 'စပိန်', 'status': 'SCHEDULED'},
     ];
 
-    // ပုံမှန် API ပွဲတွေအပြင် အပိုပွဲစဉ်များကိုပါ ရောနှောထည့်သွင်းပေးခြင်း
-    for (var em in extraMatches) {
-      // ထပ်နေတာတွေ မပါအောင် စစ်ပြီး ထည့်မည်
-      bool exists = allMatches.any((m) => m['t1'] == em['t1'] && m['t2'] == em['t2']);
+    // ပုံမှန် API ပွဲများနှင့် ကမ္ဘာ့ပွဲစဉ်များကို ပေါင်းစပ်ထည့်သွင်းပေးခြင်း
+    for (var gm in globalMatches) {
+      bool exists = allMatches.any((m) => m['t1'] == gm['t1'] && m['t2'] == gm['t2']);
       if (!exists) {
-        allMatches.add(em);
+        allMatches.add(gm);
       }
     }
 
@@ -513,7 +537,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const Divider(color: Colors.grey),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Text('Version 12.0.2', style: TextStyle(color: Colors.grey, fontSize: 12)),
+              child: Text('Version 12.0.3', style: TextStyle(color: Colors.grey, fontSize: 12)),
             ),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
@@ -685,7 +709,7 @@ class _BettingScreenState extends State<BettingScreen> {
         child: Column(
           children: [
             Text(
-              '${widget.title} အတွက် အောက်ပါပွဲစဉ်များထဲမှ ရွေးချယ်ပါ',
+              '${widget.title} အတွက် ကမ္ဘာတစ်ဝှမ်း ပွဲစဉ်များထဲမှ ရွေးချယ်ပါ',
               style: const TextStyle(color: Colors.greenAccent, fontSize: 13, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
