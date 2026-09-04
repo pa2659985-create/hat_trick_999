@@ -52,7 +52,7 @@ class AppStrings {
     'မြန်မာ': {
       'appName': 'HAT TRICK',
       'appSub': '- 999 -',
-      'tagline': 'နည်းနည်းလောင်း များများနိုင်',
+      'tagline': 'နည်းနည်းနဲ့ များကိုက်မည်',
       'login': 'အကောင့်ဝင်မည်',
       'username': 'အသုံးပြုသူ အမည်',
       'password': 'စကားဝှက်',
@@ -64,8 +64,6 @@ class AppStrings {
       'menuTeam': 'အသင်းအမည်',
       'menuLang': 'ဘာသာစကားရွေးရန်',
       'logout': 'ထွက်ရန်',
-      'deposit': 'ငွေသွင်းရန်',
-      'withdraw': 'ငွေထုတ်ရန်',
       'wallet': 'ငွေစာရင်း',
       'myBets': 'လောင်းထားသောပွဲစဉ်များ',
       'oldMatches': 'ပွဲစဉ်ဟောင်းများ',
@@ -88,8 +86,6 @@ class AppStrings {
       'menuTeam': 'Team Name',
       'menuLang': 'Language',
       'logout': 'Logout',
-      'deposit': 'Deposit',
-      'withdraw': 'Withdraw',
       'wallet': 'Wallet',
       'myBets': 'My Bets',
       'oldMatches': 'Old Matches',
@@ -112,19 +108,29 @@ class AppData {
   static String language = 'မြန်မာ';
   static String selectedTeam = 'မြန်မာ';
   
-  static double balance = 0.0;
-  static int points = 0;
+  static double balance = 50000.0;
+  static int points = 250;
   static double totalActiveBetsAmount = 0.0;
 
   static List<Map<String, dynamic>> activeBets = [];
-  static List<Map<String, dynamic>> walletHistory = [];
-  static List<Map<String, dynamic>> liveResultsToday = [
-    {'league': 'ASEAN Championship', 'time': '26-08-2026 7:30 pm', 't1': 'ဗီယက်နမ်', 'score': '1 - 2', 't2': 'တိုင်း', 'status': 'FT'},
+  
+  // ငွေသွင်းငွေထုတ် မှတ်တမ်းများ (ခလုတ်များမပါဘဲ ပြသရန်)
+  static List<Map<String, dynamic>> walletHistory = [
+    {'type': 'ငွေသွင်း', 'amount': 30000.0, 'date': '03-09-2026 10:15 AM'},
+    {'type': 'ငွေထုတ်', 'amount': 10000.0, 'date': '04-09-2026 02:45 PM'},
+    {'type': 'ငွေသွင်း', 'amount': 30000.0, 'date': '04-09-2026 08:30 AM'},
   ];
+
+  static List<Map<String, dynamic>> liveResultsToday = [
+    {'league': 'English Premier League', 'time': '04-09-2026 8:30 pm', 't1': 'အာဆင်နယ်', 'score': '2 - 0', 't2': 'ချယ်လ်ဆီး', 'status': 'FT'},
+    {'league': 'Spanish La Liga', 'time': '04-09-2026 10:00 pm', 't1': 'ရီးရဲမက်ဒရစ်', 'score': '3 - 1', 't2': 'ဘာစီလိုနာ', 'status': 'FT'},
+  ];
+
   static List<Map<String, dynamic>> standingsList = [
     {'pos': 1, 'team': 'ရီးရဲမက်ဒရစ်', 'p': 5, 'pts': 15},
     {'pos': 2, 'team': 'ဘာစီလိုနာ', 'p': 5, 'pts': 12},
     {'pos': 3, 'team': 'အက်သလက်တီကို', 'p': 5, 'pts': 10},
+    {'pos': 4, 'team': 'ဗလင်စီယာ', 'p': 5, 'pts': 8},
   ];
 
   static Future<void> loadData() async {
@@ -134,8 +140,8 @@ class AppData {
     password = prefs.getString('password') ?? '123';
     language = prefs.getString('language') ?? 'မြန်မာ';
     selectedTeam = prefs.getString('selectedTeam') ?? 'မြန်မာ';
-    balance = prefs.getDouble('balance') ?? 0.0;
-    points = prefs.getInt('points') ?? 0;
+    balance = prefs.getDouble('balance') ?? 50000.0;
+    points = prefs.getInt('points') ?? 250;
     totalActiveBetsAmount = prefs.getDouble('totalActiveBetsAmount') ?? 0.0;
   }
 
@@ -166,7 +172,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() {
     if (_userController.text.isNotEmpty && _passController.text.isNotEmpty) {
-      // ဝင်လိုက်တဲ့ Username ကို နာမည်နေရာမှာ တိုက်ရိုက် သုံးမည်
       setState(() {
         AppData.username = _userController.text;
         AppData.displayName = _userController.text;
@@ -489,7 +494,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(AppStrings.get('activeBetsAmt', AppData.language), style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                      Text('${AppData.totalActiveBetsAmount.toStringAsFixed(1)}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                      Text('${AppData.totalActiveBetsAmount.toStringAsFixed(1)} Ks', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ],
@@ -544,7 +549,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-// 3. Betting Screen (မောင်း နှင့် ဘော်ဒီ/ဂိုးပေါင်း)
+// 3. Betting Screen
 class BettingScreen extends StatefulWidget {
   final String title;
   const BettingScreen({super.key, required this.title});
@@ -555,8 +560,8 @@ class BettingScreen extends StatefulWidget {
 
 class _BettingScreenState extends State<BettingScreen> {
   final TextEditingController _amountController = TextEditingController();
-  final String selectedMatch = 'ရီးရဲမက်ဒရစ် vs ဆိုစီဒက်';
-  final double selectedOdds = 1.85;
+  final String selectedMatch = 'မန်ချက်စတာယူနိုက်တက် vs လီဗာပူးလ်';
+  final double selectedOdds = 1.90;
 
   void _placeBet() {
     double amount = double.tryParse(_amountController.text) ?? 0.0;
@@ -578,7 +583,7 @@ class _BettingScreenState extends State<BettingScreen> {
         'amount': amount,
         'odds': selectedOdds,
         'status': 'ACTIVE',
-        'time': '26-08-2026'
+        'time': '04-09-2026'
       });
       AppData.saveData();
     });
@@ -603,7 +608,7 @@ class _BettingScreenState extends State<BettingScreen> {
                 children: [
                   Text('ရွေးချယ်ထားသောပွဲ: $selectedMatch', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  const Text('Odds: 1.85', style: TextStyle(color: Colors.white)),
+                  const Text('Odds: 1.90', style: TextStyle(color: Colors.white)),
                 ],
               ),
             ),
@@ -635,7 +640,7 @@ class _BettingScreenState extends State<BettingScreen> {
   }
 }
 
-// 4. My Bets Screen (လောင်းထားသောပွဲစဉ်များ)
+// 4. My Bets Screen
 class MyBetsScreen extends StatelessWidget {
   const MyBetsScreen({super.key});
 
@@ -668,107 +673,78 @@ class MyBetsScreen extends StatelessWidget {
   }
 }
 
-// 5. Old Matches Screen (ပွဲစဉ်ဟောင်းများ)
-class OldMatchesScreen extends StatelessWidget {
+// 5. Old Matches Screen (Calendar ပါဝင်သော ပွဲစဉ်ဟောင်းများ)
+class OldMatchesScreen extends StatefulWidget {
   const OldMatchesScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.get('oldMatches', AppData.language))),
-      body: ListView(
-        padding: const EdgeInsets.all(12),
-        children: const [
-          ListTile(
-            title: Text('မန်ချက်စတာယူနိုက်တက် vs လီဗာပူးလ်', style: TextStyle(color: Colors.white)),
-            subtitle: Text('ရလဒ်: ၂ - ၁', style: TextStyle(color: Colors.greenAccent)),
-            trailing: Text('FT', style: TextStyle(color: Colors.grey)),
-          ),
-          Divider(color: Colors.grey),
-        ],
-      ),
-    );
-  }
+  State<OldMatchesScreen> createState() => _OldMatchesScreenState();
 }
 
-// 6. Wallet Screen (ငွေစာရင်း / ငွေသွင်းငွေထုတ်)
-class WalletScreen extends StatefulWidget {
-  const WalletScreen({super.key});
+class _OldMatchesScreenState extends State<OldMatchesScreen> {
+  DateTime selectedDate = DateTime.now();
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null && picked != selectedDate) {
+      setState(() {
+        selectedDate = picked;
+      });
+    }
+  }
 
   @override
-  State<WalletScreen> createState() => _WalletScreenState();
+  Widget build(BuildContext context) {
+    String formattedDate = "${selectedDate.day}-${selectedDate.month}-${selectedDate.year}";
+    return Scaffold(
+      appBar: AppBar(title: Text(AppStrings.get('oldMatches', AppData.language))),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('ရွေးချယ်ထားသော ရက်စွဲ: $formattedDate', style: const TextStyle(color: Colors.greenAccent, fontSize: 14)),
+                IconButton(
+                  icon: const Icon(Icons.calendar_month, color: Colors.white),
+                  onPressed: () => _selectDate(context),
+                ),
+              ],
+            ),
+            const Divider(color: Colors.grey),
+            Expanded(
+              child: ListView(
+                children: const [
+                  ListTile(
+                    title: Text('မန်ချက်စတာယူနိုက်တက် vs လီဗာပူးလ်', style: TextStyle(color: Colors.white)),
+                    subtitle: Text('ရလဒ်: ၂ - ၁ (FT)', style: TextStyle(color: Colors.greenAccent)),
+                    trailing: Icon(Icons.sports_soccer, color: Colors.grey),
+                  ),
+                  Divider(color: Colors.grey),
+                  ListTile(
+                    title: Text('ရီးရဲမက်ဒရစ် vs ဘาစီလိုနာ', style: TextStyle(color: Colors.white)),
+                    subtitle: Text('ရလဒ်: ၁ - ၁ (FT)', style: TextStyle(color: Colors.greenAccent)),
+                    trailing: Icon(Icons.sports_soccer, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-class _WalletScreenState extends State<WalletScreen> {
-  void _showDepositDialog() {
-    final depositController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1F1F1F),
-        title: const Text('ငွေသွင်းရန် (Deposit)', style: TextStyle(color: Colors.white)),
-        content: TextField(
-          controller: depositController,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'သွင်းမည့် ပမာဏ (Ks)'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('မလုပ်တော့ပါ')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            onPressed: () {
-              double amount = double.tryParse(depositController.text) ?? 0.0;
-              if (amount > 0) {
-                setState(() {
-                  AppData.balance += amount;
-                  AppData.saveData();
-                });
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ငွေကျပ် $amount အောင်မြင်စွာ ထည့်သွင်းပြီးပါပြီ')));
-              }
-            },
-            child: const Text('အတည်ပြုမည်'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showWithdrawDialog() {
-    final withdrawController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1F1F1F),
-        title: const Text('ငွေထုတ်ရန် (Withdraw)', style: TextStyle(color: Colors.white)),
-        content: TextField(
-          controller: withdrawController,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'ထုတ်မည့် ပမာဏ (Ks)'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('မလုပ်တော့ပါ')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () {
-              double amount = double.tryParse(withdrawController.text) ?? 0.0;
-              if (amount > 0 && AppData.balance >= amount) {
-                setState(() {
-                  AppData.balance -= amount;
-                  AppData.saveData();
-                });
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ငွေကျပ် $amount အောင်မြင်စွာ ထုတ်ယူပြီးပါပြီ')));
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('လက်ကျန်ငွေ မလုံလောက်ပါ')));
-              }
-            },
-            child: const Text('ထုတ်ယူမည်'),
-          ),
-        ],
-      ),
-    );
-  }
+// 6. Wallet Screen (ငွေသွင်း/ငွေထုတ် ခလုတ်များမပါဘဲ မှတ်တမ်းအချက်အလက်များသာ ပြသပေးသောစနစ်)
+class WalletScreen extends StatelessWidget {
+  const WalletScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -779,6 +755,7 @@ class _WalletScreenState extends State<WalletScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               padding: const EdgeInsets.all(16),
@@ -786,32 +763,43 @@ class _WalletScreenState extends State<WalletScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('လက်ကျန်ငွေ:', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                  const Text('လက်ကျန်ငွေစုစုပေါင်း:', style: TextStyle(color: Colors.grey, fontSize: 16)),
                   Text('${AppData.balance} Ks', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
             const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.symmetric(vertical: 12)),
-                    onPressed: _showDepositDialog,
-                    icon: const Icon(Icons.add, color: Colors.white),
-                    label: const Text('ငွေသွင်းရန်', style: TextStyle(color: Colors.white)),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red, padding: const EdgeInsets.symmetric(vertical: 12)),
-                    onPressed: _showWithdrawDialog,
-                    icon: const Icon(Icons.remove, color: Colors.white),
-                    label: const Text('ငွေထုတ်ရန်', style: TextStyle(color: Colors.white)),
-                  ),
-                ),
-              ],
+            const Text('ငွေသွင်း/ငွေထုတ် လုပ်ဆောင်ချက် မှတ်တမ်းများ', style: TextStyle(color: Colors.greenAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            Expanded(
+              child: AppData.walletHistory.isEmpty
+                  ? const Center(child: Text('မှတ်တမ်း မရှိသေးပါ', style: TextStyle(color: Colors.grey)))
+                  : ListView.builder(
+                      itemCount: AppData.walletHistory.length,
+                      itemBuilder: (context, index) {
+                        final item = AppData.walletHistory[index];
+                        bool isDeposit = item['type'] == 'ငွေသွင်း';
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(8)),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(item['type'], style: TextStyle(color: isDeposit ? Colors.green : Colors.red, fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 4),
+                                  Text(item['date'], style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                                ],
+                              ),
+                              Text('${isDeposit ? "+" : "-"}${item['amount']} Ks', style: TextStyle(color: isDeposit ? Colors.greenAccent : Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 15)),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
             ),
           ],
         ),
@@ -820,7 +808,7 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 }
 
-// 7. Live Results Screen (ပွဲပြီး ရလဒ်များ)
+// 7. Live Results Screen
 class LiveResultsScreen extends StatelessWidget {
   const LiveResultsScreen({super.key});
 
@@ -843,7 +831,7 @@ class LiveResultsScreen extends StatelessWidget {
   }
 }
 
-// 8. Standings Screen (အဆင့်ဇယား)
+// 8. Standings Screen
 class StandingsScreen extends StatelessWidget {
   const StandingsScreen({super.key});
 
@@ -866,7 +854,7 @@ class StandingsScreen extends StatelessWidget {
   }
 }
 
-// 9. Points Exchange Screen (ပွိုင့်လဲလှယ်ခြင်း)
+// 9. Points Exchange Screen
 class PointsExchangeScreen extends StatefulWidget {
   const PointsExchangeScreen({super.key});
 
