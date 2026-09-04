@@ -39,7 +39,7 @@ class AppData {
   
   static double balance = 0.0;
   static int points = 0;
-  static double totalActiveBetsAmount = 0.0; // လောင်းထားသော စုစုပေါင်းငွေ
+  static double totalActiveBetsAmount = 0.0;
 
   static List<Map<String, dynamic>> activeBets = [];
   static List<Map<String, dynamic>> walletHistory = [];
@@ -414,7 +414,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
-            // ပုံထဲကအတိုင်း လက်ကျန်ငွေ၊ ပွိုင့်နှင့် လောင်းထားသောငွေ ပါဝင်သည့် အကွက်
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -533,7 +532,7 @@ class _BettingScreenState extends State<BettingScreen> {
 
     setState(() {
       AppData.balance -= amount;
-      AppData.totalActiveBetsAmount += amount; // လောင်းထားသောငွေ ပမာဏကို ပေါင်းထည့်သည်
+      AppData.totalActiveBetsAmount += amount;
       AppData.activeBets.add({
         'betId': '${DateTime.now().millisecondsSinceEpoch}',
         'match': selectedMatch,
@@ -970,26 +969,24 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ignore: unnecessary_const
-    return const Scaffold(
-      appBar: AppBar(title: Text('ပွိုင့်လဲလှယ်')),
+    return Scaffold(
+      appBar: AppBar(title: const Text('ပွိုင့်လဲလှယ်')),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
-        // ignore: unnecessary_const
-        child: const Column(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Text('လက်ရှိ ပွိုင့်: ${AppData.points} Pts', style: TextStyle(fontSize: 20, color: Colors.amber)),
-            SizedBox(height: 20),
-            // SizedBox(
-            //   width: double.infinity,
-            //   height: 50,
-            //   child: ElevatedButton(
-            //     style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo),
-            //     onPressed: _exchange,
-            //     child: const Text('ပွိုင့်လဲမည် (100 Pts = 1000 Ks)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            //   ),
-            // ),
+            Text('လက်ရှိ ပွိုင့်: ${AppData.points} Pts', style: const TextStyle(fontSize: 20, color: Colors.amber)),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo),
+                onPressed: _exchange,
+                child: const Text('ပွိုင့်လဲမည် (100 Pts = 1000 Ks)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
           ],
         ),
       ),
