@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
-// Firebase Background Notification Handler
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
     await Firebase.initializeApp();
@@ -67,7 +66,6 @@ class _HatTrickAppState extends State<HatTrickApp> {
   }
 }
 
-// Localization Text Helper
 class AppStrings {
   static Map<String, Map<String, String>> localizedValues = {
     'မြန်မာ': {
@@ -121,7 +119,6 @@ class AppStrings {
   }
 }
 
-// API Service with Global Worldwide Match Coverage
 class ApiService {
   static const String apiKey = '5a87133d1c764efb8525d81e82d605fd'; 
   static const String baseUrl = 'https://api.football-data.org/v4/matches';
@@ -129,7 +126,6 @@ class ApiService {
   static Future<List<Map<String, dynamic>>> fetchLiveMatches() async {
     List<Map<String, dynamic>> allMatches = [];
 
-    // 1. Fetch from Real API
     try {
       final response = await http.get(
         Uri.parse(baseUrl),
@@ -148,6 +144,10 @@ class ApiService {
             'score': '${m['score']['fullTime']['home'] ?? 0} - ${m['score']['fullTime']['away'] ?? 0}',
             't2': m['awayTeam']['name'] ?? 'Away',
             'status': m['status'] ?? 'SCHEDULED',
+            'hOdds': '1 +55',
+            'aOdds': 'ထိုင်း',
+            'overOdds': '3 +95',
+            'underOdds': 'ရိုးအောက်',
           });
         }
       }
@@ -155,44 +155,15 @@ class ApiService {
       print('API Error: $e');
     }
 
-    // 2. Comprehensive Global Worldwide Matches (Europe, Asia, South America, International & Leagues)
     List<Map<String, dynamic>> globalMatches = [
-      // English Premier League
-      {'league': 'English Premier League', 'time': '19:30', 't1': 'အာဆင်နယ်', 'score': '0 - 0', 't2': 'ချယ်ဆီး', 'status': 'SCHEDULED'},
-      {'league': 'English Premier League', 'time': '22:00', 't1': 'မန်ချက်စတာယူနိုက်တက်', 'score': '1 - 1', 't2': 'လီဗာပူးလ်', 'status': 'LIVE'},
-      {'league': 'English Premier League', 'time': '22:00', 't1': 'မန်စီးတီး', 'score': '2 - 0', 't2': 'တော့တင်ဟမ်', 'status': 'SCHEDULED'},
-      {'league': 'English Premier League', 'time': '00:30', 't1': 'နူကာဆယ်', 'score': '0 - 0', 't2': 'ဗီလာ', 'status': 'SCHEDULED'},
-
-      // Spanish La Liga
-      {'league': 'Spanish La Liga', 'time': '20:00', 't1': 'ရီးရဲမက်ဒရစ်', 'score': '3 - 1', 't2': 'ဘာစီလိုနာ', 'status': 'FINISHED'},
-      {'league': 'Spanish La Liga', 'time': '22:15', 't1': 'အက်သလက်တီကို မက်ဒရစ်', 'score': '1 - 0', 't2': 'ဗလင်စီယာ', 'status': 'LIVE'},
-      {'league': 'Spanish La Liga', 'time': '01:00', 't1': 'ဆီဗီလာ', 'score': '0 - 0', 't2': 'ဗီยาร์ရีယ်', 'status': 'SCHEDULED'},
-
-      // Italian Serie A
-      {'league': 'Italian Serie A', 'time': '18:30', 't1': 'ဂျူဗင်တပ်စ်', 'score': '2 - 2', 't2': 'အေစီမီလန်', 'status': 'LIVE'},
-      {'league': 'Italian Serie A', 'time': '21:00', 't1': 'အင်တာမီလန်', 'score': '1 - 0', 't2': 'နာပိုလီ', 'status': 'SCHEDULED'},
-      {'league': 'Italian Serie A', 'time': '01:45', 't1': 'ရိုးမား', 'score': '0 - 0', 't2': 'လက်ဇီယို', 'status': 'SCHEDULED'},
-
-      // German Bundesliga
-      {'league': 'German Bundesliga', 'time': '20:30', 't1': 'ဘိုင်ယန်မြူးနစ်', 'score': '4 - 2', 't2': 'ဒေါ့မွန်', 'status': 'FINISHED'},
-      {'league': 'German Bundesliga', 'time': '22:30', 't1': 'လပ်ဇစ်', 'score': '1 - 1', 't2': 'လီဗာကူဆင်', 'status': 'SCHEDULED'},
-
-      // French Ligue 1
-      {'league': 'French Ligue 1', 'time': '21:00', 't1': 'ပီအက်စ်ဂျီ', 'score': '3 - 0', 't2': 'မာဆေးလ်', 'status': 'FINISHED'},
-      {'league': 'French Ligue 1', 'time': '23:00', 't1': 'မိုနာကို', 'score': '0 - 1', 't2': 'လီယွန်', 'status': 'SCHEDULED'},
-
-      // UEFA Champions League
-      {'league': 'UEFA Champions League', 'time': '02:00', 't1': 'ရီးရဲမက်ဒရစ်', 'score': '2 - 2', 't2': 'မန်စီးတီး', 'status': 'SCHEDULED'},
-      {'league': 'UEFA Champions League', 'time': '02:00', 't1': 'ဘိုင်ယန်မြူးနစ်', 'score': '1 - 0', 't2': 'အာဆင်နယ်', 'status': 'SCHEDULED'},
-      {'league': 'UEFA Champions League', 'time': '02:00', 't1': 'ပီအက်စ်ဂျီ', 'score': '0 - 0', 't2': 'ဘာစီလိုနာ', 'status': 'SCHEDULED'},
-
-      // International Friendlies & World Cup Qualifiers
-      {'league': 'International Friendlies', 'time': '19:00', 't1': 'ဘရာဇီး', 'score': '2 - 1', 't2': 'အာဂျင်တီးနား', 'status': 'SCHEDULED'},
-      {'league': 'International Friendlies', 'time': '21:30', 't1': 'ပြင်သစ်', 'score': '1 - 1', 't2': 'အင်္ဂလန်', 'status': 'SCHEDULED'},
-      {'league': 'International Friendlies', 'time': '23:00', 't1': 'ပေါ်တူဂီ', 'score': '3 - 0', 't2': 'စပိန်', 'status': 'SCHEDULED'},
+      {'league': 'ASEAN Championship', 'time': '26-08-2026 7:30 pm', 't1': 'ဗီယက်နမ်', 'score': '0 - 0', 't2': 'ထိုင်း', 'status': 'SCHEDULED', 'hOdds': '1 +55', 'aOdds': 'ထိုင်း', 'overOdds': '3 +95', 'underOdds': 'ရိုးအောက်'},
+      {'league': 'Uzbek League', 'time': '26-08-2026 8:30 pm', 't1': 'မာရှယ်ယူနိုက်တက်', 'score': '0 - 0', 't2': 'N စာမန်ကန်', 'status': 'SCHEDULED', 'hOdds': 'နပြိုင်', 'aOdds': '2 +85', 'overOdds': '3 +70', 'underOdds': 'ရိုးအောက်'},
+      {'league': 'Uzbek League', 'time': '26-08-2026 8:30 pm', 't1': 'လိုကိုမိုတစ်တက်ကန့်', 'score': '0 - 0', 't2': 'ကူရက်ချိုဘန်ရှပ်ကော်', 'status': 'SCHEDULED', 'hOdds': '1 +40', 'aOdds': 'နပြိုင်', 'overOdds': '3 +25', 'underOdds': 'ရိုးအောက်'},
+      {'league': 'Egyptian Premier League', 'time': '26-08-2026 8:30 pm', 't1': 'စမူဟာ SC', 'score': '0 - 0', 't2': 'A ပီထရိုလီယမ်', 'status': 'SCHEDULED', 'hOdds': '1 +25', 'aOdds': 'နပြိုင်', 'overOdds': '2 +10', 'underOdds': 'ရိုးအောက်'},
+      {'league': 'English Premier League', 'time': '19:30 pm', 't1': 'အာဆင်နယ်', 'score': '0 - 0', 't2': 'ချယ်ဆီး', 'status': 'SCHEDULED', 'hOdds': '1 +50', 'aOdds': 'နပြိုင်', 'overLost': '', 'overOdds': '3 +90', 'underOdds': 'ရိုးအောက်'},
+      {'league': 'Spanish La Liga', 'time': '20:00 pm', 't1': 'ရီးရဲမက်ဒရစ်', 'score': '3 - 1', 't2': 'ဘာစီလိုနာ', 'status': 'FINISHED', 'hOdds': '0 +10', 'aOdds': 'နပြိုင်', 'overOdds': '2 +80', 'underOdds': 'ရိုးအောက်'},
     ];
 
-    // ပုံမှန် API ပွဲများနှင့် ကမ္ဘာ့ပွဲစဉ်များကို ပေါင်းစပ်ထည့်သွင်းပေးခြင်း
     for (var gm in globalMatches) {
       bool exists = allMatches.any((m) => m['t1'] == gm['t1'] && m['t2'] == gm['t2']);
       if (!exists) {
@@ -204,7 +175,6 @@ class ApiService {
   }
 }
 
-// App Data Controller
 class AppData {
   static String displayName = 'User';
   static String username = '';
@@ -251,7 +221,6 @@ class AppData {
   }
 }
 
-// 1. Login Screen
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -339,7 +308,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-// 2. Dashboard Screen
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -642,7 +610,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-// 3. Betting Screen
 class BettingScreen extends StatefulWidget {
   final String title;
   const BettingScreen({super.key, required this.title});
@@ -656,7 +623,8 @@ class _BettingScreenState extends State<BettingScreen> {
   late Future<List<Map<String, dynamic>>> _matchesFuture;
   
   Map<String, dynamic>? selectedMatchData;
-  String selectedBetType = 'Home Win (1)';
+  String selectedBetOption = '';
+  String selectedBetLabel = '';
 
   @override
   void initState() {
@@ -665,8 +633,8 @@ class _BettingScreenState extends State<BettingScreen> {
   }
 
   void _placeBet() {
-    if (selectedMatchData == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ကျေးဇူးပြု၍ လောင်းမည့် ပွဲစဉ်ကို ရွေးချယ်ပါ။')));
+    if (selectedMatchData == null || selectedBetOption.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ကျေးဇူးပြု၍ ပွဲစဉ်နှင့် လောင်းမည့်ကွက်ကို ရွေးချယ်ပါ။')));
       return;
     }
 
@@ -687,7 +655,7 @@ class _BettingScreenState extends State<BettingScreen> {
       AppData.totalActiveBetsAmount += amount;
       AppData.activeBets.add({
         'betId': '${DateTime.now().millisecondsSinceEpoch}',
-        'match': '$matchStr (${widget.title} - $selectedBetType)',
+        'match': '$matchStr (${widget.title} - $selectedBetLabel: $selectedBetOption)',
         'amount': amount,
         'odds': 1.90,
         'status': 'ACTIVE',
@@ -705,16 +673,16 @@ class _BettingScreenState extends State<BettingScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('${widget.title} - ပွဲစဉ်များ')),
       body: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
             Text(
-              '${widget.title} အတွက် ကမ္ဘာတစ်ဝှမ်း ပွဲစဉ်များထဲမှ ရွေးချယ်ပါ',
-              style: const TextStyle(color: Colors.greenAccent, fontSize: 13, fontWeight: FontWeight.bold),
+              '${widget.title} - ပုံစံတူ ကိန်းဂဏန်းဂိုးပေါင်း/ဘော်ဒီများ',
+              style: const TextStyle(color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Expanded(
-              flex: 3,
+              flex: 4,
               child: FutureBuilder<List<Map<String, dynamic>>>(
                 future: _matchesFuture,
                 builder: (context, snapshot) {
@@ -729,32 +697,128 @@ class _BettingScreenState extends State<BettingScreen> {
                     itemCount: matches.length,
                     itemBuilder: (context, index) {
                       final m = matches[index];
-                      bool isSelected = selectedMatchData == m;
                       return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: isSelected ? Colors.green.withOpacity(0.2) : const Color(0xFF1F1F1F),
+                          color: const Color(0xFF1F1F1F),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: isSelected ? Colors.green : Colors.grey.shade800),
+                          border: Border.all(color: Colors.grey.shade800),
                         ),
-                        child: ListTile(
-                          title: Text('${m['t1']} vs ${m['t2']}', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-                          subtitle: Text('လိဂ်: ${m['league']}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                          trailing: Radio<Map<String, dynamic>>(
-                            value: m,
-                            groupValue: selectedMatchData,
-                            activeColor: Colors.greenAccent,
-                            onChanged: (val) {
-                              setState(() {
-                                selectedMatchData = val;
-                              });
-                            },
-                          ),
-                          onTap: () {
-                            setState(() {
-                              selectedMatchData = m;
-                            });
-                          },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Header: League & Time
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(Icons.star, color: Colors.green, size: 14),
+                                    const SizedBox(width: 4),
+                                    Text(m['league'], style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                                Text('ပွဲချိန် : ${m['time']}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            // Team Row 1 & Team Row 2 (Odds Layout like image)
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                    decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(4)),
+                                    child: Text(m['t1'], style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                InkWell(
+                                  onTap: () => setState(() {
+                                    selectedMatchData = m;
+                                    selectedBetOption = m['hOdds'];
+                                    selectedBetLabel = m['t1'];
+                                  }),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: (selectedMatchData == m && selectedBetOption == m['hOdds']) ? Colors.green : Colors.grey.shade700,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(m['hOdds'], style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                    decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(4)),
+                                    child: Text(m['t2'], style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                InkWell(
+                                  onTap: () => setState(() {
+                                    selectedMatchData = m;
+                                    selectedBetOption = m['aOdds'];
+                                    selectedBetLabel = m['t2'];
+                                  }),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: (selectedMatchData == m && selectedBetOption == m['aOdds']) ? Colors.green : Colors.grey.shade700,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(m['aOdds'], style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            // Over / Under Row
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: InkWell(
+                                    onTap: () => setState(() {
+                                      selectedMatchData = m;
+                                      selectedBetOption = m['overOdds'];
+                                      selectedBetLabel = 'ဂိုးပေါ်';
+                                    }),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 6),
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        color: (selectedMatchData == m && selectedBetOption == m['overOdds']) ? Colors.green : Colors.grey.shade800,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text('ဂိုးပေါ်   ${m['overOdds']}', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: InkWell(
+                                    onTap: () => setState(() {
+                                      selectedMatchData = m;
+                                      selectedBetOption = m['underOdds'];
+                                      selectedBetLabel = 'ဂိုးအောက်';
+                                    }),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 6),
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        color: (selectedMatchData == m && selectedBetOption == m['underOdds']) ? Colors.green : Colors.grey.shade800,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text('ဂိုးအောက်', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       );
                     },
@@ -770,12 +834,12 @@ class _BettingScreenState extends State<BettingScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      selectedMatchData != null 
-                        ? 'ရွေးထားသောပွဲ: ${selectedMatchData!['t1']} vs ${selectedMatchData!['t2']}' 
-                        : 'ပွဲစဉ် မရွေးရသေးပါ',
-                      style: const TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.bold),
+                      selectedMatchData != null && selectedBetOption.isNotEmpty
+                        ? 'ရွေးထားသည်: ${selectedMatchData!['t1']} vs ${selectedMatchData!['t2']} -> ($selectedBetLabel: $selectedBetOption)' 
+                        : 'ပွဲစဉ်နှင့် ဂိုးကွက် မရွေးရသေးပါ',
+                      style: const TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     TextField(
                       controller: _amountController,
                       keyboardType: TextInputType.number,
@@ -786,14 +850,14 @@ class _BettingScreenState extends State<BettingScreen> {
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     SizedBox(
                       width: double.infinity,
-                      height: 45,
+                      height: 40,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                         onPressed: _placeBet,
-                        child: const Text('အတည်ပြု လောင်းမည်', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                        child: const Text('အတည်ပြု လောင်းမည်', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
                       ),
                     ),
                   ],
@@ -807,7 +871,6 @@ class _BettingScreenState extends State<BettingScreen> {
   }
 }
 
-// 4. My Bets Screen
 class MyBetsScreen extends StatelessWidget {
   const MyBetsScreen({super.key});
 
@@ -840,7 +903,6 @@ class MyBetsScreen extends StatelessWidget {
   }
 }
 
-// 5. Old Matches Screen
 class OldMatchesScreen extends StatefulWidget {
   const OldMatchesScreen({super.key});
 
@@ -909,7 +971,6 @@ class _OldMatchesScreenState extends State<OldMatchesScreen> {
   }
 }
 
-// 6. Wallet Screen
 class WalletScreen extends StatelessWidget {
   const WalletScreen({super.key});
 
@@ -973,7 +1034,6 @@ class WalletScreen extends StatelessWidget {
   }
 }
 
-// 7. Live Results Screen
 class LiveResultsScreen extends StatefulWidget {
   const LiveResultsScreen({super.key});
 
@@ -1021,7 +1081,6 @@ class _LiveResultsScreenState extends State<LiveResultsScreen> {
   }
 }
 
-// 8. Standings Screen
 class StandingsScreen extends StatelessWidget {
   const StandingsScreen({super.key});
 
@@ -1044,13 +1103,17 @@ class StandingsScreen extends StatelessWidget {
   }
 }
 
-// 9. Points Exchange Screen
 class PointsExchangeScreen extends StatefulWidget {
   const PointsExchangeScreen({super.key});
 
   @override
+  State<PointsExchangeScreen> PointsExchangeScreenState() => _PointsExchangeScreenState();
+
+  @override
   State<PointsExchangeScreen> createState() => _PointsExchangeScreenState();
 }
+
+class _PointsExchangeModel {}
 
 class _PointsExchangeScreenState extends State<PointsExchangeScreen> {
   void _exchange() {
