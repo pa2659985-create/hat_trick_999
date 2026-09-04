@@ -592,7 +592,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-// 3. Betting Screen
+// 3. Betting Screen (API Integrated with Real Matches for မောင်း & ဘော်ဒီ/ဂိုးပေါင်း)
 class BettingScreen extends StatefulWidget {
   final String title;
   const BettingScreen({super.key, required this.title});
@@ -603,28 +603,43 @@ class BettingScreen extends StatefulWidget {
 
 class _BettingScreenState extends State<BettingScreen> {
   final TextEditingController _amountController = TextEditingController();
-  final String selectedMatch = 'မန်ချက်စတာယူနိုက်တက် vs လီဗာပူးလ်';
-  final double selectedOdds = 1.90;
+  late Future<List<Map<String, dynamic>>> _matchesFuture;
+  
+  Map<String, dynamic>? selectedMatchData;
+  String selectedBetType = 'Home Win (1)';
+
+  @override
+  void initState() {
+    super.initState();
+    _matchesFuture = ApiService.fetchLiveMatches();
+  }
 
   void _placeBet() {
+    if (selectedMatchData == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ကျေးဇူးပြု၍ လောင်းမည့် ပွဲစဉ်ကို ရွေးချယ်ပါ။')));
+      return;
+    }
+
     double amount = double.tryParse(_amountController.text) ?? 0.0;
     if (amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('လောင်းငွေ မှန်ကန်စွာ ထည့်ပါ')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('လောင်းငွေ မှန်ကန်စွာ ထည့်ပါ။')));
       return;
     }
     if (AppData.balance < amount) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('လက်ကျန်ငွေ မလုံလောက်ပါ')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('လက်ကျန်ငွေ မလုံလောက်ပါ။')));
       return;
     }
+
+    String matchStr = "${selectedMatchData!['t1']} vs ${selectedMatchData!['t2']}";
 
     setState(() {
       AppData.balance -= amount;
       AppData.totalActiveBetsAmount += amount;
       AppData.activeBets.add({
         'betId': '${DateTime.now().millisecondsSinceEpoch}',
-        'match': selectedMatch,
+        'match': '$matchStr (${widget.title} - $selectedBetType)',
         'amount': amount,
-        'odds': selectedOdds,
+        'odds': 1.90,
         'status': 'ACTIVE',
         'time': '04-09-2026'
       });
@@ -638,42 +653,101 @@ class _BettingScreenState extends State<BettingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: AppBar(title: Text('${widget.title} - ပွဲစဉ်များ')),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(8)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('ရွေးချယ်ထားသောပွဲ: $selectedMatch', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  const Text('Odds: 1.90', style: TextStyle(color: Colors.white)),
-                ],
+            Text(
+              '${widget.title} အတွက် အောက်ပါပွဲစဉ်များထဲမှ ရွေးချယ်ပါ',
+              style: const TextStyle(color: Colors.greenAccent, fontSize: 13, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              flex: 3,
+              child: FutureBuilder<List<Map<String, dynamic>>>(
+                future: _matchesFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('လောလောဆယ် ပွဲစဉ်များ မရှိသေးပါ။', style: TextStyle(color: Colors.grey)));
+                  }
+
+                  final matches = snapshot.data!;
+                  return ListView.builder(
+                    itemCount: matches.length,
+                    itemBuilder: (context, index) {
+                      final m = matches[index];
+                      bool isSelected = selectedMatchData == m;
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          color: isSelected ? Colors.green.withOpacity(0.2) : const Color(0xFF1F1F1F),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: isSelected ? Colors.green : Colors.grey.shade800),
+                        ),
+                        child: ListTile(
+                          title: Text('${m['t1']} vs ${m['t2']}', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                          subtitle: Text('လိဂ်: ${m['league']}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                          trailing: Radio<Map<String, dynamic>>(
+                            value: m,
+                            groupValue: selectedMatchData,
+                            activeColor: Colors.greenAccent,
+                            onChanged: (val) {
+                              setState(() {
+                                selectedMatchData = val;
+                              });
+                            },
+                          ),
+                          onTap: () {
+                            setState(() {
+                              selectedMatchData = m;
+                            });
+                          },
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _amountController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'လောင်းမည့် ငွေပမာဏ (Ks)',
-                filled: true,
-                fillColor: const Color(0xFF1F1F1F),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                onPressed: _placeBet,
-                child: const Text('အတည်ပြု လောင်းမည်', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+            const Divider(color: Colors.grey),
+            Expanded(
+              flex: 2,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      selectedMatchData != null 
+                        ? 'ရွေးထားသောပွဲ: ${selectedMatchData!['t1']} vs ${selectedMatchData!['t2']}' 
+                        : 'ပွဲစဉ် မရွေးရသေးပါ',
+                      style: const TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _amountController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'လောင်းမည့် ငွေပမာဏ (Ks)',
+                        filled: true,
+                        fillColor: const Color(0xFF1F1F1F),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 45,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                        onPressed: _placeBet,
+                        child: const Text('အတည်ပြု လောင်းမည်', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -964,4 +1038,3 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen> {
     );
   }
 }
-
