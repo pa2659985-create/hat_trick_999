@@ -7,8 +7,25 @@ void main() async {
   runApp(const HatTrickApp());
 }
 
-class HatTrickApp extends StatelessWidget {
+class HatTrickApp extends StatefulWidget {
   const HatTrickApp({super.key});
+
+  static void setLocale(BuildContext context, String lang) {
+    _HatTrickAppState? state = context.findAncestorStateOfType<_HatTrickAppState>();
+    state?.setLocale(lang);
+  }
+
+  @override
+  State<HatTrickApp> createState() => _HatTrickAppState();
+}
+
+class _HatTrickAppState extends State<HatTrickApp> {
+  void setLocale(String lang) {
+    setState(() {
+      AppData.language = lang;
+      AppData.saveData();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,10 +46,68 @@ class HatTrickApp extends StatelessWidget {
   }
 }
 
-// App Data Controller (State & Storage)
+// Localization Text Helper
+class AppStrings {
+  static Map<String, Map<String, String>> localizedValues = {
+    'မြန်မာ': {
+      'appName': 'HAT TRICK',
+      'appSub': '- 999 -',
+      'tagline': 'နည်းနည်းလောင်း များများနိုင်',
+      'login': 'အကောင့်ဝင်မည်',
+      'username': 'အသုံးပြုသူ အမည်',
+      'password': 'စကားဝှက်',
+      'balance': 'လက်ကျန်ငွေ',
+      'points': 'လက်ဆောင် ပွိုင့်များ',
+      'activeBetsAmt': 'လောင်းထားသောငွေ',
+      'menuTerms': 'စည်းကမ်းသတ်မှတ်ချက်များ',
+      'menuPass': 'စကားဝှက် ပြောင်းရန်',
+      'menuTeam': 'အသင်းအမည်',
+      'menuLang': 'ဘာသာစကားရွေးရန်',
+      'logout': 'ထွက်ရန်',
+      'deposit': 'ငွေသွင်းရန်',
+      'withdraw': 'ငွေထုတ်ရန်',
+      'wallet': 'ငွေစာရင်း',
+      'myBets': 'လောင်းထားသောပွဲစဉ်များ',
+      'oldMatches': 'ပွဲစဉ်ဟောင်းများ',
+      'liveResults': 'ပွဲပြီး ရလဒ်များ',
+      'standings': 'အဆင့်ဇယား',
+      'pointsExchange': 'ပွိုင့်လဲလှယ်',
+    },
+    'English': {
+      'appName': 'HAT TRICK',
+      'appSub': '- 999 -',
+      'tagline': 'Play Smart, Win Big',
+      'login': 'Login',
+      'username': 'Username',
+      'password': 'Password',
+      'balance': 'Balance',
+      'points': 'Reward Points',
+      'activeBetsAmt': 'Active Bets Amount',
+      'menuTerms': 'Terms & Conditions',
+      'menuPass': 'Change Password',
+      'menuTeam': 'Team Name',
+      'menuLang': 'Language',
+      'logout': 'Logout',
+      'deposit': 'Deposit',
+      'withdraw': 'Withdraw',
+      'wallet': 'Wallet',
+      'myBets': 'My Bets',
+      'oldMatches': 'Old Matches',
+      'liveResults': 'Live Results',
+      'standings': 'Standings',
+      'pointsExchange': 'Points Exchange',
+    },
+  };
+
+  static String get(String key, String lang) {
+    return localizedValues[lang]?[key] ?? localizedValues['မြန်မာ']![key] ?? key;
+  }
+}
+
+// App Data Controller
 class AppData {
-  static String displayName = 'မင်းမင်းအောင်';
-  static String username = 'zzzzztoe099';
+  static String displayName = 'User';
+  static String username = '';
   static String password = '123';
   static String language = 'မြန်မာ';
   static String selectedTeam = 'မြန်မာ';
@@ -45,16 +120,17 @@ class AppData {
   static List<Map<String, dynamic>> walletHistory = [];
   static List<Map<String, dynamic>> liveResultsToday = [
     {'league': 'ASEAN Championship', 'time': '26-08-2026 7:30 pm', 't1': 'ဗီယက်နမ်', 'score': '1 - 2', 't2': 'တိုင်း', 'status': 'FT'},
-    {'league': 'Japan Emperor\'s Cup', 'time': '26-08-2026 4:30 pm', 't1': 'ကွန်ဆာဒိုးဆက်ပ်ပိုရို', 'score': 'v', 't2': 'ဗန့်ဖိုရက်ကိဖူ', 'status': ''},
   ];
-  static List<Map<String, dynamic>> liveResultsYesterday = [
-    {'league': 'Australia Cup', 'time': '25-08-2026 4:00 pm', 't1': 'ကွင်းလန်လိုင်းယွန်း', 'score': '4 - 0', 't2': 'N ဆန်းရှိင်း', 'status': 'FT'},
+  static List<Map<String, dynamic>> standingsList = [
+    {'pos': 1, 'team': 'ရီးရဲမက်ဒရစ်', 'p': 5, 'pts': 15},
+    {'pos': 2, 'team': 'ဘာစီလိုနာ', 'p': 5, 'pts': 12},
+    {'pos': 3, 'team': 'အက်သလက်တီကို', 'p': 5, 'pts': 10},
   ];
 
   static Future<void> loadData() async {
     final prefs = await SharedPreferences.getInstance();
-    displayName = prefs.getString('displayName') ?? 'မင်းမင်းအောင်';
-    username = prefs.getString('username') ?? 'zzzzztoe099';
+    displayName = prefs.getString('displayName') ?? 'User';
+    username = prefs.getString('username') ?? '';
     password = prefs.getString('password') ?? '123';
     language = prefs.getString('language') ?? 'မြန်မာ';
     selectedTeam = prefs.getString('selectedTeam') ?? 'မြန်မာ';
@@ -90,7 +166,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() {
     if (_userController.text.isNotEmpty && _passController.text.isNotEmpty) {
-      AppData.username = _userController.text;
+      // ဝင်လိုက်တဲ့ Username ကို နာမည်နေရာမှာ တိုက်ရိုက် သုံးမည်
+      setState(() {
+        AppData.username = _userController.text;
+        AppData.displayName = _userController.text;
+        AppData.saveData();
+      });
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const DashboardScreen()),
@@ -111,15 +193,15 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('HAT TRICK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 32)),
-              const Text('- 999 -', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 26)),
+              Text(AppStrings.get('appName', AppData.language), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 32)),
+              Text(AppStrings.get('appSub', AppData.language), style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 26)),
               const SizedBox(height: 8),
-              const Text('နည်းနည်းနဲ့ များကိုက်မည်', style: TextStyle(color: Colors.amber, fontSize: 14)),
+              Text(AppStrings.get('tagline', AppData.language), style: const TextStyle(color: Colors.amber, fontSize: 14)),
               const SizedBox(height: 40),
               TextField(
                 controller: _userController,
                 decoration: InputDecoration(
-                  labelText: 'အသုံးပြုသူ အမည်',
+                  labelText: AppStrings.get('username', AppData.language),
                   prefixIcon: const Icon(Icons.person, color: Colors.greenAccent),
                   filled: true,
                   fillColor: const Color(0xFF1F1F1F),
@@ -131,7 +213,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _passController,
                 obscureText: true,
                 decoration: InputDecoration(
-                  labelText: 'စကားဝှက်',
+                  labelText: AppStrings.get('password', AppData.language),
                   prefixIcon: const Icon(Icons.lock, color: Colors.greenAccent),
                   filled: true,
                   fillColor: const Color(0xFF1F1F1F),
@@ -148,7 +230,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                   onPressed: _login,
-                  child: const Text('အကောင့်ဝင်မည်', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                  child: Text(AppStrings.get('login', AppData.language), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                 ),
               ),
             ],
@@ -172,36 +254,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _refresh() => setState(() {});
 
-  void _showEditProfileDialog() {
-    final nameController = TextEditingController(text: AppData.displayName);
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1F1F1F),
-        title: const Text('အမည် ပြင်ဆင်ရန်', style: TextStyle(color: Colors.white)),
-        content: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(labelText: 'အမည်အသစ်', labelStyle: TextStyle(color: Colors.grey)),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('မလုပ်တော့ပါ', style: TextStyle(color: Colors.grey))),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            onPressed: () {
-              setState(() {
-                AppData.displayName = nameController.text;
-                AppData.saveData();
-              });
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('အမည် ပြောင်းလဲခြင်း အောင်မြင်ပါသည်။')));
-            },
-            child: const Text('သိမ်းမည်', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showChangePasswordDialog() {
     final oldPassController = TextEditingController();
     final newPassController = TextEditingController();
@@ -209,7 +261,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1F1F1F),
-        title: const Text('စကားဝှက် ပြောင်းရန်', style: TextStyle(color: Colors.white)),
+        title: Text(AppStrings.get('menuPass', AppData.language), style: const TextStyle(color: Colors.white)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -246,7 +298,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1F1F1F),
-        title: const Text('စည်းကမ်းသတ်မှတ်ချက်များ', style: TextStyle(color: Colors.white)),
+        title: Text(AppStrings.get('menuTerms', AppData.language), style: const TextStyle(color: Colors.white)),
         content: const SingleChildScrollView(
           child: Text(
             '၁။ အသုံးပြုသူများသည် အသက် ၁၈ နှစ်ပြည့်ပြီးသူ ဖြစ်ရပါမည်။\n၂။ ငွေသွင်းငွေထုတ် မှန်ကန်ရမည်။\n၃။ စနစ်၏ ဆုံးဖြတ်ချက်သည် အတည်ဖြစ်ပါသည်။',
@@ -265,7 +317,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1F1F1F),
-        title: const Text('အသင်းအမည် ရွေးချယ်ရန်', style: TextStyle(color: Colors.white)),
+        title: Text(AppStrings.get('menuTeam', AppData.language), style: const TextStyle(color: Colors.white)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: ['မြန်မာ', 'အင်္ဂလိပ်', 'ထိုင်း'].map((team) {
@@ -292,7 +344,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1F1F1F),
-        title: const Text('ဘာသာစကား ရွေးချယ်ရန်', style: TextStyle(color: Colors.white)),
+        title: Text(AppStrings.get('menuLang', AppData.language), style: const TextStyle(color: Colors.white)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: ['မြန်မာ', 'English'].map((lang) {
@@ -300,11 +352,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               title: Text(lang, style: const TextStyle(color: Colors.white)),
               trailing: AppData.language == lang ? const Icon(Icons.check, color: Colors.green) : null,
               onTap: () {
-                setState(() {
-                  AppData.language = lang;
-                  AppData.saveData();
-                });
+                HatTrickApp.setLocale(context, lang);
                 Navigator.pop(context);
+                setState(() {});
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Language changed to $lang')));
               },
             );
@@ -327,12 +377,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Text('HAT TRICK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-                Text(' - 999', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 18)),
+              children: [
+                Text(AppStrings.get('appName', AppData.language), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                const Text(' - 999', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 18)),
               ],
             ),
-            const Text('နည်းနည်းနဲ့ များကိုက်မည်', style: TextStyle(color: Colors.amber, fontSize: 10)),
+            Text(AppStrings.get('tagline', AppData.language), style: const TextStyle(color: Colors.amber, fontSize: 10)),
           ],
         ),
         centerTitle: true,
@@ -343,25 +393,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           padding: EdgeInsets.zero,
           children: [
             UserAccountsDrawerHeader(
-              accountName: Row(
-                children: [
-                  Expanded(child: Text(AppData.displayName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                  IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.greenAccent, size: 18),
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _showEditProfileDialog();
-                    },
-                  ),
-                ],
-              ),
+              accountName: Text(AppData.displayName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               accountEmail: Text('Username: ${AppData.username}', style: const TextStyle(color: Colors.grey)),
               currentAccountPicture: const CircleAvatar(backgroundColor: Colors.grey, child: Icon(Icons.person, color: Colors.white)),
               decoration: const BoxDecoration(color: Color(0xFF1F1F1F)),
             ),
             ListTile(
               leading: const Icon(Icons.description, color: Colors.grey),
-              title: const Text('စည်းကမ်းသတ်မှတ်ချက်များ', style: TextStyle(color: Colors.white)),
+              title: Text(AppStrings.get('menuTerms', AppData.language), style: const TextStyle(color: Colors.white)),
               trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
               onTap: () {
                 Navigator.pop(context);
@@ -370,7 +409,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.lock, color: Colors.grey),
-              title: const Text('စကားဝှက် ပြောင်းရန်', style: TextStyle(color: Colors.white)),
+              title: Text(AppStrings.get('menuPass', AppData.language), style: const TextStyle(color: Colors.white)),
               trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
               onTap: () {
                 Navigator.pop(context);
@@ -379,7 +418,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.sports_soccer, color: Colors.amber),
-              title: const Text('အသင်းအမည်', style: TextStyle(color: Colors.white)),
+              title: Text(AppStrings.get('menuTeam', AppData.language), style: const TextStyle(color: Colors.white)),
               subtitle: Text(AppData.selectedTeam, style: const TextStyle(color: Colors.greenAccent)),
               trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
               onTap: () {
@@ -389,7 +428,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.language, color: Colors.blueAccent),
-              title: const Text('ဘာသာစကားရွေးရန်', style: TextStyle(color: Colors.white)),
+              title: Text(AppStrings.get('menuLang', AppData.language), style: const TextStyle(color: Colors.white)),
               subtitle: Text(AppData.language, style: const TextStyle(color: Colors.greenAccent)),
               trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
               onTap: () {
@@ -404,7 +443,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('ထွက်ရန်', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+              title: Text(AppStrings.get('logout', AppData.language), style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
               onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginScreen())),
             ),
           ],
@@ -430,7 +469,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('လက်ကျန်ငွေ', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                          Text(AppStrings.get('balance', AppData.language), style: const TextStyle(color: Colors.grey, fontSize: 11)),
                           const SizedBox(height: 2),
                           Text('${AppData.balance.toStringAsFixed(2)} Ks', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                         ],
@@ -438,7 +477,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          const Text('လက်ဆောင် ပွိုင့်များ', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                          Text(AppStrings.get('points', AppData.language), style: const TextStyle(color: Colors.grey, fontSize: 11)),
                           const SizedBox(height: 2),
                           Text('${AppData.points}', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                         ],
@@ -449,7 +488,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('လောင်းထားသောငွေ', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      Text(AppStrings.get('activeBetsAmt', AppData.language), style: const TextStyle(color: Colors.grey, fontSize: 12)),
                       Text('${AppData.totalActiveBetsAmount.toStringAsFixed(1)}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                     ],
                   ),
@@ -467,12 +506,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 _buildMenuCard(context, 'မောင်း', Icons.sports_score, Colors.green, const BettingScreen(title: 'မောင်း')),
                 _buildMenuCard(context, 'ဘော်ဒီ/ဂိုးပေါင်း', Icons.sports_soccer, Colors.blue, const BettingScreen(title: 'ဘော်ဒီ/ဂိုးပေါင်း')),
-                _buildMenuCard(context, 'လောင်းထားသောပွဲစဉ်များ', Icons.receipt_long, Colors.orange, const MyBetsScreen()),
-                _buildMenuCard(context, 'ပွဲစဉ်ဟောင်းများ', Icons.calendar_today, Colors.purple, const OldMatchesScreen()),
-                _buildMenuCard(context, 'ငွေစာရင်း', Icons.account_balance_wallet, Colors.teal, const WalletScreen()),
-                _buildMenuCard(context, 'ပွဲပြီး ရလဒ်များ', Icons.live_tv, Colors.redAccent, const LiveResultsScreen()),
-                _buildMenuCard(context, 'အဆင့်ဇယား', Icons.emoji_events, Colors.amber, const StandingsScreen()),
-                _buildMenuCard(context, 'ပွိုင့်လဲလှယ်', Icons.monetization_on, Colors.indigo, const PointsExchangeScreen()),
+                _buildMenuCard(context, AppStrings.get('myBets', AppData.language), Icons.receipt_long, Colors.orange, const MyBetsScreen()),
+                _buildMenuCard(context, AppStrings.get('oldMatches', AppData.language), Icons.calendar_today, Colors.purple, const OldMatchesScreen()),
+                _buildMenuCard(context, AppStrings.get('wallet', AppData.language), Icons.account_balance_wallet, Colors.teal, const WalletScreen()),
+                _buildMenuCard(context, AppStrings.get('liveResults', AppData.language), Icons.live_tv, Colors.redAccent, const LiveResultsScreen()),
+                _buildMenuCard(context, AppStrings.get('standings', AppData.language), Icons.emoji_events, Colors.amber, const StandingsScreen()),
+                _buildMenuCard(context, AppStrings.get('pointsExchange', AppData.language), Icons.monetization_on, Colors.indigo, const PointsExchangeScreen()),
               ],
             ),
           ],
@@ -505,7 +544,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-// 3. Betting Screen
+// 3. Betting Screen (မောင်း နှင့် ဘော်ဒီ/ဂိုးပေါင်း)
 class BettingScreen extends StatefulWidget {
   final String title;
   const BettingScreen({super.key, required this.title});
@@ -526,7 +565,7 @@ class _BettingScreenState extends State<BettingScreen> {
       return;
     }
     if (AppData.balance < amount) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('လက်ကျန်ငွေ မလုံလောက်ပါ (ကျေးဇူးပြု၍ ငွေအရင်သွင်းပါ)')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('လက်ကျန်ငွေ မလုံလောက်ပါ')));
       return;
     }
 
@@ -540,12 +579,6 @@ class _BettingScreenState extends State<BettingScreen> {
         'odds': selectedOdds,
         'status': 'ACTIVE',
         'time': '26-08-2026'
-      });
-      AppData.walletHistory.add({
-        'date': '26-08-2026',
-        'type': 'လောင်းကြေး',
-        'amount': amount,
-        'net': AppData.balance
       });
       AppData.saveData();
     });
@@ -602,14 +635,14 @@ class _BettingScreenState extends State<BettingScreen> {
   }
 }
 
-// 4. My Bets Screen
+// 4. My Bets Screen (လောင်းထားသောပွဲစဉ်များ)
 class MyBetsScreen extends StatelessWidget {
   const MyBetsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('လောင်းထားသောပွဲစဉ်များ')),
+      appBar: AppBar(title: Text(AppStrings.get('myBets', AppData.language))),
       body: AppData.activeBets.isEmpty
           ? const Center(child: Text('လောင်းထားသော ပွဲစဉ် မရှိသေးပါ', style: TextStyle(color: Colors.grey)))
           : ListView.builder(
@@ -626,7 +659,6 @@ class MyBetsScreen extends StatelessWidget {
                       Text('Bet ID: ${bet['betId']}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
                       Text('ပွဲစဉ်: ${bet['match']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                       Text('လောင်းငွေ: ${bet['amount']} Ks', style: const TextStyle(color: Colors.greenAccent)),
-                      Text('အခြေအနေ: ${bet['status']}', style: const TextStyle(color: Colors.blueAccent)),
                     ],
                   ),
                 );
@@ -636,97 +668,30 @@ class MyBetsScreen extends StatelessWidget {
   }
 }
 
-// 5. Old Matches Screen
-class OldMatchesScreen extends StatefulWidget {
+// 5. Old Matches Screen (ပွဲစဉ်ဟောင်းများ)
+class OldMatchesScreen extends StatelessWidget {
   const OldMatchesScreen({super.key});
-
-  @override
-  State<OldMatchesScreen> createState() => _OldMatchesScreenState();
-}
-
-class _OldMatchesScreenState extends State<OldMatchesScreen> {
-  String selectedDateStr = 'ရက်စွဲ ရွေးချယ်ရန်';
-  List<Map<String, dynamic>> filteredMatches = [];
-
-  final List<Map<String, dynamic>> allOldMatches = [
-    {'date': '25-08-2026', 'league': 'Australia Cup', 't1': 'ကွင်းလန်လိုင်းယွန်း', 'score': '4 - 0', 't2': 'N ဆန်းရှိင်း'},
-    {'date': '24-08-2026', 'league': 'Premier League', 't1': 'မန်ချက်စတာယူနိုက်တက်', 'score': '2 - 1', 't2': 'လီဗာပူး'},
-    {'date': '24-08-2026', 'league': 'La Liga', 't1': 'ရီးရဲမက်ဒရစ်', 'score': '3 - 0', 't2': 'ဘာစီလိုနာ'},
-  ];
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2025),
-      lastDate: DateTime(2028),
-    );
-    if (picked != null) {
-      setState(() {
-        selectedDateStr = "${picked.day.toString().padLeft(2, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.year}";
-        filteredMatches = allOldMatches.where((match) => match['date'] == selectedDateStr).toList();
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('ပွဲစဉ်ဟောင်းများ'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.calendar_month, color: Colors.greenAccent),
-            onPressed: () => _selectDate(context),
-            tooltip: 'ရက်စွဲ ရွေးရန်',
+      appBar: AppBar(title: Text(AppStrings.get('oldMatches', AppData.language))),
+      body: ListView(
+        padding: const EdgeInsets.all(12),
+        children: const [
+          ListTile(
+            title: Text('မန်ချက်စတာယူနိုက်တက် vs လီဗာပူးလ်', style: TextStyle(color: Colors.white)),
+            subtitle: Text('ရလဒ်: ၂ - ၁', style: TextStyle(color: Colors.greenAccent)),
+            trailing: Text('FT', style: TextStyle(color: Colors.grey)),
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('ရွေးချယ်ထားသော ရက်စွဲ: ', style: TextStyle(color: Colors.grey)),
-                Text(selectedDateStr, style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ),
-          Expanded(
-            child: filteredMatches.isEmpty
-                ? const Center(
-                    child: Text('ဤရက်စွဲအတွက် ရှေးဟောင်း ပွဲစဉ် မှတ်တမ်းများ မရှိပါ။', style: TextStyle(color: Colors.grey)),
-                  )
-                : ListView.builder(
-                    itemCount: filteredMatches.length,
-                    itemBuilder: (context, index) {
-                      final match = filteredMatches[index];
-                      return Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1E1E1E),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey.shade800),
-                        ),
-                        child: ListTile(
-                          title: Text('${match['t1']} vs ${match['t2']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                          subtitle: Text(match['league'], style: const TextStyle(color: Colors.grey)),
-                          trailing: Text(match['score'], style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 16)),
-                        ),
-                      );
-                    },
-                  ),
-          ),
+          Divider(color: Colors.grey),
         ],
       ),
     );
   }
 }
 
-// 6. Wallet Screen
+// 6. Wallet Screen (ငွေစာရင်း / ငွေသွင်းငွေထုတ်)
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
 
@@ -745,42 +710,60 @@ class _WalletScreenState extends State<WalletScreen> {
         content: TextField(
           controller: depositController,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'သွင်းမည့် ပမာဏ (Ks)',
-            labelStyle: TextStyle(color: Colors.grey),
-          ),
+          decoration: const InputDecoration(labelText: 'သွင်းမည့် ပမာဏ (Ks)'),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('မလုပ်တော့ပါ', style: TextStyle(color: Colors.grey)),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('မလုပ်တော့ပါ')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
             onPressed: () {
-              double depositAmount = double.tryParse(depositController.text) ?? 0.0;
-              if (depositAmount > 0) {
+              double amount = double.tryParse(depositController.text) ?? 0.0;
+              if (amount > 0) {
                 setState(() {
-                  AppData.balance += depositAmount;
-                  AppData.walletHistory.insert(0, {
-                    'date': '26-08-2026',
-                    'type': 'ငွေသွင်းခြင်း',
-                    'amount': depositAmount,
-                    'net': AppData.balance
-                  });
+                  AppData.balance += amount;
                   AppData.saveData();
                 });
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('ငွေကျပ် ${depositAmount.toStringAsFixed(0)} အောင်မြင်စွာ ထည့်သွင်းပြီးပါပြီ')),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('ကျေးဇူးပြု၍ မှန်ကန်သော ငွေပမာဏ ထည့်ပါ')),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ငွေကျပ် $amount အောင်မြင်စွာ ထည့်သွင်းပြီးပါပြီ')));
               }
             },
-            child: const Text('အတည်ပြုမည်', style: TextStyle(color: Colors.white)),
+            child: const Text('အတည်ပြုမည်'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showWithdrawDialog() {
+    final withdrawController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1F1F1F),
+        title: const Text('ငွေထုတ်ရန် (Withdraw)', style: TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: withdrawController,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'ထုတ်မည့် ပမာဏ (Ks)'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('မလုပ်တော့ပါ')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () {
+              double amount = double.tryParse(withdrawController.text) ?? 0.0;
+              if (amount > 0 && AppData.balance >= amount) {
+                setState(() {
+                  AppData.balance -= amount;
+                  AppData.saveData();
+                });
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ငွေကျပ် $amount အောင်မြင်စွာ ထုတ်ယူပြီးပါပြီ')));
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('လက်ကျန်ငွေ မလုံလောက်ပါ')));
+              }
+            },
+            child: const Text('ထုတ်ယူမည်'),
           ),
         ],
       ),
@@ -791,161 +774,99 @@ class _WalletScreenState extends State<WalletScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ငွေစာရင်း'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_circle, color: Colors.greenAccent),
-            onPressed: _showDepositDialog,
-            tooltip: 'ငွေသွင်းရန်',
-          ),
-        ],
+        title: Text(AppStrings.get('wallet', AppData.language)),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(12),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E1E1E),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.shade800),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: const Color(0xFF1F1F1F), borderRadius: BorderRadius.circular(10)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('လက်ကျန်ငွေ:', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                  Text('${AppData.balance} Ks', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                ],
+              ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            const SizedBox(height: 20),
+            Row(
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('လက်ရှိ လက်ကျန်ငွေ', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                    const SizedBox(height: 4),
-                    Text('${AppData.balance.toStringAsFixed(2)} Ks', style: const TextStyle(fontSize: 20, color: Colors.greenAccent, fontWeight: FontWeight.bold)),
-                  ],
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.symmetric(vertical: 12)),
+                    onPressed: _showDepositDialog,
+                    icon: const Icon(Icons.add, color: Colors.white),
+                    label: const Text('ငွေသွင်းရန်', style: TextStyle(color: Colors.white)),
+                  ),
                 ),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  onPressed: _showDepositDialog,
-                  icon: const Icon(Icons.add, size: 16, color: Colors.white),
-                  label: const Text('ငွေသွင်း', style: TextStyle(color: Colors.white)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red, padding: const EdgeInsets.symmetric(vertical: 12)),
+                    onPressed: _showWithdrawDialog,
+                    icon: const Icon(Icons.remove, color: Colors.white),
+                    label: const Text('ငွေထုတ်ရန်', style: TextStyle(color: Colors.white)),
+                  ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 16),
-          const Text('ငွေကြေး လှုပ်ရှားမှု မှတ်တမ်း', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          AppData.walletHistory.isEmpty
-              ? const Padding(
-                  padding: EdgeInsets.all(20.0),
-                  child: Center(child: Text('မှတ်တမ်း မရှိသေးပါ။', style: TextStyle(color: Colors.grey))),
-                )
-              : ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: AppData.walletHistory.length,
-                  itemBuilder: (context, index) {
-                    final item = AppData.walletHistory[index];
-                    bool isDeposit = item['type'] == 'ငွေသွင်းခြင်း';
-                    return Container(
-                      margin: const EdgeInsets.symmetric(vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E1E1E),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: ListTile(
-                        title: Text(item['type'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                        subtitle: Text(item['date'], style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                        trailing: Text(
-                          '${isDeposit ? '+' : '-'} ${item['amount']} Ks',
-                          style: TextStyle(color: isDeposit ? Colors.greenAccent : Colors.redAccent, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-// 7. Live Results Screen
-class LiveResultsScreen extends StatefulWidget {
+// 7. Live Results Screen (ပွဲပြီး ရလဒ်များ)
+class LiveResultsScreen extends StatelessWidget {
   const LiveResultsScreen({super.key});
 
   @override
-  State<LiveResultsScreen> createState() => _LiveResultsScreenState();
-}
-
-class _LiveResultsScreenState extends State<LiveResultsScreen> {
-  bool isToday = true;
-
-  @override
   Widget build(BuildContext context) {
-    final list = isToday ? AppData.liveResultsToday : AppData.liveResultsYesterday;
     return Scaffold(
-      appBar: AppBar(title: const Text('ပွဲပြီး ရလဒ်များ')),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: !isToday ? Colors.green : Colors.grey.shade800),
-                    onPressed: () => setState(() => isToday = false),
-                    child: const Text('မနေ့က'),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: isToday ? Colors.green : Colors.grey.shade800),
-                    onPressed: () => setState(() => isToday = true),
-                    child: const Text('ယနေ့'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: list.length,
-              itemBuilder: (context, index) {
-                final match = list[index];
-                return ListTile(
-                  title: Text('${match['t1']} vs ${match['t2']}', style: const TextStyle(color: Colors.white)),
-                  subtitle: Text(match['league'], style: const TextStyle(color: Colors.grey)),
-                  trailing: Text(match['score'], style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
-                );
-              },
-            ),
-          ),
-        ],
+      appBar: AppBar(title: Text(AppStrings.get('liveResults', AppData.language))),
+      body: ListView.builder(
+        itemCount: AppData.liveResultsToday.length,
+        itemBuilder: (context, index) {
+          final m = AppData.liveResultsToday[index];
+          return ListTile(
+            title: Text('${m['t1']} vs ${m['t2']}', style: const TextStyle(color: Colors.white)),
+            subtitle: Text('${m['league']} (${m['time']})', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            trailing: Text(m['score'], style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 16)),
+          );
+        },
       ),
     );
   }
 }
 
-// 8. Standings Screen
+// 8. Standings Screen (အဆင့်ဇယား)
 class StandingsScreen extends StatelessWidget {
   const StandingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('အဆင့်ဇယား')),
-      body: ListView(
-        children: const [
-          ListTile(leading: Text('1'), title: Text('Real Madrid'), trailing: Text('45 Pts')),
-          ListTile(leading: Text('2'), title: Text('Barcelona'), trailing: Text('42 Pts')),
-        ],
+      appBar: AppBar(title: Text(AppStrings.get('standings', AppData.language))),
+      body: ListView.builder(
+        itemCount: AppData.standingsList.length,
+        itemBuilder: (context, index) {
+          final s = AppData.standingsList[index];
+          return ListTile(
+            leading: Text('${s['pos']}', style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 16)),
+            title: Text('${s['team']}', style: const TextStyle(color: Colors.white)),
+            trailing: Text('P: ${s['p']} | Pts: ${s['pts']}', style: const TextStyle(color: Colors.greenAccent)),
+          );
+        },
       ),
     );
   }
 }
 
-// 9. Points Exchange Screen
+// 9. Points Exchange Screen (ပွိုင့်လဲလှယ်ခြင်း)
 class PointsExchangeScreen extends StatefulWidget {
   const PointsExchangeScreen({super.key});
 
@@ -961,7 +882,7 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen> {
         AppData.balance += 1000.0;
         AppData.saveData();
       });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွိုင့် ၁၀၀ ကို ငွေကျပ် ၁၀၀၀ သို့ အောင်မြင်စွာ လဲလှယ်ပြီးပါပြီ')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွိုင့် ၁၀၀ ကို ငွေကျပ် ၁၀၀၀ သို့ လဲလှယ်ပြီးပါပြီ')));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွိုင့် မလုံလောက်ပါ။')));
     }
@@ -970,7 +891,7 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('ပွိုင့်လဲလှယ်')),
+      appBar: AppBar(title: Text(AppStrings.get('pointsExchange', AppData.language))),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -978,14 +899,10 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen> {
           children: [
             Text('လက်ရှိ ပွိုင့်: ${AppData.points} Pts', style: const TextStyle(fontSize: 20, color: Colors.amber)),
             const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo),
-                onPressed: _exchange,
-                child: const Text('ပွိုင့်လဲမည် (100 Pts = 1000 Ks)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo, padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12)),
+              onPressed: _exchange,
+              child: const Text('ပွိုင့်လဲမည် (100 Pts = 1000 Ks)', style: TextStyle(color: Colors.white, fontSize: 16)),
             ),
           ],
         ),
