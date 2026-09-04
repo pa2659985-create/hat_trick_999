@@ -24,7 +24,6 @@ jobs:
           flutter-version: '3.19.0'
           channel: 'stable'
 
-      # 👇 Gradle ဖိုင်တွေ မပါရင် အလိုအလျောက် ဖန်တီးပေးမယ့် စာကြောင်း 👇
       - name: Create Android files if missing
         run: flutter create . --platforms=android --org com.example.hattrick
 
