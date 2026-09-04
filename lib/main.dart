@@ -52,7 +52,7 @@ class AppStrings {
     'မြန်မာ': {
       'appName': 'HAT TRICK',
       'appSub': '- 999 -',
-      'tagline': 'နည်းနည်းနဲ့ များကိုက်မည်',
+      'tagline': 'နည်းနည်းလောင်း များများနိုင်',
       'login': 'အကောင့်ဝင်မည်',
       'username': 'အသုံးပြုသူ အမည်',
       'password': 'စကားဝှက်',
@@ -100,7 +100,7 @@ class AppStrings {
   }
 }
 
-// App Data Controller
+// App Data Controller (အသစ်စက်စက် Fresh Start)
 class AppData {
   static String displayName = 'User';
   static String username = '';
@@ -108,29 +108,20 @@ class AppData {
   static String language = 'မြန်မာ';
   static String selectedTeam = 'မြန်မာ';
   
-  static double balance = 50000.0;
-  static int points = 250;
+  static double balance = 0.0;
+  static int points = 0;
   static double totalActiveBetsAmount = 0.0;
 
   static List<Map<String, dynamic>> activeBets = [];
-  
-  // ငွေသွင်းငွေထုတ် မှတ်တမ်းများ (ခလုတ်များမပါဘဲ ပြသရန်)
-  static List<Map<String, dynamic>> walletHistory = [
-    {'type': 'ငွေသွင်း', 'amount': 30000.0, 'date': '03-09-2026 10:15 AM'},
-    {'type': 'ငွေထုတ်', 'amount': 10000.0, 'date': '04-09-2026 02:45 PM'},
-    {'type': 'ငွေသွင်း', 'amount': 30000.0, 'date': '04-09-2026 08:30 AM'},
-  ];
+  static List<Map<String, dynamic>> walletHistory = []; // အလွတ်စမည်
 
   static List<Map<String, dynamic>> liveResultsToday = [
     {'league': 'English Premier League', 'time': '04-09-2026 8:30 pm', 't1': 'အာဆင်နယ်', 'score': '2 - 0', 't2': 'ချယ်လ်ဆီး', 'status': 'FT'},
-    {'league': 'Spanish La Liga', 'time': '04-09-2026 10:00 pm', 't1': 'ရီးရဲမက်ဒရစ်', 'score': '3 - 1', 't2': 'ဘာစီလိုနာ', 'status': 'FT'},
   ];
 
   static List<Map<String, dynamic>> standingsList = [
     {'pos': 1, 'team': 'ရီးရဲမက်ဒရစ်', 'p': 5, 'pts': 15},
     {'pos': 2, 'team': 'ဘာစီလိုနာ', 'p': 5, 'pts': 12},
-    {'pos': 3, 'team': 'အက်သလက်တီကို', 'p': 5, 'pts': 10},
-    {'pos': 4, 'team': 'ဗလင်စီယာ', 'p': 5, 'pts': 8},
   ];
 
   static Future<void> loadData() async {
@@ -140,8 +131,8 @@ class AppData {
     password = prefs.getString('password') ?? '123';
     language = prefs.getString('language') ?? 'မြန်မာ';
     selectedTeam = prefs.getString('selectedTeam') ?? 'မြန်မာ';
-    balance = prefs.getDouble('balance') ?? 50000.0;
-    points = prefs.getInt('points') ?? 250;
+    balance = prefs.getDouble('balance') ?? 0.0;
+    points = prefs.getInt('points') ?? 0;
     totalActiveBetsAmount = prefs.getDouble('totalActiveBetsAmount') ?? 0.0;
   }
 
@@ -728,7 +719,7 @@ class _OldMatchesScreenState extends State<OldMatchesScreen> {
                   ),
                   Divider(color: Colors.grey),
                   ListTile(
-                    title: Text('ရီးရဲမက်ဒရစ် vs ဘาစီလိုနာ', style: TextStyle(color: Colors.white)),
+                    title: Text('ရီးရဲမက်ဒရစ် vs ဘာစီလိုနာ', style: TextStyle(color: Colors.white)),
                     subtitle: Text('ရလဒ်: ၁ - ၁ (FT)', style: TextStyle(color: Colors.greenAccent)),
                     trailing: Icon(Icons.sports_soccer, color: Colors.grey),
                   ),
@@ -742,7 +733,7 @@ class _OldMatchesScreenState extends State<OldMatchesScreen> {
   }
 }
 
-// 6. Wallet Screen (ငွေသွင်း/ငွေထုတ် ခလုတ်များမပါဘဲ မှတ်တမ်းအချက်အလက်များသာ ပြသပေးသောစနစ်)
+// 6. Wallet Screen (ငွေသွင်း/ငွေထုတ် ခလုတ်များမပါဘဲ မှတ်တမ်းများကိုသာ ပြသခြင်း)
 class WalletScreen extends StatelessWidget {
   const WalletScreen({super.key});
 
@@ -769,7 +760,7 @@ class WalletScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            const Text('ငွေသွင်း/ငွေထုတ် လုပ်ဆောင်ချက် မှတ်တမ်းများ', style: TextStyle(color: Colors.greenAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text('ငွေသွင်းငွေထုတ် လုပ်ဆောင်ချက် မှတ်တမ်းများ', style: TextStyle(color: Colors.greenAccent, fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             Expanded(
               child: AppData.walletHistory.isEmpty
