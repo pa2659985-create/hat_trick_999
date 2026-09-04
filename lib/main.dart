@@ -311,10 +311,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 }
 
 // -------------------------------------------------------------
-// 3. မီနူး (၈) ခု၏ အသေးစိတ် UI ပုံစံများ (ဓာတ်ပုံအတိုင်း)
+// 3. မီနူး (၈) ခု၏ အသေးစိတ် UI ပုံစံများ
 // -------------------------------------------------------------
 
-// (၁) မောင်း (Parlay) Screen - ပုံပါ အတိုင်း
+// (၁) မောင်း (Parlay) Screen
 class ParlayScreen extends StatelessWidget {
   const ParlayScreen({super.key});
 
@@ -390,7 +390,7 @@ class ParlayScreen extends StatelessWidget {
   }
 }
 
-// (၂) ဘော်ဒီ/ဂိုးပေါင်း Screen - ပုံပါ အတိုင်း
+// (၂) ဘော်ဒီ/ဂိုးပေါင်း Screen
 class FootballOddsScreen extends StatelessWidget {
   const FootballOddsScreen({super.key});
 
@@ -446,11 +446,11 @@ class FootballOddsScreen extends StatelessWidget {
                   children: [
                     Expanded(child: Container(padding: const EdgeInsets.all(8), color: const Color(0xFF333333), child: Text(bLabel, style: const TextStyle(fontSize: 12, color: Colors.grey)))),
                     const SizedBox(width: 4),
-                    Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), color: bVal.isNotEmpty ? Colors.green.shade700 : Colors.transparent, child: Text(bVal, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)))),
+                    Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), color: bVal.isNotEmpty ? Colors.green.shade700 : Colors.transparent, child: Text(bVal, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                     const SizedBox(width: 4),
                     Expanded(child: Container(padding: const EdgeInsets.all(8), color: const Color(0xFF333333), child: Text(uLabel, style: const TextStyle(fontSize: 12, color: Colors.grey)))),
                     const SizedBox(width: 4),
-                    Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), color: uVal.isNotEmpty ? Colors.green.shade700 : Colors.transparent, child: Text(uVal, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)))),
+                    Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8), color: uVal.isNotEmpty ? Colors.green.shade700 : Colors.transparent, child: Text(uVal, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                   ],
                 ),
               ],
@@ -462,7 +462,7 @@ class FootballOddsScreen extends StatelessWidget {
   }
 }
 
-// (၃) လောင်းထားသောပွဲစဉ်များ Screen - ပုံပါ အတိုင်း
+// (၃) လောင်းထားသောပွဲစဉ်များ Screen
 class MyBetsScreen extends StatelessWidget {
   const MyBetsScreen({super.key});
 
@@ -520,7 +520,7 @@ class MyBetsScreen extends StatelessWidget {
   }
 }
 
-// (၄) ပွဲစဉ်ဟောင်းများ Screen - ကယ်တင်ဒါပါသောပုံစံ
+// (၄) ပွဲစဉ်ဟောင်းများ Screen
 class OldMatchesScreen extends StatefulWidget {
   const OldMatchesScreen({super.key});
 
@@ -571,7 +571,7 @@ class _OldMatchesScreenState extends State<OldMatchesScreen> {
   }
 }
 
-// (၅) ငွေစာရင်း Screen - ပုံပါအချက်အလက်အတိုင်း
+// (၅) ငွေစာရင်း Screen
 class WalletScreen extends StatelessWidget {
   const WalletScreen({super.key});
 
@@ -644,14 +644,25 @@ class WalletScreen extends StatelessWidget {
   Widget _wRow(String title, String val) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
-      (val.contains('လက်ကျန်') || title == 'လက်ကျန်ငွေ') 
-          ? Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(title, style: const TextStyle(color: Colors.grey, fontSize: 12)), Text(val, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))])
-          : Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(title, style: const TextStyle(color: Colors.grey, fontSize: 12)), Text(val, style: const TextStyle(color: Colors.white, fontSize: 12))])
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          Text(
+            val, 
+            style: TextStyle(
+              color: Colors.white, 
+              fontWeight: title == 'လက်ကျန်ငွေ' ? FontWeight.bold : FontWeight.normal, 
+              fontSize: 12
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-// (၆) ပွဲပြီး ရလဒ်များ Screen - မနေ့က / ယနေ့ ခလုတ်များပါသောပုံစံ
+// (၆) ပွဲပြီး ရလဒ်များ Screen
 class LiveResultsScreen extends StatefulWidget {
   const LiveResultsScreen({super.key});
 
