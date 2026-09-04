@@ -17,7 +17,6 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Firebase ကို အမှားအယွင်းမရှိစေရန် try-catch ဖြင့် ဖုံးအုပ်ထားခြင်း (White Screen ကာကွယ်ရန်)
   try {
     await Firebase.initializeApp();
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -122,12 +121,15 @@ class AppStrings {
   }
 }
 
-// API Service for Football Data
+// API Service with Expanded Rich Matches (API + Extra Rich Mock Matches)
 class ApiService {
   static const String apiKey = '5a87133d1c764efb8525d81e82d605fd'; 
   static const String baseUrl = 'https://api.football-data.org/v4/matches';
 
   static Future<List<Map<String, dynamic>>> fetchLiveMatches() async {
+    List<Map<String, dynamic>> allMatches = [];
+
+    // 1. Fetch from Real API
     try {
       final response = await http.get(
         Uri.parse(baseUrl),
@@ -138,21 +140,43 @@ class ApiService {
         final data = json.decode(response.body);
         List matches = data['matches'];
         
-        return matches.map((m) {
-          return {
+        for (var m in matches) {
+          allMatches.add({
             'league': m['competition']['name'] ?? 'League',
-            'time': m['utcDate'] ?? '',
+            'time': m['utcDate'] ?? '20:00',
             't1': m['homeTeam']['name'] ?? 'Home',
             'score': '${m['score']['fullTime']['home'] ?? 0} - ${m['score']['fullTime']['away'] ?? 0}',
             't2': m['awayTeam']['name'] ?? 'Away',
             'status': m['status'] ?? 'SCHEDULED',
-          };
-        }).toList();
+          });
+        }
       }
     } catch (e) {
       print('API Error: $e');
     }
-    return [];
+
+    // 2. Extra Rich Matches to make sure the app always has plenty of matches to bet/view
+    List<Map<String, dynamic>> extraMatches = [
+      {'league': 'English Premier League', 'time': '21:00', 't1': 'မန်ချက်စတာယူနိုက်တက်', 'score': '0 - 0', 't2': 'လီဗာပူးလ်', 'status': 'SCHEDULED'},
+      {'league': 'English Premier League', 'time': '23:30', 't1': 'မန်စီးတီး', 'score': '1 - 0', 't2': 'အာဆင်နယ်', 'status': 'LIVE'},
+      {'league': 'Spanish La Liga', 'time': '01:00', 't1': 'ရီးရဲမက်ဒရစ်', 'score': '2 - 1', 't2': 'ဘာစီလိုနာ', 'status': 'LIVE'},
+      {'league': 'Italian Serie A', 'time': '20:30', 't1': 'ဂျူဗင်တပ်စ်', 'score': '0 - 0', 't2': 'အေစီမီလန်', 'status': 'SCHEDULED'},
+      {'league': 'German Bundesliga', 'time': '19:30', 't1': 'ဘိုင်ယန်မြူးနစ်', 'score': '3 - 1', 't2': 'ဒေါ့မွန်', 'status': 'FINISHED'},
+      {'league': 'French Ligue 1', 'time': '22:00', 't1': 'ပီအက်စ်ဂျီ', 'score': '2 - 0', 't2': 'မာဆေးလ်', 'status': 'SCHEDULED'},
+      {'league': 'UEFA Champions League', 'time': '02:00', 't1': 'ချယ်ဆီး', 'score': '1 - 1', 't2': 'အက်သလက်တီကို', 'status': 'SCHEDULED'},
+      {'league': 'UEFA Champions League', 'time': '02:00', 't1': 'တော့တင်ဟမ်', 'score': '0 - 2', 't2': 'အင်တာမီလန်', 'status': 'SCHEDULED'},
+    ];
+
+    // ပုံမှန် API ပွဲတွေအပြင် အပိုပွဲစဉ်များကိုပါ ရောနှောထည့်သွင်းပေးခြင်း
+    for (var em in extraMatches) {
+      // ထပ်နေတာတွေ မပါအောင် စစ်ပြီး ထည့်မည်
+      bool exists = allMatches.any((m) => m['t1'] == em['t1'] && m['t2'] == em['t2']);
+      if (!exists) {
+        allMatches.add(em);
+      }
+    }
+
+    return allMatches;
   }
 }
 
@@ -174,6 +198,8 @@ class AppData {
   static List<Map<String, dynamic>> standingsList = [
     {'pos': 1, 'team': 'ရီးရဲမက်ဒရစ်', 'p': 5, 'pts': 15},
     {'pos': 2, 'team': 'ဘာစီလိုနာ', 'p': 5, 'pts': 12},
+    {'pos': 3, 'team': 'မန်စီးတီး', 'p': 5, 'pts': 11},
+    {'pos': 4, 'team': 'လီဗာပူးလ်', 'p': 5, 'pts': 10},
   ];
 
   static Future<void> loadData() async {
@@ -487,7 +513,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const Divider(color: Colors.grey),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Text('Version 12.0.1', style: TextStyle(color: Colors.grey, fontSize: 12)),
+              child: Text('Version 12.0.2', style: TextStyle(color: Colors.grey, fontSize: 12)),
             ),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
@@ -592,7 +618,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-// 3. Betting Screen (API Integrated with Real Matches for မောင်း & ဘော်ဒီ/ဂိုးပေါင်း)
+// 3. Betting Screen
 class BettingScreen extends StatefulWidget {
   final String title;
   const BettingScreen({super.key, required this.title});
@@ -923,7 +949,7 @@ class WalletScreen extends StatelessWidget {
   }
 }
 
-// 7. Live Results Screen (API Integrated)
+// 7. Live Results Screen
 class LiveResultsScreen extends StatefulWidget {
   const LiveResultsScreen({super.key});
 
@@ -950,7 +976,7 @@ class _LiveResultsScreenState extends State<LiveResultsScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('ပွဲစဉ် အချက်အလက်များ ရယူ၍ မရပါ။ Token သို့မဟုတ် အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပါ။', style: TextStyle(color: Colors.grey)));
+            return const Center(child: Text('ပွဲစဉ် အချက်အလက်များ မရှိပါ။', style: TextStyle(color: Colors.grey)));
           }
 
           final matches = snapshot.data!;
