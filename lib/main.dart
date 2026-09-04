@@ -1,8 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.h';
+
+// Firebase Background Notification Handler
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  print("Background Message Received: ${message.messageId}");
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Firebase ကို စတင်ချိတ်ဆက်ခြင်း
+  await Firebase.initializeApp();
+  
+  // Firebase Background Messaging ချိတ်ဆက်ခြင်း
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
   await AppData.loadData();
   runApp(const HatTrickApp());
 }
@@ -100,7 +117,42 @@ class AppStrings {
   }
 }
 
-// App Data Controller (အသစ်စက်စက် Fresh Start)
+// API Service for Football Data
+class ApiService {
+  // ထည့်သွင်းပြီးသား API Token အမှန်
+  static const String apiKey = '5a87133d1c764efb8525d81e82d605fd'; 
+  static const String baseUrl = 'https://api.football-data.org/v4/matches';
+
+  static Future<List<Map<String, dynamic>>> fetchLiveMatches() async {
+    try {
+      final response = await http.get(
+        Uri.parse(baseUrl),
+        headers: {'X-Auth-Token': apiKey},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        List matches = data['matches'];
+        
+        return matches.map((m) {
+          return {
+            'league': m['competition']['name'] ?? 'League',
+            'time': m['utcDate'] ?? '',
+            't1': m['homeTeam']['name'] ?? 'Home',
+            'score': '${m['score']['fullTime']['home'] ?? 0} - ${m['score']['fullTime']['away'] ?? 0}',
+            't2': m['awayTeam']['name'] ?? 'Away',
+            'status': m['status'] ?? 'SCHEDULED',
+          };
+        }).toList();
+      }
+    } catch (e) {
+      print('API Error: $e');
+    }
+    return [];
+  }
+}
+
+// App Data Controller
 class AppData {
   static String displayName = 'User';
   static String username = '';
@@ -113,11 +165,7 @@ class AppData {
   static double totalActiveBetsAmount = 0.0;
 
   static List<Map<String, dynamic>> activeBets = [];
-  static List<Map<String, dynamic>> walletHistory = []; // အလွတ်စမည်
-
-  static List<Map<String, dynamic>> liveResultsToday = [
-    {'league': 'English Premier League', 'time': '04-09-2026 8:30 pm', 't1': 'အာဆင်နယ်', 'score': '2 - 0', 't2': 'ချယ်လ်ဆီး', 'status': 'FT'},
-  ];
+  static List<Map<String, dynamic>> walletHistory = [];
 
   static List<Map<String, dynamic>> standingsList = [
     {'pos': 1, 'team': 'ရီးရဲမက်ဒရစ်', 'p': 5, 'pts': 15},
@@ -664,7 +712,7 @@ class MyBetsScreen extends StatelessWidget {
   }
 }
 
-// 5. Old Matches Screen (Calendar ပါဝင်သော ပွဲစဉ်ဟောင်းများ)
+// 5. Old Matches Screen
 class OldMatchesScreen extends StatefulWidget {
   const OldMatchesScreen({super.key});
 
@@ -733,16 +781,14 @@ class _OldMatchesScreenState extends State<OldMatchesScreen> {
   }
 }
 
-// 6. Wallet Screen (ငွေသွင်း/ငွေထုတ် ခလုတ်များမပါဘဲ မှတ်တမ်းများကိုသာ ပြသခြင်း)
+// 6. Wallet Screen
 class WalletScreen extends StatelessWidget {
   const WalletScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppStrings.get('wallet', AppData.language)),
-      ),
+      appBar: AppBar(title: Text(AppStrings.get('wallet', AppData.language))),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -799,22 +845,47 @@ class WalletScreen extends StatelessWidget {
   }
 }
 
-// 7. Live Results Screen
-class LiveResultsScreen extends StatelessWidget {
+// 7. Live Results Screen (API Integrated)
+class LiveResultsScreen extends StatefulWidget {
   const LiveResultsScreen({super.key});
+
+  @override
+  State<LiveResultsScreen> createState() => _LiveResultsScreenState();
+}
+
+class _LiveResultsScreenState extends State<LiveResultsScreen> {
+  late Future<List<Map<String, dynamic>>> _matchesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _matchesFuture = ApiService.fetchLiveMatches();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(AppStrings.get('liveResults', AppData.language))),
-      body: ListView.builder(
-        itemCount: AppData.liveResultsToday.length,
-        itemBuilder: (context, index) {
-          final m = AppData.liveResultsToday[index];
-          return ListTile(
-            title: Text('${m['t1']} vs ${m['t2']}', style: const TextStyle(color: Colors.white)),
-            subtitle: Text('${m['league']} (${m['time']})', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-            trailing: Text(m['score'], style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 16)),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _matchesFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('ပွဲစဉ် အချက်အလက်များ ရယူ၍ မရပါ။ Token သို့မဟုတ် အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပါ။', style: TextStyle(color: Colors.grey)));
+          }
+
+          final matches = snapshot.data!;
+          return ListView.builder(
+            itemCount: matches.length,
+            itemBuilder: (context, index) {
+              final m = matches[index];
+              return ListTile(
+                title: Text('${m['t1']} vs ${m['t2']}', style: const TextStyle(color: Colors.white)),
+                subtitle: Text('${m['league']} (${m['time']})', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                trailing: Text(m['score'], style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 16)),
+              );
+            },
           );
         },
       ),
