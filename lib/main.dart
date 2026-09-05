@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Cloud Database အတွက် ထည့်သွင်းခြင်း
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
@@ -39,7 +39,7 @@ class _HatTrickAppState extends State<HatTrickApp> {
   @override
   void initState() {
     super.initState();
-    // ၃။ Push Notifications (Foreground Listener) အပြည့်အစုံ ထည့်သွင်းခြင်း
+    // ၈။ Push Notifications (Foreground Listener) အပြည့်အစုံ ထည့်သွင်းခြင်း
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (message.notification != null) {
         print('Foreground Notification received: ${message.notification!.title}');
@@ -70,19 +70,9 @@ class ApiService {
   static const String apiKey = '5a87133d1c764efb8525d81e82d605fd'; 
   static const String baseUrl = 'https://api.football-data.org/v4/matches';
 
+  // ၃။ ပွဲစဉ်အသစ်များကို API မှ တိုက်ရိုက်ဆွဲထုတ်ခြင်း (Live & Upcoming)
   static Future<List<Map<String, dynamic>>> fetchMatches() async {
-    List<Map<String, dynamic>> allMatches = [
-      {
-        'id': 'm1',
-        'league': 'Indonesia Super League',
-        'time': '05-09-2026 3:00 pm',
-        't1': 'B ဆိုလို FC',
-        't2': 'P ဆူရာဘယသ',
-        'teamOdds': '= -.25',
-        'oddsVal': 1.85,
-        'status': 'LIVE',
-      },
-    ];
+    List<Map<String, dynamic>> allMatches = [];
 
     try {
       final response = await http.get(
@@ -95,27 +85,53 @@ class ApiService {
         List matches = data['matches'];
         
         for (var m in matches) {
-          if (m['status'] == 'TIMED' || m['status'] == 'SCHEDULED') {
-            allMatches.add({
-              'id': '${m['id']}',
-              'league': m['competition']['name'] ?? 'World League',
-              'time': '05-09-2026 8:00 pm',
-              't1': m['homeTeam']['name'] ?? 'Home Team',
-              't2': m['awayTeam']['name'] ?? 'Away Team',
-              'teamOdds': '1 +55',
-              'oddsVal': 1.80,
-              'status': 'UPCOMING',
-            });
-          }
+          allMatches.add({
+            'id': '${m['id']}',
+            'league': m['competition']['name'] ?? 'World League',
+            'time': m['utcDate'] != null ? m['utcDate'].toString().replaceFirst('T', ' ').substring(0, 16) : '05-09-2026 8:00 pm',
+            't1': m['homeTeam']['name'] ?? 'Home Team',
+            't2': m['awayTeam']['name'] ?? 'Away Team',
+            'status': m['status'] ?? 'UPCOMING',
+            // မောင်းလောင်းရန်အတွက် အစုံအလင်ပါသော Odds များနှင့် ဂိုးပေါ်/ဂိုးအောက် (Over/Under) များ
+            'odds': {
+              'homeWin': 1.85,
+              'awayWin': 1.95,
+              'handicapType': 'ခန္ဓာကိုယ်ကြေး (0.5)',
+              'handicapVal': 1.80,
+              'over2.5': 1.90, // ဂိုးပေါ်
+              'under2.5': 1.85, // ဂိုးအောက်
+            }
+          });
         }
       }
     } catch (e) {
       print('API Error: $e');
     }
 
+    // API မှ ပွဲမရခဲ့လျှင် ဒေတာမပြတ်သွားစေရန် Demo ပွဲစဉ် ထည့်ပေးခြင်း
+    if (allMatches.isEmpty) {
+      allMatches.add({
+        'id': 'm1',
+        'league': 'Indonesia Super League',
+        'time': '05-09-2026 3:00 pm',
+        't1': 'B ဆိုလို FC',
+        't2': 'P ဆူရာဘယသ',
+        'status': 'LIVE',
+        'odds': {
+          'homeWin': 1.85,
+          'awayWin': 2.05,
+          'handicapType': '-.25',
+          'handicapVal': 1.80,
+          'over2.5': 1.95,
+          'under2.5': 1.75,
+        }
+      });
+    }
+
     return allMatches;
   }
 
+  // ၄။ ပွဲစဉ်ဟောင်းများကို API မှ တိုက်ရိုက်ဆွဲထုတ်ခြင်း (Finished Matches)
   static Future<List<Map<String, dynamic>>> fetchOldMatches() async {
     List<Map<String, dynamic>> oldMatches = [];
 
@@ -135,7 +151,7 @@ class ApiService {
             'league': m['competition']['name'] ?? 'League',
             'match': '${m['homeTeam']['name']} vs ${m['awayTeam']['name']}',
             'score': '${score['home'] ?? 0} - ${score['away'] ?? 0}',
-            'date': m['utcDate'].substring(0, 10),
+            'date': m['utcDate'] != null ? m['utcDate'].substring(0, 10) : '2026-09-05',
             'result': 'ပြီးဆုံး (FT)',
           });
         }
@@ -158,6 +174,7 @@ class AppData {
   static List<Map<String, dynamic>> activeBets = [];
   static List<Map<String, dynamic>> parlaySlip = []; 
 
+  // ၂။ Cloud Database (Firestore) ဖြင့် အချက်အလက်များ သိမ်းဆည်းခြင်း
   static Future<void> loadData() async {
     final prefs = await SharedPreferences.getInstance();
     displayName = prefs.getString('displayName') ?? 'User';
@@ -166,7 +183,6 @@ class AppData {
     balance = prefs.getDouble('balance') ?? 50000.0;
     points = prefs.getInt('points') ?? 250;
 
-    // ၁။ Cloud Database (Firestore) မှ အချက်အလက်များ တွဲဖက်ဆွဲထုတ်ရန် စနစ်အဆင်သင့်လုပ်ခြင်း
     try {
       if (username.isNotEmpty) {
         var userDoc = await FirebaseFirestore.instance.collection('users').doc(username).get();
@@ -189,7 +205,6 @@ class AppData {
     await prefs.setDouble('balance', balance);
     await prefs.setInt('points', points);
 
-    // ၁။ Cloud Database သို့ အချက်အလက်များ အမြဲတမ်းသိမ်းဆည်းခြင်း (Cloud Backup)
     try {
       if (username.isNotEmpty) {
         await FirebaseFirestore.instance.collection('users').doc(username).set({
@@ -335,6 +350,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.manage_accounts, color: Colors.greenAccent),
+              // ၅။ ပရိုไฟล์နှင့် စကားဝှက် စီမံခန့်ခွဲမှု
               title: const Text('ပရိုไฟล์ စီမံရန်', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
@@ -504,7 +520,7 @@ class _BettingScreenState extends State<BettingScreen> {
 
   void _addToParlay(Map<String, dynamic> match, String betType, String selection, double odds) {
     setState(() {
-      AppData.parlaySlip.removeWhere((item) => item['matchId'] == match['id']);
+      AppData.parlaySlip.removeWhere((item) => item['matchId'] == match['id'] && item['betType'] == betType);
       AppData.parlaySlip.add({
         'matchId': match['id'],
         'matchName': '${match['t1']} vs ${match['t2']}',
@@ -536,7 +552,7 @@ class _BettingScreenState extends State<BettingScreen> {
           )
         ],
       ),
-      // ၂။ API Error Handling UI ပြသခြင်း
+      // ၇။ API Error Handling UI ပါဝင်ခြင်း
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _matchesFuture,
         builder: (context, snapshot) {
@@ -567,47 +583,70 @@ class _BettingScreenState extends State<BettingScreen> {
             itemCount: matches.length,
             itemBuilder: (context, index) {
               final m = matches[index];
+              final odds = m['odds'];
               return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                padding: const EdgeInsets.all(8),
+                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(color: const Color(0xFF2C2C2C), borderRadius: BorderRadius.circular(8)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('ပွဲချိန် : ${m['time']}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                    Text('${m['league']} | ${m['time']}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
                     const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(child: Text(m['t1'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+                        const Text(' vs ', style: TextStyle(color: Colors.grey)),
+                        Expanded(child: Text(m['t2'], textAlign: TextAlign.end, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    // အိမ်ကွင်း / အဝေးကွင်း / ဘော်ဒီ ရွေးချယ်ရန် ခလုတ်များ
                     Row(
                       children: [
                         Expanded(
-                          child: InkWell(
-                            onTap: () => _addToParlay(m, 'အိမ်ကွင်း', m['t1'], m['oddsVal']),
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(4)),
-                              child: Text(m['t1'], style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        InkWell(
-                          onTap: () => _addToParlay(m, 'ဘော်ဒီကြေး', m['teamOdds'], m['oddsVal']),
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(4)),
-                            child: Text(m['teamOdds'], style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.grey.shade800, padding: EdgeInsets.zero),
+                            onPressed: () => _addToParlay(m, 'အနိုင်/အရှုံး', '${m['t1']} (Win)', odds['homeWin']),
+                            child: Text('${m['t1']}\n(${odds['homeWin']})', textAlign: TextAlign.center, style: const TextStyle(fontSize: 10)),
                           ),
                         ),
                         const SizedBox(width: 4),
                         Expanded(
-                          child: InkWell(
-                            onTap: () => _addToParlay(m, 'အဝေးကွင်း', m['t2'], m['oddsVal']),
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(4)),
-                              child: Text(m['t2'], style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                            ),
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade700, padding: EdgeInsets.zero),
+                            onPressed: () => _addToParlay(m, 'ဘော်ဒီကြေး', odds['handicapType'], odds['handicapVal']),
+                            child: Text('ဘော်ဒီ\n(${odds['handicapVal']})', textAlign: TextAlign.center, style: const TextStyle(fontSize: 10)),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.grey.shade800, padding: EdgeInsets.zero),
+                            onPressed: () => _addToParlay(m, 'အနိုင်/အရှုံး', '${m['t2']} (Win)', odds['awayWin']),
+                            child: Text('${m['t2']}\n(${odds['awayWin']})', textAlign: TextAlign.center, style: const TextStyle(fontSize: 10)),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    // ဂိုးပေါ် / ဂိုးအောက် (Over / Under) ရွေးချယ်ရန် ခလုတ်များ
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.blueGrey.shade800, padding: EdgeInsets.zero),
+                            onPressed: () => _addToParlay(m, 'ဂိုးပေါ်/အောက်', 'ဂိုးပေါ် (Over 2.5)', odds['over2.5']),
+                            child: Text('ဂိုးပေါ် (Over)\n(${odds['over2.5']})', textAlign: TextAlign.center, style: const TextStyle(fontSize: 10)),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.blueGrey.shade800, padding: EdgeInsets.zero),
+                            onPressed: () => _addToParlay(m, 'ဂိုးပေါ်/အောက်', 'ဂိုးအောက် (Under 2.5)', odds['under2.5']),
+                            child: Text('ဂိုးအောက် (Under)\n(${odds['under2.5']})', textAlign: TextAlign.center, style: const TextStyle(fontSize: 10)),
                           ),
                         ),
                       ],
@@ -641,6 +680,7 @@ class _ParlaySlipScreenState extends State<ParlaySlipScreen> {
     return AppData.parlaySlip.isEmpty ? 0.0 : total;
   }
 
+  // ၁။ မောင်းဘောနပ်စ်စနစ် (ပွဲ ၃ ပွဲလျှင် ၁၀%၊ ၄ ပွဲနှင့်အထက်လျှင် ၂၀% အပိုဆုကြေး)
   double _calculateBonusPercent() {
     int count = AppData.parlaySlip.length;
     if (count >= 4) return 0.20;
@@ -712,8 +752,8 @@ class _ParlaySlipScreenState extends State<ParlaySlipScreen> {
                         return Card(
                           color: const Color(0xFF1F1F1F),
                           child: ListTile(
-                            title: Text(item['matchName'], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                            subtitle: Text('ရွေးချယ်မှု: ${item['betType']} (${item['selection']}) | Odds: ${item['odds']}', style: const TextStyle(color: Colors.greenAccent)),
+                            title: Text(item['matchName'], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
+                            subtitle: Text('ရွေးချယ်မှု: ${item['betType']} (${item['selection']}) | Odds: ${item['odds']}', style: const TextStyle(color: Colors.greenAccent, fontSize: 11)),
                             trailing: IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
                               onPressed: () {
@@ -797,13 +837,14 @@ class MyBetsScreen extends StatefulWidget {
 }
 
 class _MyBetsScreenState extends State<MyBetsScreen> {
+  // ၆။ အနိုင်/အရှုံး အလိုအလျောက် စစ်ဆေး/ပေးချေသည့်စနစ် (Auto Settlement Demo)
   void _settleBet(int index, bool isWin) async {
     var bet = AppData.activeBets[index];
     if (bet['status'] != 'ACTIVE') return;
 
     setState(() {
       if (isWin) {
-        AppData.balance += bet['potentialWin'];
+        AppData.balance += (bet['potentialWin'] as double);
         bet['status'] = 'WON (အနိုင်ရ)';
       } else {
         bet['status'] = 'LOST (အရှုံး)';
