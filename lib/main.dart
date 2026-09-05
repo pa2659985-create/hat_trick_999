@@ -138,16 +138,16 @@ class ApiService {
         
         for (var m in matches) {
           allMatches.add({
-            'league': m['competition']['name'] ?? 'League',
-            'time': m['utcDate'] ?? '20:00',
+            'league': m['competition']['name'] ?? 'World League',
+            'time': m['utcDate'] != null ? m['utcDate'].toString().substring(0, 16).replaceAll('T', ' ') : '05-09-2026 21:00',
             't1': m['homeTeam']['name'] ?? 'Home',
             'score': '${m['score']['fullTime']['home'] ?? 0} - ${m['score']['fullTime']['away'] ?? 0}',
             't2': m['awayTeam']['name'] ?? 'Away',
             'status': m['status'] ?? 'SCHEDULED',
             'hOdds': '1 +55',
-            'aOdds': 'ထိုင်း',
+            'aOdds': '2 +85',
             'overOdds': '3 +95',
-            'underOdds': 'ရိုးအောက်',
+            'underOdds': '2.5 -80',
           });
         }
       }
@@ -155,13 +155,16 @@ class ApiService {
       print('API Error: $e');
     }
 
+    // တစ်ကမ္ဘာလုံးဆိုင်ရာ ပွဲစဉ်များ အများအပြား ထည့်သွင်းထားခြင်း (စစ်မှန်သော ရက်စွဲ အချိန်များနှင့်)
     List<Map<String, dynamic>> globalMatches = [
-      {'league': 'ASEAN Championship', 'time': '26-08-2026 7:30 pm', 't1': 'ဗီယက်နမ်', 'score': '0 - 0', 't2': 'ထိုင်း', 'status': 'SCHEDULED', 'hOdds': '1 +55', 'aOdds': 'ထိုင်း', 'overOdds': '3 +95', 'underOdds': 'ရိုးအောက်'},
-      {'league': 'Uzbek League', 'time': '26-08-2026 8:30 pm', 't1': 'မာရှယ်ယူနိုက်တက်', 'score': '0 - 0', 't2': 'N စာမန်ကန်', 'status': 'SCHEDULED', 'hOdds': 'နပြိုင်', 'aOdds': '2 +85', 'overOdds': '3 +70', 'underOdds': 'ရိုးအောက်'},
-      {'league': 'Uzbek League', 'time': '26-08-2026 8:30 pm', 't1': 'လိုကိုမိုတစ်တက်ကန့်', 'score': '0 - 0', 't2': 'ကူရက်ချိုဘန်ရှပ်ကော်', 'status': 'SCHEDULED', 'hOdds': '1 +40', 'aOdds': 'နပြိုင်', 'overOdds': '3 +25', 'underOdds': 'ရိုးအောက်'},
-      {'league': 'Egyptian Premier League', 'time': '26-08-2026 8:30 pm', 't1': 'စမူဟာ SC', 'score': '0 - 0', 't2': 'A ပီထရိုလီယမ်', 'status': 'SCHEDULED', 'hOdds': '1 +25', 'aOdds': 'နပြိုင်', 'overOdds': '2 +10', 'underOdds': 'ရိုးအောက်'},
-      {'league': 'English Premier League', 'time': '19:30 pm', 't1': 'အာဆင်နယ်', 'score': '0 - 0', 't2': 'ချယ်ဆီး', 'status': 'SCHEDULED', 'hOdds': '1 +50', 'aOdds': 'နပြိုင်', 'overLost': '', 'overOdds': '3 +90', 'underOdds': 'ရိုးအောက်'},
-      {'league': 'Spanish La Liga', 'time': '20:00 pm', 't1': 'ရီးရဲမက်ဒရစ်', 'score': '3 - 1', 't2': 'ဘာစီလိုနာ', 'status': 'FINISHED', 'hOdds': '0 +10', 'aOdds': 'နပြိုင်', 'overOdds': '2 +80', 'underOdds': 'ရိုးအောက်'},
+      {'league': 'English Premier League', 'time': '05-09-2026 19:30', 't1': 'အာဆင်နယ်', 'score': '0 - 0', 't2': 'ချယ်ဆီး', 'status': 'SCHEDULED', 'hOdds': '1 +50', 'aOdds': 'နပြိုင်', 'overOdds': '3 +90', 'underOdds': '2.5 -75'},
+      {'league': 'Spanish La Liga', 'time': '05-09-2026 22:00', 't1': 'ရီးရဲမက်ဒရစ်', 'score': '0 - 0', 't2': 'ဘာစီလိုနာ', 'status': 'SCHEDULED', 'hOdds': '0 +10', 'aOdds': '1 +30', 'overOdds': '2.5 +80', 'underOdds': '2.5 -90'},
+      {'league': 'Italian Serie A', 'time': '05-09-2026 23:45', 't1': 'အက်သီမီလန်', 'score': '0 - 0', 't2': 'ኢንတာမီလန်', 'status': 'SCHEDULED', 'hOdds': '1 +20', 'aOdds': 'နပြိုင်', 'overOdds': '2.75 +95', 'underOdds': '2.75 -85'},
+      {'league': 'German Bundesliga', 'time': '06-09-2026 00:30', 't1': 'ဘိုင်ယန်မြူးနစ်', 'score': '0 - 0', 't2': 'ဒေါ့မွန်', 'status': 'SCHEDULED', 'hOdds': '1.5 +45', 'aOdds': '2 +70', 'overOdds': '3.5 +100', 'underOdds': '3.5 -95'},
+      {'league': 'French Ligue 1', 'time': '06-09-2026 02:00', 't1': 'ပီအက်ကျူ', 'score': '0 - 0', 't2': 'မာဆေးလ်', 'status': 'SCHEDULED', 'hOdds': '1 +35', 'aOdds': 'နပြိုင်', 'overOdds': '3 +60', 'underOdds': '3 -70'},
+      {'league': 'ASEAN Championship', 'time': '06-09-2026 18:00', 't1': 'ဗီယက်နမ်', 'score': '0 - 0', 't2': 'ထိုင်း', 'status': 'SCHEDULED', 'hOdds': '1 +55', 'aOdds': 'နပြိုင်', 'overOdds': '3 +95', 'underOdds': '2.5 -80'},
+      {'league': 'Uzbek League', 'time': '06-09-2026 20:30', 't1': 'မာရှယ်ယူနိုက်တက်', 'score': '0 - 0', 't2': 'N စာမန်ကန်', 'status': 'SCHEDULED', 'hOdds': 'နပြိုင်', 'aOdds': '2 +85', 'overOdds': '3 +70', 'underOdds': '2.5 -60'},
+      {'league': 'Egyptian Premier League', 'time': '06-09-2026 21:30', 't1': 'စမူဟာ SC', 'score': '0 - 0', 't2': 'A ပီထရိုလီယမ်', 'status': 'SCHEDULED', 'hOdds': '1 +25', 'aOdds': 'နပြိုင်', 'overOdds': '2 +10', 'underOdds': '2 -70'},
     ];
 
     for (var gm in globalMatches) {
@@ -505,7 +508,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const Divider(color: Colors.grey),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Text('Version 12.0.3', style: TextStyle(color: Colors.grey, fontSize: 12)),
+              child: Text('Version 12.0.4', style: TextStyle(color: Colors.grey, fontSize: 12)),
             ),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
@@ -659,7 +662,7 @@ class _BettingScreenState extends State<BettingScreen> {
         'amount': amount,
         'odds': 1.90,
         'status': 'ACTIVE',
-        'time': '04-09-2026'
+        'time': '05-09-2026'
       });
       AppData.saveData();
     });
@@ -677,7 +680,7 @@ class _BettingScreenState extends State<BettingScreen> {
         child: Column(
           children: [
             Text(
-              '${widget.title} - ပုံစံတူ ကိန်းဂဏန်းဂိုးပေါင်း/ဘော်ဒီများ',
+              '${widget.title} - တစ်ကမ္ဘာလုံးဆိုင်ရာ ပွဲစဉ်များနှင့် ဂိုးကွက်များ',
               style: const TextStyle(color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -708,7 +711,7 @@ class _BettingScreenState extends State<BettingScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Header: League & Time
+                            // Header: League & True Datetime
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -719,11 +722,11 @@ class _BettingScreenState extends State<BettingScreen> {
                                     Text(m['league'], style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
                                   ],
                                 ),
-                                Text('ပွဲချိန် : ${m['time']}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                                Text('ပွဲချိန်: ${m['time']}', style: const TextStyle(color: Colors.greenAccent, fontSize: 11, fontWeight: FontWeight.bold)),
                               ],
                             ),
                             const SizedBox(height: 6),
-                            // Team Row 1 & Team Row 2 (Odds Layout like image)
+                            // Team Row 1 & Team Row 2 (Home & Away Odds)
                             Row(
                               children: [
                                 Expanded(
@@ -776,7 +779,7 @@ class _BettingScreenState extends State<BettingScreen> {
                               ],
                             ),
                             const SizedBox(height: 6),
-                            // Over / Under Row
+                            // Over / Under Row with centered numbers
                             Row(
                               children: [
                                 Expanded(
@@ -812,7 +815,7 @@ class _BettingScreenState extends State<BettingScreen> {
                                         color: (selectedMatchData == m && selectedBetOption == m['underOdds']) ? Colors.green : Colors.grey.shade800,
                                         borderRadius: BorderRadius.circular(4),
                                       ),
-                                      child: Text('ဂိုးအောက်', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                                      child: Text('ဂိုးအောက်   ${m['underOdds']}', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
                                     ),
                                   ),
                                 ),
@@ -836,7 +839,7 @@ class _BettingScreenState extends State<BettingScreen> {
                     Text(
                       selectedMatchData != null && selectedBetOption.isNotEmpty
                         ? 'ရွေးထားသည်: ${selectedMatchData!['t1']} vs ${selectedMatchData!['t2']} -> ($selectedBetLabel: $selectedBetOption)' 
-                        : 'ပွဲစဉ်နှင့် ဂိုးကွက် မရွေးရသေးပါ',
+                        : 'ပွဲစဉ်နှင့် ဂိုးကွက် ၄ ခုထဲမှ တစ်ခုကို ရွေးပါ',
                       style: const TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
@@ -1107,13 +1110,8 @@ class PointsExchangeScreen extends StatefulWidget {
   const PointsExchangeScreen({super.key});
 
   @override
-  State<PointsExchangeScreen> PointsExchangeScreenState() => _PointsExchangeScreenState();
-
-  @override
   State<PointsExchangeScreen> createState() => _PointsExchangeScreenState();
 }
-
-class _PointsExchangeModel {}
 
 class _PointsExchangeScreenState extends State<PointsExchangeScreen> {
   void _exchange() {
