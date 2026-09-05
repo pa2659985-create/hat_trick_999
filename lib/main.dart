@@ -50,7 +50,7 @@ class _HatTrickAppState extends State<HatTrickApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'HAT TRICK - 999',
+      title: '555 SPORT',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
@@ -69,48 +69,36 @@ class _HatTrickAppState extends State<HatTrickApp> {
 class AppStrings {
   static Map<String, Map<String, String>> localizedValues = {
     'မြန်မာ': {
-      'appName': 'HAT TRICK',
-      'appSub': '- 999 -',
+      'appName': '555 SPORT',
       'tagline': 'နည်းနည်းလောင်း များများနိုင်',
       'login': 'အကောင့်ဝင်မည်',
       'username': 'အသုံးပြုသူ အမည်',
       'password': 'စကားဝှက်',
       'balance': 'လက်ကျန်ငွေ',
       'points': 'လက်ဆောင် ပွိုင့်များ',
-      'activeBetsAmt': 'လောင်းထားသောငွေ',
-      'menuTerms': 'စည်းကမ်းသတ်မှတ်ချက်များ',
-      'menuPass': 'စကားဝှက် ပြောင်းရန်',
-      'menuTeam': 'အသင်းအမည်',
-      'menuLang': 'ဘာသာစကားရွေးရန်',
-      'logout': 'ထွက်ရန်',
       'wallet': 'ငွေစာရင်း',
       'myBets': 'လောင်းထားသောပွဲစဉ်များ',
       'oldMatches': 'ပွဲစဉ်ဟောင်းများ',
       'liveResults': 'ပွဲပြီး ရလဒ်များ',
       'standings': 'အဆင့်ဇယား',
       'pointsExchange': 'ပွိုင့်လဲလှယ်',
+      'logout': 'ထွက်ရန်',
     },
     'English': {
-      'appName': 'HAT TRICK',
-      'appSub': '- 999 -',
+      'appName': '555 SPORT',
       'tagline': 'Play Smart, Win Big',
       'login': 'Login',
       'username': 'Username',
       'password': 'Password',
       'balance': 'Balance',
       'points': 'Reward Points',
-      'activeBetsAmt': 'Active Bets Amount',
-      'menuTerms': 'Terms & Conditions',
-      'menuPass': 'Change Password',
-      'menuTeam': 'Team Name',
-      'menuLang': 'Language',
-      'logout': 'Logout',
       'wallet': 'Wallet',
       'myBets': 'My Bets',
       'oldMatches': 'Old Matches',
       'liveResults': 'Live Results',
       'standings': 'Standings',
       'pointsExchange': 'Points Exchange',
+      'logout': 'Logout',
     },
   };
 
@@ -124,7 +112,56 @@ class ApiService {
   static const String baseUrl = 'https://api.football-data.org/v4/matches';
 
   static Future<List<Map<String, dynamic>>> fetchLiveMatches() async {
-    List<Map<String, dynamic>> allMatches = [];
+    List<Map<String, dynamic>> allMatches = [
+      {
+        'league': 'Indonesia Super League',
+        'time': '05-09-2026 3:00 pm',
+        't1': 'B ဆိုလို FC',
+        'score': '0 - 0',
+        't2': 'P ဆူရာဘယ',
+        'status': 'SCHEDULED',
+        'hOdds': '= -.25',
+        'aOdds': '',
+        'overOdds': '3 +80',
+        'underOdds': 'ဂိုးအောက်',
+      },
+      {
+        'league': 'Indonesia Super League',
+        'time': '05-09-2026 3:00 pm',
+        't1': 'ပါဆော ကေ',
+        'score': '0 - 0',
+        't2': 'ဒီဝါ် Utd FC',
+        'status': 'SCHEDULED',
+        'hOdds': '',
+        'aOdds': '= -75',
+        'overOdds': '3 +35',
+        'underOdds': 'ဂိုးအောက်',
+      },
+      {
+        'league': 'Indonesia Super League',
+        'time': '05-09-2026 3:00 pm',
+        't1': 'PSIM ယောရှက် ကာတာ',
+        'score': '0 - 0',
+        't2': 'P တန်ဂျာရမ်',
+        'status': 'SCHEDULED',
+        'hOdds': '1 +85',
+        'aOdds': '',
+        'overOdds': '2 -50',
+        'underOdds': 'ဂိုးအောက်',
+      },
+      {
+        'league': 'J3 League',
+        'time': '05-09-2026 3:30 pm',
+        't1': 'FC ဂီဖူ',
+        'score': '0 - 0',
+        't2': 'ဖိုရ်ရန်ကန်န်နာတာဝ',
+        'status': 'SCHEDULED',
+        'hOdds': '1 +85',
+        'aOdds': '',
+        'overOdds': '3 +80',
+        'underOdds': 'ဂိုးအောက်',
+      },
+    ];
 
     try {
       final response = await http.get(
@@ -139,39 +176,20 @@ class ApiService {
         for (var m in matches) {
           allMatches.add({
             'league': m['competition']['name'] ?? 'World League',
-            'time': m['utcDate'] != null ? m['utcDate'].toString().substring(0, 16).replaceAll('T', ' ') : '05-09-2026 21:00',
+            'time': '05-09-2026 4:00 pm',
             't1': m['homeTeam']['name'] ?? 'Home',
             'score': '${m['score']['fullTime']['home'] ?? 0} - ${m['score']['fullTime']['away'] ?? 0}',
             't2': m['awayTeam']['name'] ?? 'Away',
             'status': m['status'] ?? 'SCHEDULED',
-            'hOdds': '1 +55',
-            'aOdds': '2 +85',
-            'overOdds': '3 +95',
-            'underOdds': '2.5 -80',
+            'hOdds': '= -.50',
+            'aOdds': '',
+            'overOdds': '2.5 +90',
+            'underOdds': 'ဂိုးအောက်',
           });
         }
       }
     } catch (e) {
       print('API Error: $e');
-    }
-
-    // တစ်ကမ္ဘာလုံးဆိုင်ရာ ပွဲစဉ်များ အများအပြား ထည့်သွင်းထားခြင်း (စစ်မှန်သော ရက်စွဲ အချိန်များနှင့်)
-    List<Map<String, dynamic>> globalMatches = [
-      {'league': 'English Premier League', 'time': '05-09-2026 19:30', 't1': 'အာဆင်နယ်', 'score': '0 - 0', 't2': 'ချယ်ဆီး', 'status': 'SCHEDULED', 'hOdds': '1 +50', 'aOdds': 'နပြိုင်', 'overOdds': '3 +90', 'underOdds': '2.5 -75'},
-      {'league': 'Spanish La Liga', 'time': '05-09-2026 22:00', 't1': 'ရီးရဲမက်ဒရစ်', 'score': '0 - 0', 't2': 'ဘာစီလိုနာ', 'status': 'SCHEDULED', 'hOdds': '0 +10', 'aOdds': '1 +30', 'overOdds': '2.5 +80', 'underOdds': '2.5 -90'},
-      {'league': 'Italian Serie A', 'time': '05-09-2026 23:45', 't1': 'အက်သီမီလန်', 'score': '0 - 0', 't2': 'ኢንတာမီလန်', 'status': 'SCHEDULED', 'hOdds': '1 +20', 'aOdds': 'နပြိုင်', 'overOdds': '2.75 +95', 'underOdds': '2.75 -85'},
-      {'league': 'German Bundesliga', 'time': '06-09-2026 00:30', 't1': 'ဘိုင်ယန်မြူးနစ်', 'score': '0 - 0', 't2': 'ဒေါ့မွန်', 'status': 'SCHEDULED', 'hOdds': '1.5 +45', 'aOdds': '2 +70', 'overOdds': '3.5 +100', 'underOdds': '3.5 -95'},
-      {'league': 'French Ligue 1', 'time': '06-09-2026 02:00', 't1': 'ပီအက်ကျူ', 'score': '0 - 0', 't2': 'မာဆေးလ်', 'status': 'SCHEDULED', 'hOdds': '1 +35', 'aOdds': 'နပြိုင်', 'overOdds': '3 +60', 'underOdds': '3 -70'},
-      {'league': 'ASEAN Championship', 'time': '06-09-2026 18:00', 't1': 'ဗီယက်နမ်', 'score': '0 - 0', 't2': 'ထိုင်း', 'status': 'SCHEDULED', 'hOdds': '1 +55', 'aOdds': 'နပြိုင်', 'overOdds': '3 +95', 'underOdds': '2.5 -80'},
-      {'league': 'Uzbek League', 'time': '06-09-2026 20:30', 't1': 'မာရှယ်ယူနိုက်တက်', 'score': '0 - 0', 't2': 'N စာမန်ကန်', 'status': 'SCHEDULED', 'hOdds': 'နပြိုင်', 'aOdds': '2 +85', 'overOdds': '3 +70', 'underOdds': '2.5 -60'},
-      {'league': 'Egyptian Premier League', 'time': '06-09-2026 21:30', 't1': 'စမူဟာ SC', 'score': '0 - 0', 't2': 'A ပီထရိုလီယမ်', 'status': 'SCHEDULED', 'hOdds': '1 +25', 'aOdds': 'နပြိုင်', 'overOdds': '2 +10', 'underOdds': '2 -70'},
-    ];
-
-    for (var gm in globalMatches) {
-      bool exists = allMatches.any((m) => m['t1'] == gm['t1'] && m['t2'] == gm['t2']);
-      if (!exists) {
-        allMatches.add(gm);
-      }
     }
 
     return allMatches;
@@ -181,16 +199,20 @@ class ApiService {
 class AppData {
   static String displayName = 'User';
   static String username = '';
-  static String password = '123';
   static String language = 'မြန်မာ';
-  static String selectedTeam = 'မြန်မာ';
   
-  static double balance = 0.0;
-  static int points = 0;
+  static double balance = 50000.0;
+  static int points = 250;
   static double totalActiveBetsAmount = 0.0;
 
   static List<Map<String, dynamic>> activeBets = [];
-  static List<Map<String, dynamic>> walletHistory = [];
+  static List<Map<String, dynamic>> oldMatchesList = [
+    {'time': '04-09-2026 3:00 pm', 'match': 'မန်စီးတီး vs လီဗာပူးလ်', 'result': '2 - 1'},
+    {'time': '04-09-2026 6:00 pm', 'match': 'ရီးရဲမက်ဒရစ် vs ဘာစီလိုနာ', 'result': '3 - 2'},
+  ];
+  static List<Map<String, dynamic>> liveResultsList = [
+    {'time': '05-09-2026 1:00 pm', 'match': 'ချယ်ဆီး vs အာဆင်နယ်', 'result': '1 - 1 (ပြီးဆုံး)'},
+  ];
 
   static List<Map<String, dynamic>> standingsList = [
     {'pos': 1, 'team': 'ရီးရဲမက်ဒရစ်', 'p': 5, 'pts': 15},
@@ -203,24 +225,18 @@ class AppData {
     final prefs = await SharedPreferences.getInstance();
     displayName = prefs.getString('displayName') ?? 'User';
     username = prefs.getString('username') ?? '';
-    password = prefs.getString('password') ?? '123';
     language = prefs.getString('language') ?? 'မြန်မာ';
-    selectedTeam = prefs.getString('selectedTeam') ?? 'မြန်မာ';
-    balance = prefs.getDouble('balance') ?? 0.0;
-    points = prefs.getInt('points') ?? 0;
-    totalActiveBetsAmount = prefs.getDouble('totalActiveBetsAmount') ?? 0.0;
+    balance = prefs.getDouble('balance') ?? 50000.0;
+    points = prefs.getInt('points') ?? 250;
   }
 
   static Future<void> saveData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('displayName', displayName);
     await prefs.setString('username', username);
-    await prefs.setString('password', password);
     await prefs.setString('language', language);
-    await prefs.setString('selectedTeam', selectedTeam);
     await prefs.setDouble('balance', balance);
     await prefs.setInt('points', points);
-    await prefs.setDouble('totalActiveBetsAmount', totalActiveBetsAmount);
   }
 }
 
@@ -236,22 +252,16 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passController = TextEditingController();
 
   void _login() {
-    if (_userController.text.isNotEmpty && _passController.text.isNotEmpty) {
-      setState(() {
-        AppData.username = _userController.text;
-        AppData.displayName = _userController.text;
-        AppData.saveData();
-      });
+    setState(() {
+      AppData.username = _userController.text.isEmpty ? 'User999' : _userController.text;
+      AppData.displayName = AppData.username;
+      AppData.saveData();
+    });
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const DashboardScreen()),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('အသုံးပြုသူအမည်နှင့် စကားဝှက် ထည့်ပါ')),
-      );
-    }
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const DashboardScreen()),
+    );
   }
 
   @override
@@ -263,8 +273,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(AppStrings.get('appName', AppData.language), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 32)),
-              Text(AppStrings.get('appSub', AppData.language), style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 26)),
+              Text(AppStrings.get('appName', AppData.language), style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 36)),
               const SizedBox(height: 8),
               Text(AppStrings.get('tagline', AppData.language), style: const TextStyle(color: Colors.amber, fontSize: 14)),
               const SizedBox(height: 40),
@@ -323,116 +332,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _refresh() => setState(() {});
 
-  void _showChangePasswordDialog() {
-    final oldPassController = TextEditingController();
-    final newPassController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1F1F1F),
-        title: Text(AppStrings.get('menuPass', AppData.language), style: const TextStyle(color: Colors.white)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: oldPassController, obscureText: true, decoration: const InputDecoration(labelText: 'လက်ရှိ စကားဝှက်')),
-            const SizedBox(height: 10),
-            TextField(controller: newPassController, obscureText: true, decoration: const InputDecoration(labelText: 'စကားဝှက်အသစ်')),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('မလုပ်တော့ပါ', style: TextStyle(color: Colors.grey))),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            onPressed: () {
-              if (oldPassController.text == AppData.password) {
-                setState(() {
-                  AppData.password = newPassController.text;
-                  AppData.saveData();
-                });
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('စကားဝှက် အောင်မြင်စွာ ပြောင်းပြီးပါပြီ')));
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('လက်ရှိ စကားဝှက် မှားယွင်းနေပါသည်။')));
-              }
-            },
-            child: const Text('ပြောင်းမည်', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showTermsDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1F1F1F),
-        title: Text(AppStrings.get('menuTerms', AppData.language), style: const TextStyle(color: Colors.white)),
-        content: const SingleChildScrollView(
-          child: Text(
-            '၁။ အသုံးပြုသူများသည် အသက် ၁၈ နှစ်ပြည့်ပြီးသူ ဖြစ်ရပါမည်။\n၂။ ငွေသွင်းငွေထုတ် မှန်ကန်ရမည်။\n၃။ စနစ်၏ ဆုံးဖြတ်ချက်သည် အတည်ဖြစ်ပါသည်။',
-            style: TextStyle(color: Colors.grey),
-          ),
-        ),
-        actions: [
-          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.green), onPressed: () => Navigator.pop(context), child: const Text('OK'))
-        ],
-      ),
-    );
-  }
-
-  void _showTeamDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1F1F1F),
-        title: Text(AppStrings.get('menuTeam', AppData.language), style: const TextStyle(color: Colors.white)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: ['မြန်မာ', 'အင်္ဂလိပ်', 'ထိုင်း'].map((team) {
-            return ListTile(
-              title: Text(team, style: const TextStyle(color: Colors.white)),
-              trailing: AppData.selectedTeam == team ? const Icon(Icons.check, color: Colors.green) : null,
-              onTap: () {
-                setState(() {
-                  AppData.selectedTeam = team;
-                  AppData.saveData();
-                });
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('အသင်းကို $team သို့ ပြောင်းပြီးပါပြီ')));
-              },
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
-  void _showLanguageDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1F1F1F),
-        title: Text(AppStrings.get('menuLang', AppData.language), style: const TextStyle(color: Colors.white)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: ['မြန်မာ', 'English'].map((lang) {
-            return ListTile(
-              title: Text(lang, style: const TextStyle(color: Colors.white)),
-              trailing: AppData.language == lang ? const Icon(Icons.check, color: Colors.green) : null,
-              onTap: () {
-                HatTrickApp.setLocale(context, lang);
-                Navigator.pop(context);
-                setState(() {});
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Language changed to $lang')));
-              },
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -442,18 +341,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           icon: const Icon(Icons.menu, color: Colors.white),
           onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
-        title: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(AppStrings.get('appName', AppData.language), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-                const Text(' - 999', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 18)),
-              ],
-            ),
-            Text(AppStrings.get('tagline', AppData.language), style: const TextStyle(color: Colors.amber, fontSize: 10)),
-          ],
-        ),
+        title: Text(AppStrings.get('appName', AppData.language), style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 20)),
         centerTitle: true,
       ),
       drawer: Drawer(
@@ -468,48 +356,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
               decoration: const BoxDecoration(color: Color(0xFF1F1F1F)),
             ),
             ListTile(
-              leading: const Icon(Icons.description, color: Colors.grey),
-              title: Text(AppStrings.get('menuTerms', AppData.language), style: const TextStyle(color: Colors.white)),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
-              onTap: () {
-                Navigator.pop(context);
-                _showTermsDialog();
-              },
+              leading: const Icon(Icons.receipt_long, color: Colors.orange),
+              title: Text(AppStrings.get('myBets', AppData.language), style: const TextStyle(color: Colors.white)),
+              onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (context) => const MyBetsScreen())); },
             ),
             ListTile(
-              leading: const Icon(Icons.lock, color: Colors.grey),
-              title: Text(AppStrings.get('menuPass', AppData.language), style: const TextStyle(color: Colors.white)),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
-              onTap: () {
-                Navigator.pop(context);
-                _showChangePasswordDialog();
-              },
+              leading: const Icon(Icons.history, color: Colors.blue),
+              title: Text(AppStrings.get('oldMatches', AppData.language), style: const TextStyle(color: Colors.white)),
+              onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (context) => const OldMatchesScreen())); },
             ),
             ListTile(
-              leading: const Icon(Icons.sports_soccer, color: Colors.amber),
-              title: Text(AppStrings.get('menuTeam', AppData.language), style: const TextStyle(color: Colors.white)),
-              subtitle: Text(AppData.selectedTeam, style: const TextStyle(color: Colors.greenAccent)),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
-              onTap: () {
-                Navigator.pop(context);
-                _showTeamDialog();
-              },
+              leading: const Icon(Icons.live_tv, color: Colors.redAccent),
+              title: Text(AppStrings.get('liveResults', AppData.language), style: const TextStyle(color: Colors.white)),
+              onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (context) => const LiveResultsScreen())); },
             ),
             ListTile(
-              leading: const Icon(Icons.language, color: Colors.blueAccent),
-              title: Text(AppStrings.get('menuLang', AppData.language), style: const TextStyle(color: Colors.white)),
-              subtitle: Text(AppData.language, style: const TextStyle(color: Colors.greenAccent)),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
-              onTap: () {
-                Navigator.pop(context);
-                _showLanguageDialog();
-              },
+              leading: const Icon(Icons.card_giftcard, color: Colors.amber),
+              title: Text(AppStrings.get('pointsExchange', AppData.language), style: const TextStyle(color: Colors.white)),
+              onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (context) => const PointsExchangeScreen())).then((_) => _refresh()); },
+            ),
+            ListTile(
+              leading: const Icon(Icons.account_balance_wallet, color: Colors.teal),
+              title: Text(AppStrings.get('wallet', AppData.language), style: const TextStyle(color: Colors.white)),
+              onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (context) => const WalletScreen())); },
             ),
             const Divider(color: Colors.grey),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Text('Version 12.0.4', style: TextStyle(color: Colors.grey, fontSize: 12)),
-            ),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
               title: Text(AppStrings.get('logout', AppData.language), style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
@@ -529,36 +400,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: Colors.grey.shade800),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(AppStrings.get('balance', AppData.language), style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                          const SizedBox(height: 2),
-                          Text('${AppData.balance.toStringAsFixed(2)} Ks', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(AppStrings.get('points', AppData.language), style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                          const SizedBox(height: 2),
-                          Text('${AppData.points}', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
+                      Text(AppStrings.get('balance', AppData.language), style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                      const SizedBox(height: 2),
+                      Text('${AppData.balance.toStringAsFixed(2)} Ks', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                     ],
                   ),
-                  const Divider(color: Colors.grey, height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(AppStrings.get('activeBetsAmt', AppData.language), style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                      Text('${AppData.totalActiveBetsAmount.toStringAsFixed(1)} Ks', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                      Text(AppStrings.get('points', AppData.language), style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                      const SizedBox(height: 2),
+                      Text('${AppData.points}', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ],
@@ -573,14 +431,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisSpacing: 10,
               childAspectRatio: 2.2,
               children: [
-                _buildMenuCard(context, 'မောင်း', Icons.sports_score, Colors.green, const BettingScreen(title: 'မောင်း')),
-                _buildMenuCard(context, 'ဘော်ဒီ/ဂိုးပေါင်း', Icons.sports_soccer, Colors.blue, const BettingScreen(title: 'ဘော်ဒီ/ဂိုးပေါင်း')),
+                _buildMenuCard(context, 'ဘော်ဒီ / ဂိုးပေါင်း', Icons.sports_soccer, Colors.green, const BettingScreen(title: 'ဘော်ဒီ / ဂိုးပေါင်း')),
                 _buildMenuCard(context, AppStrings.get('myBets', AppData.language), Icons.receipt_long, Colors.orange, const MyBetsScreen()),
-                _buildMenuCard(context, AppStrings.get('oldMatches', AppData.language), Icons.calendar_today, Colors.purple, const OldMatchesScreen()),
-                _buildMenuCard(context, AppStrings.get('wallet', AppData.language), Icons.account_balance_wallet, Colors.teal, const WalletScreen()),
+                _buildMenuCard(context, AppStrings.get('oldMatches', AppData.language), Icons.history, Colors.blue, const OldMatchesScreen()),
                 _buildMenuCard(context, AppStrings.get('liveResults', AppData.language), Icons.live_tv, Colors.redAccent, const LiveResultsScreen()),
-                _buildMenuCard(context, AppStrings.get('standings', AppData.language), Icons.emoji_events, Colors.amber, const StandingsScreen()),
-                _buildMenuCard(context, AppStrings.get('pointsExchange', AppData.language), Icons.monetization_on, Colors.indigo, const PointsExchangeScreen()),
+                _buildMenuCard(context, AppStrings.get('pointsExchange', AppData.language), Icons.card_giftcard, Colors.amber, const PointsExchangeScreen()),
+                _buildMenuCard(context, AppStrings.get('standings', AppData.language), Icons.emoji_events, Colors.teal, const StandingsScreen()),
               ],
             ),
           ],
@@ -622,12 +478,7 @@ class BettingScreen extends StatefulWidget {
 }
 
 class _BettingScreenState extends State<BettingScreen> {
-  final TextEditingController _amountController = TextEditingController();
   late Future<List<Map<String, dynamic>>> _matchesFuture;
-  
-  Map<String, dynamic>? selectedMatchData;
-  String selectedBetOption = '';
-  String selectedBetLabel = '';
 
   @override
   void initState() {
@@ -635,240 +486,226 @@ class _BettingScreenState extends State<BettingScreen> {
     _matchesFuture = ApiService.fetchLiveMatches();
   }
 
-  void _placeBet() {
-    if (selectedMatchData == null || selectedBetOption.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ကျေးဇူးပြု၍ ပွဲစဉ်နှင့် လောင်းမည့်ကွက်ကို ရွေးချယ်ပါ။')));
-      return;
-    }
+  void _showBetBottomSheet(Map<String, dynamic> match, String teamName, String oddsValue, String betType) {
+    final TextEditingController amountController = TextEditingController();
 
-    double amount = double.tryParse(_amountController.text) ?? 0.0;
-    if (amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('လောင်းငွေ မှန်ကန်စွာ ထည့်ပါ။')));
-      return;
-    }
-    if (AppData.balance < amount) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('လက်ကျန်ငွေ မလုံလောက်ပါ။')));
-      return;
-    }
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF1F1F1F),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 16,
+            right: 16,
+            top: 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('ပွဲစဉ် - ${match['t1']} vs ${match['t2']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+              const SizedBox(height: 6),
+              Text('ရွေးချယ်မှု: $teamName ($betType: $oddsValue)', style: const TextStyle(color: Colors.greenAccent, fontSize: 13)),
+              const SizedBox(height: 15),
+              TextField(
+                controller: amountController,
+                keyboardType: TextInputType.number,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: 'လောင်းမည့် ငွေပမာဏ (Ks)',
+                  filled: true,
+                  fillColor: const Color(0xFF2C2C2C),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+              const SizedBox(height: 15),
+              SizedBox(
+                width: double.infinity,
+                height: 45,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  onPressed: () {
+                    double amount = double.tryParse(amountController.text) ?? 0.0;
+                    if (amount <= 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('လောင်းငွေ မှန်ကန်စွာ ထည့်ပါ။')));
+                      return;
+                    }
+                    if (AppData.balance < amount) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('လက်ကျန်ငွေ မလုံလောက်ပါ။')));
+                      return;
+                    }
 
-    String matchStr = "${selectedMatchData!['t1']} vs ${selectedMatchData!['t2']}";
+                    setState(() {
+                      AppData.balance -= amount;
+                      AppData.totalActiveBetsAmount += amount;
+                      AppData.activeBets.add({
+                        'betId': '${DateTime.now().millisecondsSinceEpoch}',
+                        'match': '${match['t1']} vs ${match['t2']}',
+                        'choice': '$teamName [$betType: $oddsValue]',
+                        'amount': amount,
+                        'time': match['time'],
+                      });
+                      AppData.saveData();
+                    });
 
-    setState(() {
-      AppData.balance -= amount;
-      AppData.totalActiveBetsAmount += amount;
-      AppData.activeBets.add({
-        'betId': '${DateTime.now().millisecondsSinceEpoch}',
-        'match': '$matchStr (${widget.title} - $selectedBetLabel: $selectedBetOption)',
-        'amount': amount,
-        'odds': 1.90,
-        'status': 'ACTIVE',
-        'time': '05-09-2026'
-      });
-      AppData.saveData();
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွဲစဉ် လောင်းခြင်း အောင်မြင်ပါသည်။')));
-    Navigator.pop(context);
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွဲစဉ် လောင်းခြင်း အောင်မြင်ပါသည်။')));
+                  },
+                  child: const Text('အတည်ပြု လောင်းမည်', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('${widget.title} - ပွဲစဉ်များ')),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            Text(
-              '${widget.title} - တစ်ကမ္ဘာလုံးဆိုင်ရာ ပွဲစဉ်များနှင့် ဂိုးကွက်များ',
-              style: const TextStyle(color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              flex: 4,
-              child: FutureBuilder<List<Map<String, dynamic>>>(
-                future: _matchesFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('လောလောဆယ် ပွဲစဉ်များ မရှိသေးပါ။', style: TextStyle(color: Colors.grey)));
-                  }
+      appBar: AppBar(title: Text(widget.title)),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _matchesFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('ပွဲစဉ်များ မရှိသေးပါ။', style: TextStyle(color: Colors.grey)));
+          }
 
-                  final matches = snapshot.data!;
-                  return ListView.builder(
-                    itemCount: matches.length,
-                    itemBuilder: (context, index) {
-                      final m = matches[index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1F1F1F),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey.shade800),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Header: League & True Datetime
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    const Icon(Icons.star, color: Colors.green, size: 14),
-                                    const SizedBox(width: 4),
-                                    Text(m['league'], style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
-                                  ],
-                                ),
-                                Text('ပွဲချိန်: ${m['time']}', style: const TextStyle(color: Colors.greenAccent, fontSize: 11, fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            // Team Row 1 & Team Row 2 (Home & Away Odds)
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                    decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(4)),
-                                    child: Text(m['t1'], style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                InkWell(
-                                  onTap: () => setState(() {
-                                    selectedMatchData = m;
-                                    selectedBetOption = m['hOdds'];
-                                    selectedBetLabel = m['t1'];
-                                  }),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: (selectedMatchData == m && selectedBetOption == m['hOdds']) ? Colors.green : Colors.grey.shade700,
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(m['hOdds'], style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                    decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(4)),
-                                    child: Text(m['t2'], style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                InkWell(
-                                  onTap: () => setState(() {
-                                    selectedMatchData = m;
-                                    selectedBetOption = m['aOdds'];
-                                    selectedBetLabel = m['t2'];
-                                  }),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: (selectedMatchData == m && selectedBetOption == m['aOdds']) ? Colors.green : Colors.grey.shade700,
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(m['aOdds'], style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            // Over / Under Row with centered numbers
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: InkWell(
-                                    onTap: () => setState(() {
-                                      selectedMatchData = m;
-                                      selectedBetOption = m['overOdds'];
-                                      selectedBetLabel = 'ဂိုးပေါ်';
-                                    }),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 6),
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                        color: (selectedMatchData == m && selectedBetOption == m['overOdds']) ? Colors.green : Colors.grey.shade800,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text('ဂိုးပေါ်   ${m['overOdds']}', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: InkWell(
-                                    onTap: () => setState(() {
-                                      selectedMatchData = m;
-                                      selectedBetOption = m['underOdds'];
-                                      selectedBetLabel = 'ဂိုးအောက်';
-                                    }),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 6),
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                        color: (selectedMatchData == m && selectedBetOption == m['underOdds']) ? Colors.green : Colors.grey.shade800,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text('ဂိုးအောက်   ${m['underOdds']}', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-            const Divider(color: Colors.grey),
-            Expanded(
-              flex: 2,
-              child: SingleChildScrollView(
+          final matches = snapshot.data!;
+          
+          return ListView.builder(
+            padding: const EdgeInsets.all(8.0),
+            itemCount: matches.length,
+            itemBuilder: (context, index) {
+              final m = matches[index];
+              bool hasHODds = m['hOdds'] != null && m['hOdds'].toString().isNotEmpty;
+              bool hasAOdds = m['aOdds'] != null && m['aOdds'].toString().isNotEmpty;
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A1A1A),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade800),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      selectedMatchData != null && selectedBetOption.isNotEmpty
-                        ? 'ရွေးထားသည်: ${selectedMatchData!['t1']} vs ${selectedMatchData!['t2']} -> ($selectedBetLabel: $selectedBetOption)' 
-                        : 'ပွဲစဉ်နှင့် ဂိုးကွက် ၄ ခုထဲမှ တစ်ခုကို ရွေးပါ',
-                      style: const TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _amountController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'လောင်းမည့် ငွေပမာဏ (Ks)',
-                        filled: true,
-                        fillColor: const Color(0xFF1F1F1F),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF222222),
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.star, color: Colors.green, size: 14),
+                          const SizedBox(width: 6),
+                          Text(m['league'], style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 40,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                        onPressed: _placeBet,
-                        child: const Text('အတည်ပြု လောင်းမည်', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Text('ပွဲချိန် : ${m['time']}', style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 4,
+                                child: InkWell(
+                                  onTap: () => _showBetBottomSheet(m, m['t1'], hasHODds ? m['hOdds'] : '0', 'ဘော်ဒီ'),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(color: const Color(0xFF333333), borderRadius: BorderRadius.circular(4)),
+                                    child: Text(m['t1'], style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              if (hasHODds)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                  decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(4)),
+                                  child: Text(m['hOdds'], style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                                ),
+                              if (hasAOdds)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                  decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(4)),
+                                  child: Text(m['aOdds'], style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                                ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                flex: 4,
+                                child: InkWell(
+                                  onTap: () => _showBetBottomSheet(m, m['t2'], hasAOdds ? m['aOdds'] : '0', 'ဘော်ဒီ'),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(color: const Color(0xFF333333), borderRadius: BorderRadius.circular(4)),
+                                    child: Text(m['t2'], style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () => _showBetBottomSheet(m, 'ဂိုးပေါ်', m['overOdds'].split(' ').last, 'ဂိုးပေါ်/အောက်'),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(color: const Color(0xFF333333), borderRadius: BorderRadius.circular(4)),
+                                    child: const Text('ဂိုးပေါ်', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(4)),
+                                child: Text(m['overOdds'], style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () => _showBetBottomSheet(m, 'ဂိုးအောက်', 'အောက်', 'ဂိုးပေါ်/အောက်'),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(color: const Color(0xFF333333), borderRadius: BorderRadius.circular(4)),
+                                    child: const Text('ဂိုးအောက်', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-            ),
-          ],
-        ),
+              );
+            },
+          );
+        },
       ),
     );
   }
@@ -882,7 +719,7 @@ class MyBetsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(AppStrings.get('myBets', AppData.language))),
       body: AppData.activeBets.isEmpty
-          ? const Center(child: Text('လောင်းထားသော ပွဲစဉ် မရှိသေးပါ', style: TextStyle(color: Colors.grey)))
+          ? const Center(child: Text('လောင်းထားသော ပွဲစဉ် မရှိသေးပါ။', style: TextStyle(color: Colors.grey)))
           : ListView.builder(
               itemCount: AppData.activeBets.length,
               itemBuilder: (context, index) {
@@ -894,9 +731,13 @@ class MyBetsScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Bet ID: ${bet['betId']}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                      Text('ပွဲချိန်: ${bet['time']}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                      const SizedBox(height: 4),
                       Text('ပွဲစဉ်: ${bet['match']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      Text('လောင်းငွေ: ${bet['amount']} Ks', style: const TextStyle(color: Colors.greenAccent)),
+                      const SizedBox(height: 4),
+                      Text('ရွေးချယ်မှု: ${bet['choice']}', style: const TextStyle(color: Colors.greenAccent)),
+                      const SizedBox(height: 4),
+                      Text('လောင်းငွေ: ${bet['amount']} Ks', style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 );
@@ -906,66 +747,95 @@ class MyBetsScreen extends StatelessWidget {
   }
 }
 
-class OldMatchesScreen extends StatefulWidget {
+class OldMatchesScreen extends StatelessWidget {
   const OldMatchesScreen({super.key});
 
   @override
-  State<OldMatchesScreen> createState() => _OldMatchesScreenState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(AppStrings.get('oldMatches', AppData.language))),
+      body: ListView.builder(
+        itemCount: AppData.oldMatchesList.length,
+        itemBuilder: (context, index) {
+          final item = AppData.oldMatchesList[index];
+          return ListTile(
+            title: Text(item['match'], style: const TextStyle(color: Colors.white)),
+            subtitle: Text('ပွဲချိန်: ${item['time']}', style: const TextStyle(color: Colors.grey)),
+            trailing: Text(item['result'], style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
+          );
+        },
+      ),
+    );
+  }
 }
 
-class _OldMatchesScreenState extends State<OldMatchesScreen> {
-  DateTime selectedDate = DateTime.now();
+class LiveResultsScreen extends StatelessWidget {
+  const LiveResultsScreen({super.key});
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(AppStrings.get('liveResults', AppData.language))),
+      body: ListView.builder(
+        itemCount: AppData.liveResultsList.length,
+        itemBuilder: (context, index) {
+          final item = AppData.liveResultsList[index];
+          return ListTile(
+            title: Text(item['match'], style: const TextStyle(color: Colors.white)),
+            subtitle: Text('ပွဲချိန်: ${item['time']}', style: const TextStyle(color: Colors.grey)),
+            trailing: Text(item['result'], style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold)),
+          );
+        },
+      ),
     );
-    if (picked != null && picked != selectedDate) {
+  }
+}
+
+class PointsExchangeScreen extends StatefulWidget {
+  const PointsExchangeScreen({super.key});
+
+  @override
+  State<PointsExchangeScreen> createState() => _PointsExchangeScreenState();
+}
+
+class _PointsExchangeScreenState extends State<PointsExchangeScreen> {
+  void _exchangePoints() {
+    if (AppData.points >= 100) {
       setState(() {
-        selectedDate = picked;
+        AppData.points -= 100;
+        AppData.balance += 5000.0;
+        AppData.saveData();
       });
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွိုင့် ၁၀၀ ကို 5000 Ks သို့ အောင်မြင်စွာ လဲလှယ်ပြီးပါပြီ။')));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွိုင့် မလုံလောက်ပါ။ (အနည်းဆုံး ၁၀၀ လိုအပ်သည်)')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    String formattedDate = "${selectedDate.day}-${selectedDate.month}-${selectedDate.year}";
     return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.get('oldMatches', AppData.language))),
+      appBar: AppBar(title: Text(AppStrings.get('pointsExchange', AppData.language))),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('ရွေးချယ်ထားသော ရက်စွဲ: $formattedDate', style: const TextStyle(color: Colors.greenAccent, fontSize: 14)),
-                IconButton(
-                  icon: const Icon(Icons.calendar_month, color: Colors.white),
-                  onPressed: () => _selectDate(context),
-                ),
-              ],
-            ),
-            const Divider(color: Colors.grey),
-            Expanded(
-              child: ListView(
-                children: const [
-                  ListTile(
-                    title: Text('မန်ချက်စတာယူနိုက်တက် vs လီဗာပူးလ်', style: TextStyle(color: Colors.white)),
-                    subtitle: Text('ရလဒ်: ၂ - ၁ (FT)', style: TextStyle(color: Colors.greenAccent)),
-                    trailing: Icon(Icons.sports_soccer, color: Colors.grey),
-                  ),
-                  Divider(color: Colors.grey),
-                  ListTile(
-                    title: Text('ရီးရဲမက်ဒရစ် vs ဘာစီလိုနာ', style: TextStyle(color: Colors.white)),
-                    subtitle: Text('ရလဒ်: ၁ - ၁ (FT)', style: TextStyle(color: Colors.greenAccent)),
-                    trailing: Icon(Icons.sports_soccer, color: Colors.grey),
-                  ),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: const Color(0xFF1F1F1F), borderRadius: BorderRadius.circular(10)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('လက်ရှိ ပွိုင့်လက်ကျန်:', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                  Text('${AppData.points} Pts', style: const TextStyle(color: Colors.amber, fontSize: 20, fontWeight: FontWeight.bold)),
                 ],
               ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green, minimumSize: const Size(double.infinity, 45)),
+              onPressed: _exchangePoints,
+              child: const Text('ပွိုင့် ၁၀၀ လျှင် ၅၀၀၀ ကျပ်သို့ လဲမည်', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -997,88 +867,8 @@ class WalletScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
-            const Text('ငွေသွင်းငွေထုတ် လုပ်ဆောင်ချက် မှတ်တမ်းများ', style: TextStyle(color: Colors.greenAccent, fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            Expanded(
-              child: AppData.walletHistory.isEmpty
-                  ? const Center(child: Text('မှတ်တမ်း မရှိသေးပါ', style: TextStyle(color: Colors.grey)))
-                  : ListView.builder(
-                      itemCount: AppData.walletHistory.length,
-                      itemBuilder: (context, index) {
-                        final item = AppData.walletHistory[index];
-                        bool isDeposit = item['type'] == 'ငွေသွင်း';
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(8)),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(item['type'], style: TextStyle(color: isDeposit ? Colors.green : Colors.red, fontWeight: FontWeight.bold)),
-                                  const SizedBox(height: 4),
-                                  Text(item['date'], style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                                ],
-                              ),
-                              Text('${isDeposit ? "+" : "-"}${item['amount']} Ks', style: TextStyle(color: isDeposit ? Colors.greenAccent : Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 15)),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-            ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class LiveResultsScreen extends StatefulWidget {
-  const LiveResultsScreen({super.key});
-
-  @override
-  State<LiveResultsScreen> createState() => _LiveResultsScreenState();
-}
-
-class _LiveResultsScreenState extends State<LiveResultsScreen> {
-  late Future<List<Map<String, dynamic>>> _matchesFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _matchesFuture = ApiService.fetchLiveMatches();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.get('liveResults', AppData.language))),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _matchesFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('ပွဲစဉ် အချက်အလက်များ မရှိပါ။', style: TextStyle(color: Colors.grey)));
-          }
-
-          final matches = snapshot.data!;
-          return ListView.builder(
-            itemCount: matches.length,
-            itemBuilder: (context, index) {
-              final m = matches[index];
-              return ListTile(
-                title: Text('${m['t1']} vs ${m['t2']}', style: const TextStyle(color: Colors.white)),
-                subtitle: Text('${m['league']} (${m['time']})', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                trailing: Text(m['score'], style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 16)),
-              );
-            },
-          );
-        },
       ),
     );
   }
@@ -1101,50 +891,6 @@ class StandingsScreen extends StatelessWidget {
             trailing: Text('P: ${s['p']} | Pts: ${s['pts']}', style: const TextStyle(color: Colors.greenAccent)),
           );
         },
-      ),
-    );
-  }
-}
-
-class PointsExchangeScreen extends StatefulWidget {
-  const PointsExchangeScreen({super.key});
-
-  @override
-  State<PointsExchangeScreen> createState() => _PointsExchangeScreenState();
-}
-
-class _PointsExchangeScreenState extends State<PointsExchangeScreen> {
-  void _exchange() {
-    if (AppData.points >= 100) {
-      setState(() {
-        AppData.points -= 100;
-        AppData.balance += 1000.0;
-        AppData.saveData();
-      });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွိုင့် ၁၀၀ ကို ငွေကျပ် ၁၀၀၀ သို့ လဲလှယ်ပြီးပါပြီ')));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွိုင့် မလုံလောက်ပါ။')));
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.get('pointsExchange', AppData.language))),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('လက်ရှိ ပွိုင့်: ${AppData.points} Pts', style: const TextStyle(fontSize: 20, color: Colors.amber)),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo, padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12)),
-              onPressed: _exchange,
-              child: const Text('ပွိုင့်လဲမည် (100 Pts = 1000 Ks)', style: TextStyle(color: Colors.white, fontSize: 16)),
-            ),
-          ],
-        ),
       ),
     );
   }
