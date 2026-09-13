@@ -461,15 +461,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
               },
             ),
             const Divider(color: Colors.grey),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Text('Version 12.0.1', style: TextStyle(color: Colors.grey, fontSize: 12)),
+            ListTile(
+              leading: const Icon(Icons.info, color: Colors.blueAccent),
+              title: const Text('Version 12.0.1 (အပ်ဒိတ်စစ်ဆေးရန်)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('လက်ရှိအသုံးပြုနေသည်မှာ ဗားရှင်းအသစ် ဖြစ်ပါသည်။')));
+              },
             ),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text('ထွက်ရန်', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
               onTap: () {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    backgroundColor: const Color(0xFF1F1F1F),
+                    title: const Text('အကောင့်မှ ထွက်ရန်', style: TextStyle(color: Colors.white)),
+                    content: const Text('သေချာပါသလား?', style: TextStyle(color: Colors.grey)),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(context), child: const Text('မလုပ်ပါ။', style: TextStyle(color: Colors.grey))),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
+                        },
+                        child: const Text('ထွက်မည်', style: TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  ),
+                );
               },
             ),
           ],
@@ -563,7 +583,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1F1F1F),
         title: const Text('အသင်း/အမည် ရွေးချယ်ရန်', style: TextStyle(color: Colors.white)),
-        content: const Text('လက်ရှိအသင်းမှာ မြန်မာ နိုင်ငံအသင်း ဖြစ်ပါသည်။', style: TextStyle(color: Colors.grey)),
+        content: Text('လက်ရှိရွေးချယ်ထားသော အသင်း: ${AppData.selectedTeam}', style: const TextStyle(color: Colors.grey)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('ပိတ်ရန်', style: TextStyle(color: Colors.greenAccent))),
         ],
@@ -577,7 +597,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1F1F1F),
         title: const Text('ဘာသာစကား ရွေးချယ်ရန်', style: TextStyle(color: Colors.white)),
-        content: const Text('လက်ရှိဘာသာစကားမှာ မြန်မာဘာသာ ဖြစ်ပါသည်။', style: TextStyle(color: Colors.grey)),
+        content: Text('လက်ရှိဘာသာစကား: ${AppData.selectedLanguage}', style: const TextStyle(color: Colors.grey)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('ပိတ်ရန်', style: TextStyle(color: Colors.greenAccent))),
         ],
