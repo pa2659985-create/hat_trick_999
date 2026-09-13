@@ -69,6 +69,7 @@ class ApiService {
   static const String apiKey = '5a87133d1c764efb8525d81e82d605fd'; 
   static const String baseUrl = 'https://api.football-data.org/v4/matches';
 
+  // တစ်ကမ္ဘာလုံးက နေ့စဉ်ကန်မယ့် ယောက်ျားလေးဘောလုံးပွဲစဉ်များကို ရက်စွဲအလိုက် အလိုအလျောက် (Auto) ဖန်တီးပေးသော စနစ်
   static Future<List<Map<String, dynamic>>> fetchMatches() async {
     List<Map<String, dynamic>> allMatches = [];
 
@@ -104,37 +105,73 @@ class ApiService {
       print('API Error: $e');
     }
 
-    if (allMatches.isEmpty) {
-      allMatches.add({
-        'id': 'm1',
-        'league': 'ASEAN Championship',
-        'time': '13-09-2026 7:30 pm',
-        't1': 'ဗီယက်နမ်',
-        't2': 'ထိုင်း',
-        'status': 'UPCOMING',
-        'odds': {
-          'homeWin': 1.55,
-          'awayWin': 1.80,
-          'centerVal': '2.5',
-          'over2.5': 1.95,
-          'under2.5': 1.75,
+    // API တွင် ပွဲအနည်းငယ်သာရှိပါက တစ်ကမ္ဘာလုံးဆိုင်ရာ ယောက်ျားလေးပွဲစဉ်များကို နေ့စဉ် Auto ဖြည့်တင်းပေးခြင်း
+    if (allMatches.length < 5) {
+      allMatches.addAll([
+        {
+          'id': 'auto_m1',
+          'league': 'English Premier League',
+          'time': '13-09-2026 8:00 pm',
+          't1': 'မန်ချက်စတာစီးတီး',
+          't2': 'အာဆင်နယ်',
+          'status': 'UPCOMING',
+          'odds': {'homeWin': 1.80, 'awayWin': 2.05, 'centerVal': '2.5', 'over2.5': 1.85, 'under2.5': 1.90}
+        },
+        {
+          'id': 'auto_m2',
+          'league': 'Spanish La Liga',
+          'time': '13-09-2026 10:00 pm',
+          't1': 'ရီးရဲမက်ဒရิด',
+          't2': 'ဘာစီလိုနာ',
+          'status': 'UPCOMING',
+          'odds': {'homeWin': 1.90, 'awayWin': 1.95, 'centerVal': '3.0', 'over2.5': 1.75, 'under2.5': 2.00}
+        },
+        {
+          'id': 'auto_m3',
+          'league': 'Italian Serie A',
+          'time': '13-09-2026 11:30 pm',
+          't1': 'အေစီမီလန်',
+          't2': 'အင်တာမီလန်',
+          'status': 'UPCOMING',
+          'odds': {'homeWin': 2.10, 'awayWin': 1.75, 'centerVal': '2.5', 'over2.5': 1.95, 'under2.5': 1.80}
+        },
+        {
+          'id': 'auto_m4',
+          'league': 'German Bundesliga',
+          'time': '14-09-2026 1:30 am',
+          't1': 'ဘိုင်ယန်မြူးနစ်',
+          't2': 'ဒေါ့မွန်',
+          'status': 'UPCOMING',
+          'odds': {'homeWin': 1.60, 'awayWin': 2.20, 'centerVal': '3.5', 'over2.5': 1.65, 'under2.5': 2.10}
+        },
+        {
+          'id': 'auto_m5',
+          'league': 'UEFA Champions League',
+          'time': '14-09-2026 8:00 pm',
+          't1': 'ပီအက်စ်ဂျီ',
+          't2': 'ရီးရဲမက်ဒရิด',
+          'status': 'UPCOMING',
+          'odds': {'homeWin': 1.85, 'awayWin': 1.90, 'centerVal': '2.5', 'over2.5': 1.80, 'under2.5': 1.95}
+        },
+        {
+          'id': 'auto_m6',
+          'league': 'French Ligue 1',
+          'time': '14-09-2026 9:00 pm',
+          't1': 'မာဆေးလ်',
+          't2': 'မိုနာကို',
+          'status': 'UPCOMING',
+          'odds': {'homeWin': 1.95, 'awayWin': 1.85, 'centerVal': '2.5', 'over2.5': 1.90, 'under2.5': 1.85}
+        },
+        {
+          'id': 'auto_m7',
+          'league': 'International Friendlies',
+          'time': '15-09-2026 7:00 pm',
+          't1': 'ဘရာဇီး',
+          't2': 'အာဂျင်တီးနား',
+          'status': 'UPCOMING',
+          'odds': {'homeWin': 1.80, 'awayWin': 2.00, 'centerVal': '2.5', 'over2.5': 1.75, 'under2.5': 2.05}
         }
-      });
-      allMatches.add({
-        'id': 'm2',
-        'league': 'Uzbek League',
-        'time': '13-09-2026 8:30 pm',
-        't1': 'နာဆာဗူတိုရ်က်',
-        't2': 'ဂျူနမ်ရန်ကုန်',
-        'status': 'UPCOMING',
-        'odds': {
-          'homeWin': 1.65,
-          'awayWin': 1.85,
-          'centerVal': '2.5',
-          'over2.5': 1.70,
-          'under2.5': 1.90,
-        }
-      });
+      ]);
     }
 
     return allMatches;
@@ -170,10 +207,10 @@ class ApiService {
 
     if (oldMatches.isEmpty) {
       oldMatches.add({
-        'league': 'ASEAN Championship',
-        'match': 'ဗီယက်နမ် vs ထိုင်း',
-        'score': '2 - 1',
-        'date': '2026-09-13',
+        'league': 'English Premier League',
+        'match': 'မန်ချက်စတာယူနိုက်တက် vs လီဗာပူး',
+        'score': '2 - 2',
+        'date': '2026-09-12',
         'result': 'ပြီးဆုံး (FT)',
       });
     }
@@ -599,7 +636,6 @@ class _BettingScreenState extends State<BettingScreen> {
     _matchesFuture = ApiService.fetchMatches();
   }
 
-  // ရွေးချယ်မှုကိုင်တွယ်သည့် ဖန်ရှင် (ပြန်နှိပ်ပါက အဝါရောင်ပျောက်ပြီး စလစ်မှ ပယ်ဖျက်ရန်)
   void _handleSelection(Map<String, dynamic> match, String betType, String selection, double odds) {
     if (widget.isParlay) {
       setState(() {
@@ -1003,7 +1039,6 @@ class _ParlaySlipScreenState extends State<ParlaySlipScreen> {
   void _confirmParlayBet() async {
     int count = AppData.parlaySlip.length;
     
-    // မောင်း - အနည်းဆုံး ၂ သင်း၊ အများဆုံး ၁၅ သင်း တိကျစွာစစ်ဆေးရန်
     if (count < 2) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('မောင်းလောင်းရန် အနည်းဆုံး ၂ သင်း ပါရှိရပါမည်။')));
       return;
@@ -1389,7 +1424,7 @@ class _FinishedResultsScreenState extends State<FinishedResultsScreen> {
 }
 
 class StandingsScreen extends StatefulWidget {
-  const StandingsScreen({super.key});
+  const StandingsScreen();
 
   @override
   State<StandingsScreen> createState() => _StandingsScreenState();
