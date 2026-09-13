@@ -49,7 +49,7 @@ class _HatTrickAppState extends State<HatTrickApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '999SPORT',
+      title: '555SPORT',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
@@ -93,7 +93,7 @@ class ApiService {
             'odds': {
               'homeWin': 1.85,
               'awayWin': 1.95,
-              'centerVal': '2.5',
+              'centerVal': '2.5', // အလယ်ဗဟို ကိန်းဂဏန်းသီးသန့်အကွက်
               'over2.5': 1.90,
               'under2.5': 1.85,
             }
@@ -602,24 +602,17 @@ class _BettingScreenState extends State<BettingScreen> {
 
   void _handleSelection(Map<String, dynamic> match, String betType, String selection, double odds) {
     if (widget.isParlay) {
-      // မောင်း (Parlay) အတွက် အကွက်ရွေးချယ်ခြင်း
+      // မောင်း (Parlay) အတွက် တစ်ပွဲလျှင် (၄) ကွက်စလုံးထဲမှ (၁) ကွက်သာ ရွေးခွင့်ရှိစေရန်
       setState(() {
-        int existingIndex = AppData.parlaySlip.indexWhere(
-          (item) => item['matchId'] == match['id'] && item['betType'] == betType && item['selection'] == selection
-        );
-
-        if (existingIndex >= 0) {
-          AppData.parlaySlip.removeAt(existingIndex);
-        } else {
-          AppData.parlaySlip.removeWhere((item) => item['matchId'] == match['id'] && item['betType'] == betType);
-          AppData.parlaySlip.add({
-            'matchId': match['id'],
-            'matchName': '${match['t1']} vs ${match['t2']}',
-            'betType': betType,
-            'selection': selection,
-            'odds': odds,
-          });
-        }
+        AppData.parlaySlip.removeWhere((item) => item['matchId'] == match['id']);
+        
+        AppData.parlaySlip.add({
+          'matchId': match['id'],
+          'matchName': '${match['t1']} vs ${match['t2']}',
+          'betType': betType,
+          'selection': selection,
+          'odds': odds,
+        });
       });
     } else {
       // ဘော်ဒီ/ဂိုးပေါင်း (Single Bet - တစ်ပွဲတည်းသာ)
@@ -873,7 +866,7 @@ class _BettingScreenState extends State<BettingScreen> {
                     ),
                     const SizedBox(height: 6),
 
-                    // အောက်ဘက် ဂိုးပေါ် / ဂိုးအောက် နှင့် အလယ်တွင် သီးသန့်ကိန်းဂဏန်းအကွက်
+                    // အောက်ဘက် ဂိုးပေါ် / ဂိုးအောက် နှင့် အလယ်တွင် ကိန်းဂဏန်း မပါသော သီးသန့်အကွက်ငယ်
                     Row(
                       children: [
                         Expanded(
@@ -909,7 +902,7 @@ class _BettingScreenState extends State<BettingScreen> {
                             ),
                           ),
                         ),
-                        // အလယ်ဗဟို ကိန်းဂဏန်းထည့်ရန် သီးသန့်အကွက်ငယ်
+                        // အလယ်ဗဟို ကိန်းဂဏန်းပြရန် သီးသန့်အကွက်ငယ် (ဂိုးပေါ်/ဂိုးအောက် အကွက်များထဲတွင် ကိန်းဂဏန်းမပါဘဲ ဤနေရာတွင်သာ ပြသည်)
                         Container(
                           width: 45,
                           padding: const EdgeInsets.symmetric(vertical: 8),
