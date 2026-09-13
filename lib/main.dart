@@ -537,7 +537,6 @@ class AdminPanelScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            ElevatedButton.styleFrom(backgroundColor: Colors.green).no == null ? const SizedBox() : const SizedBox(),
             SizedBox(
               height: 50,
               child: ElevatedButton(
@@ -569,7 +568,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    // App ဖွင့်ဖွင့်ချင်း ပွဲရလဒ်များစစ်ပြီး အလိုအလျောက် Settle လုပ်ပေးရန်
     AppData.autoCheckAndSettleBets().then((_) {
       if (mounted) setState(() {});
     });
