@@ -49,6 +49,7 @@ class AppStrings {
       'teamName': 'အသင်း/အမည်',
       'language': 'ဘာသာစကားရွေးရန်',
       'logout': 'ထွက်ရန်',
+      'adminPanel': 'Admin ထိန်းချုပ်ရန်',
     },
     'English': {
       'appTitle': '555SPORT',
@@ -68,6 +69,7 @@ class AppStrings {
       'teamName': 'Team / Name',
       'language': 'Select Language',
       'logout': 'Logout',
+      'adminPanel': 'Admin Control Panel',
     }
   };
 
@@ -203,8 +205,11 @@ class ApiService {
         for (var m in matches) {
           final score = m['score']['fullTime'];
           oldMatches.add({
+            'matchId': '${m['id']}',
             'league': m['competition']['name'] ?? 'League',
             'match': '${m['homeTeam']['name']} vs ${m['awayTeam']['name']}',
+            'homeScore': score['home'] ?? 0,
+            'awayScore': score['away'] ?? 0,
             'score': '${score['home'] ?? 0} - ${score['away'] ?? 0}',
             'date': m['utcDate'] != null ? m['utcDate'].substring(0, 10) : '2026-09-13',
             'result': 'ပြီးဆုံး (FT)',
@@ -216,9 +221,12 @@ class ApiService {
     }
     if (oldMatches.isEmpty) {
       oldMatches.add({
+        'matchId': 'm_sample_1',
         'league': 'English Premier League',
         'match': 'မန်ချက်စတာယူနိုက်တက် vs လီဗာပူး',
-        'score': '2 - 2',
+        'homeScore': 2,
+        'awayScore': 1,
+        'score': '2 - 1',
         'date': '2026-09-12',
         'result': 'ပြီးဆုံး (FT)',
       });
@@ -264,6 +272,7 @@ class AppData {
   static int points = 0;
   static String selectedTeam = 'မြန်မာ (Myanmar)';
   static String selectedLanguage = 'မြန်မာ';
+  static bool isAdmin = false;
 
   static List<Map<String, dynamic>> activeBets = [];
   static List<Map<String, dynamic>> parlaySlip = []; 
@@ -279,7 +288,7 @@ class AppData {
     selectedLanguage = prefs.getString('selectedLanguage') ?? 'မြန်မာ';
 
     try {
-      if (username.isNotEmpty) {
+      if (username.isNotEmpty && username != '999admin') {
         var userDoc = await FirebaseFirestore.instance.collection('users').doc(username).get();
         if (userDoc.exists) {
           var data = userDoc.data()!;
@@ -303,7 +312,7 @@ class AppData {
     await prefs.setString('selectedLanguage', selectedLanguage);
 
     try {
-      if (username.isNotEmpty) {
+      if (username.isNotEmpty && username != '999admin') {
         await FirebaseFirestore.instance.collection('users').doc(username).set({
           'displayName': displayName,
           'balance': balance,
@@ -313,6 +322,73 @@ class AppData {
       }
     } catch (e) {
       print('Cloud Database Save Error: $e');
+    }
+  }
+
+  // တကယ့်ပွဲပြီးရလဒ်များနှင့် တိုက်ဆိုင်စစ်ဆေးပြီး အနိုင်/အရှုံး အလိုအလျောက် အတည်ပြုပေးသည့်စနစ် (Auto-Settlement)
+  static Future<void> autoCheckAndSettleBets() async {
+    try {
+      List<Map<String, dynamic>> finishedMatches = await ApiService.fetchOldMatches();
+      if (finishedMatches.isEmpty) return;
+
+      for (var bet in activeBets) {
+        if (bet['status'] != 'ACTIVE') continue;
+
+        bool isAllWon = true;
+        bool isAnyLost = false;
+        bool allMatchesFinished = true;
+
+        List matchesInBet = bet['matches'];
+        for (var m in matchesInBet) {
+          String matchId = m['matchId'];
+          var finishedMatch = finishedMatches.firstWhere(
+            (element) => element['matchId'] == matchId,
+            orElse: () => {},
+          );
+
+          if (finishedMatch.isEmpty) {
+            allMatchesFinished = false;
+            break;
+          }
+
+          int homeScore = finishedMatch['homeScore'];
+          int awayScore = finishedMatch['awayScore'];
+          String betType = m['betType'];
+          String selection = m['selection'];
+
+          bool matchWon = false;
+          if (betType == 'အနိုင်/အရှုံး') {
+            if (selection == m['matchName'].split(' vs ')[0]) {
+              matchWon = homeScore > awayScore;
+            } else {
+              matchWon = awayScore > homeScore;
+            }
+          } else if (betType == 'ဂိုးပေါင်း') {
+            double totalGoals = (homeScore + awayScore).toDouble();
+            if (selection == 'ဂိုးပေါ်') {
+              matchWon = totalGoals > 2.5;
+            } else {
+              matchWon = totalGoals < 2.5;
+            }
+          }
+
+          if (!matchWon) {
+            isAnyLost = true;
+          }
+        }
+
+        if (allMatchesFinished) {
+          if (isAnyLost) {
+            bet['status'] = 'LOST (အရှုံး)';
+          } else if (isAllWon) {
+            bet['status'] = 'WON (အနိုင်ရ)';
+            balance += (bet['potentialWin'] as double);
+          }
+        }
+      }
+      await saveData();
+    } catch (e) {
+      print('Auto Settle Error: $e');
     }
   }
 }
@@ -329,10 +405,29 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passController = TextEditingController();
 
   void _login() async {
-    if (_userController.text.isNotEmpty && _passController.text.isNotEmpty) {
+    String uName = _userController.text.trim();
+    String pass = _passController.text.trim();
+
+    if (uName.isNotEmpty && pass.isNotEmpty) {
+      // 999admin / admin999 စစ်ဆေးခြင်း
+      if (uName == '999admin' && pass == 'admin999') {
+        AppData.isAdmin = true;
+        AppData.username = '999admin';
+        AppData.displayName = 'စူပါအဓိပတိ (Super Admin)';
+        await AppData.saveData();
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminPanelScreen()),
+        );
+        return;
+      }
+
+      // ပုံမှန် User Login
+      AppData.isAdmin = false;
       setState(() {
-        AppData.username = _userController.text;
-        AppData.displayName = _userController.text;
+        AppData.username = uName;
+        AppData.displayName = uName;
       });
       await AppData.saveData();
 
@@ -363,7 +458,7 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: _userController,
                 decoration: InputDecoration(
-                  labelText: 'အသုံးပြုသူ အမည်',
+                  labelText: 'အသုံးပြုသူ အမည် (Admin: 999admin)',
                   prefixIcon: const Icon(Icons.person, color: Colors.greenAccent),
                   filled: true,
                   fillColor: const Color(0xFF1F1F1F),
@@ -375,7 +470,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _passController,
                 obscureText: true,
                 decoration: InputDecoration(
-                  labelText: 'စကားဝှက်',
+                  labelText: 'စကားဝှက် (Admin: admin999)',
                   prefixIcon: const Icon(Icons.lock, color: Colors.greenAccent),
                   filled: true,
                   fillColor: const Color(0xFF1F1F1F),
@@ -403,6 +498,64 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
+// 999admin အတွက် သီးသန့် Admin Panel Screen
+class AdminPanelScreen extends StatelessWidget {
+  const AdminPanelScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Admin ထိန်းချုပ်ရေး ပန်နယ် (999admin)'),
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.red),
+            onPressed: () {
+              AppData.isAdmin = false;
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
+            },
+          )
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ListView(
+          children: [
+            const Card(
+              color: Color(0xFF1F1F1F),
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('စူပါအဒ်မင် စနစ် အောင်မြင်စွာ ဝင်ရောက်ပြီးပါပြီ', style: TextStyle(color: Colors.greenAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+                    SizedBox(height: 8),
+                    Text('• ဤနေရာမှနေ၍ အသုံးပြုသူများ၏ အချက်အလက်များကို ထိန်းချုပ်နိုင်ပါသည်။\n• ပွဲစဉ်ရလဒ်အလိုက် အနိုင်/အရှုံးများကို စနစ်က အလိုအလျောက် (Auto) တွက်ချက်ပေးနေပါသည်။', style: TextStyle(color: Colors.grey, height: 1.4)),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.styleFrom(backgroundColor: Colors.green).no == null ? const SizedBox() : const SizedBox(),
+            SizedBox(
+              height: 50,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
+                onPressed: () async {
+                  await AppData.autoCheckAndSettleBets();
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွဲပြီးရလဒ်များအလိုက် အနိုင်/အရှုံး စစ်ဆေးမှု ပြီးဆုံးပါပြီ')));
+                },
+                child: const Text('ပွဲရလဒ်များ စစ်ဆေးပြီး အနိုင်/အရှုံး အလိုအလျောက် တွက်မည်', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -412,6 +565,15 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  @override
+  void initState() {
+    super.initState();
+    // App ဖွင့်ဖွင့်ချင်း ပွဲရလဒ်များစစ်ပြီး အလိုအလျောက် Settle လုပ်ပေးရန်
+    AppData.autoCheckAndSettleBets().then((_) {
+      if (mounted) setState(() {});
+    });
+  }
 
   void _refresh() => setState(() {});
 
@@ -1381,25 +1543,6 @@ class MyBetsScreen extends StatefulWidget {
 }
 
 class _MyBetsScreenState extends State<MyBetsScreen> {
-  void _settleBet(int index, bool isWin) async {
-    var bet = AppData.activeBets[index];
-    if (bet['status'] != 'ACTIVE') return;
-
-    setState(() {
-      if (isWin) {
-        AppData.balance += (bet['potentialWin'] as double);
-        bet['status'] = 'WON (အနိုင်ရ)';
-      } else {
-        bet['status'] = 'LOST (အရှုံး)';
-      }
-    });
-    await AppData.saveData();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('ပွဲစဉ်ရလဒ် အတည်ပြုပြီးပါပြီ: ${bet['status']}')),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1429,25 +1572,11 @@ class _MyBetsScreenState extends State<MyBetsScreen> {
                       const SizedBox(height: 4),
                       Text('လောင်းငွေ: ${bet['amount']} Ks', style: const TextStyle(color: Colors.greenAccent)),
                       Text('ရနိုင်မည့်ငွေ: ${bet['potentialWin']} Ks', style: const TextStyle(color: Colors.white)),
-                      if (isActive) ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(backgroundColor: Colors.red, minimumSize: const Size(80, 30)),
-                              onPressed: () => _settleBet(index, false),
-                              child: const Text('အရှုံး', style: TextStyle(fontSize: 12)),
-                            ),
-                            const SizedBox(width: 8),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(backgroundColor: Colors.green, minimumSize: const Size(80, 30)),
-                              onPressed: () => _settleBet(index, true),
-                              child: const Text('အနိုင်', style: TextStyle(fontSize: 12)),
-                            ),
-                          ],
-                        )
-                      ]
+                      if (isActive)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 6.0),
+                          child: Text('ပွဲပြီးဆုံးသည်နှင့် စနစ်က အလိုအလျောက် အနိုင်/အရှုံး စစ်ဆေးပေးပါမည်။', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                        ),
                     ],
                   ),
                 );
