@@ -152,7 +152,6 @@ class ApiService {
         
         for (var m in matches) {
           String rawTime = m['utcDate'] != null ? m['utcDate'].toString() : '2026-09-13T20:00:00Z';
-          // ရက်၊ လ၊ နှစ် နှင့် AM/PM ပုံစံတကျ ဖော်ပြခြင်း (ဥပမာ - 13-09-2026, 08:00 PM)
           String formattedDateTime = _formatDateTimeToDDMMYYYYAMPM(rawTime);
 
           allMatches.add({
@@ -165,7 +164,8 @@ class ApiService {
             'odds': {
               'homeWin': 1.85,
               'awayWin': 1.95,
-              'goalLine': 2.5,
+              'hdpVal': '= -25',     // အိမ်ကွင်း/အဝေးကွင်း အလယ်ကိန်းဂဏန်းအကွက် (ပုံပါအတိုင်း)
+              'goalLineText': '3 +80', // ဂိုးပေါ်/ဂိုးအောက် အလယ် ကိန်းဂဏန်းအကွက် (ပုံပါအတိုင်း)
               'overOdds': 1.90,
               'underOdds': 1.85,
             }
@@ -180,21 +180,21 @@ class ApiService {
       allMatches.addAll([
         {
           'id': 'auto_m1',
-          'league': 'English Premier League',
-          'time': '13-09-2026, 08:00 PM',
-          't1': 'မန်ချက်စတာစီးတီး',
-          't2': 'အာဆင်နယ်',
+          'league': 'Indonesia Super League',
+          'time': '05-09-2026, 03:00 pm',
+          't1': 'B ဆိုလို FC',
+          't2': 'P ဆူရာဘាយ',
           'status': 'UPCOMING',
-          'odds': {'homeWin': 1.80, 'awayWin': 2.05, 'goalLine': 2.5, 'overOdds': 1.85, 'underOdds': 1.90}
+          'odds': {'homeWin': 1.80, 'awayWin': 2.05, 'hdpVal': '= -25', 'goalLineText': '3 +80', 'overOdds': 1.85, 'underOdds': 1.90}
         },
         {
           'id': 'auto_m2',
-          'league': 'Spanish La Liga',
-          'time': '13-09-2026, 10:30 PM',
-          't1': 'ရီးရဲမက်ဒရิด',
-          't2': 'ဘာစီလိုနာ',
+          'league': 'Indonesia Super League',
+          'time': '05-09-2026, 03:00 pm',
+          't1': 'ပါဆစ် K',
+          't2': 'ဒီဝါ Utd FC',
           'status': 'UPCOMING',
-          'odds': {'homeWin': 1.90, 'awayWin': 1.95, 'goalLine': 3.0, 'overOdds': 1.75, 'underOdds': 2.00}
+          'odds': {'homeWin': 1.90, 'awayWin': 1.95, 'hdpVal': '= -75', 'goalLineText': '3 +35', 'overOdds': 1.75, 'underOdds': 2.00}
         },
       ]);
     }
@@ -211,14 +211,14 @@ class ApiService {
       String year = dt.year.toString();
       
       int hour = dt.hour;
-      String period = hour >= 12 ? 'PM' : 'AM';
+      String period = hour >= 12 ? 'pm' : 'am';
       hour = hour % 12;
       hour = hour == 0 ? 12 : hour;
       String minute = dt.minute.toString().padLeft(2, '0');
 
       return '$day-$month-$year, $hour:$minute $period';
     } catch (e) {
-      return '13-09-2026, 08:00 PM';
+      return '05-09-2026, 03:00 pm';
     }
   }
 
@@ -241,7 +241,7 @@ class ApiService {
             'homeScore': score['home'] ?? 0,
             'awayScore': score['away'] ?? 0,
             'score': '${score['home'] ?? 0} - ${score['away'] ?? 0}',
-            'date': m['utcDate'] != null ? m['utcDate'].substring(0, 10) : '2026-09-13',
+            'date': m['utcDate'] != null ? m['utcDate'].substring(0, 10) : '2026-09-05',
             'result': 'ပြီးဆုံး (FT)',
           });
         }
@@ -252,12 +252,12 @@ class ApiService {
     if (oldMatches.isEmpty) {
       oldMatches.add({
         'matchId': 'm_sample_1',
-        'league': 'English Premier League',
-        'match': 'မန်ချက်စတာယူနိုက်တက် vs လီဗာပူး',
+        'league': 'Indonesia Super League',
+        'match': 'B ဆိုလို FC vs P ဆူရာဘាយ',
         'homeScore': 2,
         'awayScore': 1,
         'score': '2 - 1',
-        'date': '2026-09-12',
+        'date': '2026-09-05',
         'result': 'ပြီးဆုံး (FT)',
       });
     }
@@ -407,7 +407,7 @@ class AppData {
             }
           } else if (betType == 'ဂိုးပေါင်း (Over/Under)') {
             double totalGoals = (homeScore + awayScore).toDouble();
-            double line = m['goalLine'] ?? 2.5;
+            double line = double.tryParse(m['lineVal'].toString().replaceAll(RegExp(r'[^0-9.]'), '')) ?? 2.5;
             if (selection == 'ဂိုးပေါ် (Over)') {
               matchWon = totalGoals > line;
             } else {
@@ -972,7 +972,7 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
                 margin: const EdgeInsets.all(8),
                 child: ListTile(
                   title: Text('${m['t1']} vs ${m['t2']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  subtitle: Text('League: ${m['league']} | Time: ${m['time']} | Line: ${odds['goalLine']}', style: const TextStyle(color: Colors.greenAccent, fontSize: 12)),
+                  subtitle: Text('League: ${m['league']} | Time: ${m['time']} | HDP: ${odds['hdpVal']} | GoalLine: ${odds['goalLineText']}', style: const TextStyle(color: Colors.greenAccent, fontSize: 12)),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -1003,9 +1003,10 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
   void _showAddMatchDialog(BuildContext context) {
     final t1Ctrl = TextEditingController();
     final t2Ctrl = TextEditingController();
-    final leagueCtrl = TextEditingController(text: 'English Premier League');
-    final timeCtrl = TextEditingController(text: '13-09-2026, 08:00 PM');
-    final goalLineCtrl = TextEditingController(text: '2.5');
+    final leagueCtrl = TextEditingController(text: 'Indonesia Super League');
+    final timeCtrl = TextEditingController(text: '05-09-2026, 03:00 pm');
+    final hdpValCtrl = TextEditingController(text: '= -25');
+    final goalLineTextCtrl = TextEditingController(text: '3 +80');
 
     showDialog(
       context: context,
@@ -1020,8 +1021,9 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
                 TextField(controller: leagueCtrl, decoration: const InputDecoration(labelText: 'လိဂ် အမည်')),
                 TextField(controller: t1Ctrl, decoration: const InputDecoration(labelText: 'အိမ်ရှင် အသင်း')),
                 TextField(controller: t2Ctrl, decoration: const InputDecoration(labelText: 'ဧည့်သည် အသင်း')),
-                TextField(controller: timeCtrl, decoration: const InputDecoration(labelText: 'ပွဲချိန် (DD-MM-YYYY, HH:MM AM/PM)')),
-                TextField(controller: goalLineCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'ဂိုးလိုင်း ကိန်းဂဏန်း (Goal Line)')),
+                TextField(controller: timeCtrl, decoration: const InputDecoration(labelText: 'ပွဲချိန် (DD-MM-YYYY, HH:MM pm/am)')),
+                TextField(controller: hdpValCtrl, decoration: const InputDecoration(labelText: 'HDP အလယ်ကိန်းဂဏန်း (ဥပမာ - = -25)')),
+                TextField(controller: goalLineTextCtrl, decoration: const InputDecoration(labelText: 'ဂိုးလိုင်း ကိန်းဂဏန်း (ဥပမာ - 3 +80)')),
               ],
             ),
           ),
@@ -1040,7 +1042,8 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
                     'odds': {
                       'homeWin': 1.85,
                       'awayWin': 1.95,
-                      'goalLine': double.tryParse(goalLineCtrl.text) ?? 2.5,
+                      'hdpVal': hdpValCtrl.text,
+                      'goalLineText': goalLineTextCtrl.text,
                       'overOdds': 1.90,
                       'underOdds': 1.85,
                     }
@@ -1061,7 +1064,8 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
     final t1Controller = TextEditingController(text: match['t1']);
     final t2Controller = TextEditingController(text: match['t2']);
     final timeController = TextEditingController(text: match['time']);
-    final goalLineController = TextEditingController(text: '${match['odds']['goalLine']}');
+    final hdpValController = TextEditingController(text: match['odds']['hdpVal']);
+    final goalLineTextController = TextEditingController(text: match['odds']['goalLineText']);
 
     showDialog(
       context: context,
@@ -1075,8 +1079,9 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
               children: [
                 TextField(controller: t1Controller, decoration: const InputDecoration(labelText: 'အိမ်ရှင် အသင်း')),
                 TextField(controller: t2Controller, decoration: const InputDecoration(labelText: 'ဧည့်သည် အသင်း')),
-                TextField(controller: timeController, decoration: const InputDecoration(labelText: 'ပွဲချိန် (DD-MM-YYYY, AM/PM)')),
-                TextField(controller: goalLineController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'ဂိုးလိုင်း (Goal Line)')),
+                TextField(controller: timeController, decoration: const InputDecoration(labelText: 'ပွဲချိန်')),
+                TextField(controller: hdpValController, decoration: const InputDecoration(labelText: 'HDP အလယ်ကိန်းဂဏန်း')),
+                TextField(controller: goalLineTextController, decoration: const InputDecoration(labelText: 'ဂိုးလိုင်း ကိန်းဂဏန်း')),
               ],
             ),
           ),
@@ -1088,7 +1093,8 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
                   ApiService.customAdminMatches[index]['t1'] = t1Controller.text;
                   ApiService.customAdminMatches[index]['t2'] = t2Controller.text;
                   ApiService.customAdminMatches[index]['time'] = timeController.text;
-                  ApiService.customAdminMatches[index]['odds']['goalLine'] = double.tryParse(goalLineController.text) ?? 2.5;
+                  ApiService.customAdminMatches[index]['odds']['hdpVal'] = hdpValController.text;
+                  ApiService.customAdminMatches[index]['odds']['goalLineText'] = goalLineTextController.text;
                 });
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွဲစဉ် အောင်မြင်စွာ ပြင်ဆင်ပြီးပါပြီ')));
@@ -1503,7 +1509,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 }
 
 // -------------------------------------------------------------------------
-// Betting Screen (Over/Under & Goal Line with Date, Time (AM/PM))
+// Betting Screen (ပုံပါ Layout အတိုင်း အိမ်/အဝေး အလယ်တွင် HDP ကွက်၊ အောက်တွင် ဂိုးပေါ်/ဂိုးအောက်နှင့် အလယ်တွင် ဂိုးလိုင်းအစိမ်းရောင်ကွက်)
 // -------------------------------------------------------------------------
 class BettingScreen extends StatefulWidget {
   final bool isParlay; 
@@ -1524,7 +1530,7 @@ class _BettingScreenState extends State<BettingScreen> {
     _matchesFuture = ApiService.fetchMatches();
   }
 
-  void _handleSelection(Map<String, dynamic> match, String betType, String selection, double odds, {double? goalLine}) {
+  void _handleSelection(Map<String, dynamic> match, String betType, String selection, double odds, {String? lineVal}) {
     if (widget.isParlay) {
       setState(() {
         bool alreadyExists = AppData.parlaySlip.any(
@@ -1539,7 +1545,7 @@ class _BettingScreenState extends State<BettingScreen> {
             'betType': betType,
             'selection': selection,
             'odds': odds,
-            'goalLine': goalLine ?? 2.5,
+            'lineVal': lineVal ?? '',
           });
         }
       });
@@ -1558,7 +1564,7 @@ class _BettingScreenState extends State<BettingScreen> {
             'betType': betType,
             'selection': selection,
             'odds': odds,
-            'goalLine': goalLine ?? 2.5,
+            'lineVal': lineVal ?? '',
           };
           _showSingleBetBottomSheet();
         }
@@ -1600,7 +1606,7 @@ class _BettingScreenState extends State<BettingScreen> {
                   const SizedBox(height: 8),
                   Text('ပွဲစဉ်: ${_selectedSingleBet!['matchName']}', style: const TextStyle(color: Colors.white, fontSize: 13)),
                   Text('ပွဲချိန်: ${_selectedSingleBet!['matchTime']}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                  Text('ရွေးချယ်မှု: ${_selectedSingleBet!['betType']} (${_selectedSingleBet!['selection']}) [Line: ${_selectedSingleBet!['goalLine']}] | Odds: ${_selectedSingleBet!['odds']}', style: const TextStyle(color: Colors.greenAccent, fontSize: 12)),
+                  Text('ရွေးချယ်မှု: ${_selectedSingleBet!['betType']} (${_selectedSingleBet!['selection']}) [Line: ${_selectedSingleBet!['lineVal']}] | Odds: ${_selectedSingleBet!['odds']}', style: const TextStyle(color: Colors.greenAccent, fontSize: 12)),
                   const SizedBox(height: 12),
                   TextField(
                     controller: _singleAmountController,
@@ -1686,8 +1692,11 @@ class _BettingScreenState extends State<BettingScreen> {
             itemBuilder: (context, index) {
               final m = matches[index];
               final odds = m['odds'];
-              double goalLine = odds['goalLine'] ?? 2.5;
+              String hdpVal = odds['hdpVal'] ?? '= -25';
+              String goalLineText = odds['goalLineText'] ?? '3 +80';
 
+              bool isHomeSelected = _isSelected(m['id'], 'အနိုင်/အရှုံး', m['t1']);
+              bool isAwaySelected = _isSelected(m['id'], 'အနိုင်/အရှုံး', m['t2']);
               bool isOverSelected = _isSelected(m['id'], 'ဂိုးပေါင်း (Over/Under)', 'ဂိုးပေါ် (Over)');
               bool isUnderSelected = _isSelected(m['id'], 'ဂိုးပေါင်း (Over/Under)', 'ဂိုးအောက် (Under)');
 
@@ -1698,58 +1707,112 @@ class _BettingScreenState extends State<BettingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ရပ်၊ လ၊ နှစ် နှင့် AM/PM အတိအကျပါဝင်သော ပွဲချိန်
+                    // ပွဲချိန် (ရက်၊ လ၊ နှစ် နှင့် AM/PM ပါဝင်သည်)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(m['league'], style: const TextStyle(color: Colors.greenAccent, fontSize: 11, fontWeight: FontWeight.bold)),
-                        Text('ပွဲချိန် : ${m['time']}', style: const TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                        Text('ပွဲချိန် : ${m['time']}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    Text('${m['t1']} vs ${m['t2']}', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
-                    // Over / Under နှင့် အလယ်တွင် ဂိုးလိုင်း ကိန်းဂဏန်းအကွက်
+
+                    // -------------------------------------------------------------
+                    // အပေါ်တန်း : အိမ်ကွင်း အသင်း | အလယ်တွင် အစိမ်းရောင် HDP ကွက် | အဝေးကွင်း အသင်း
+                    // -------------------------------------------------------------
                     Row(
                       children: [
                         Expanded(
                           child: InkWell(
-                            onTap: () => _handleSelection(m, 'ဂိုးပေါင်း (Over/Under)', 'ဂိုးပေါ် (Over)', odds['overOdds'], goalLine: goalLine),
+                            onTap: () => _handleSelection(m, 'အနိုင်/အရှုံး', m['t1'], odds['homeWin'], lineVal: hdpVal),
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                              decoration: BoxDecoration(color: isOverSelected ? Colors.amber : Colors.grey.shade800, borderRadius: BorderRadius.circular(6)),
+                              decoration: BoxDecoration(color: isHomeSelected ? Colors.amber : Colors.grey.shade800, borderRadius: BorderRadius.circular(6)),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('ဂိုးပေါ် (Over)', style: TextStyle(color: isOverSelected ? Colors.black : Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
-                                  Text('${odds['overOdds']}', style: TextStyle(color: isOverSelected ? Colors.black : Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 11)),
+                                  Expanded(child: Text(m['t1'], style: TextStyle(color: isHomeSelected ? Colors.black : Colors.white, fontWeight: FontWeight.bold, fontSize: 12), overflow: TextOverflow.ellipsis)),
+                                  Text('${odds['homeWin']}', style: TextStyle(color: isHomeSelected ? Colors.black : Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 12)),
                                 ],
                               ),
                             ),
                           ),
                         ),
                         const SizedBox(width: 6),
+                        // ပုံပါအတိုင်း အလယ်တွင် အစိမ်းရောင် HDP ကိန်းဂဏန်းအကွက်
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                           decoration: BoxDecoration(
-                            color: Colors.blueGrey.shade900,
+                            color: Colors.green.shade700,
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: Colors.amber, width: 1),
                           ),
-                          child: Text('$goalLine', style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 13)),
+                          child: Text(hdpVal, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
                         ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: InkWell(
-                            onTap: () => _handleSelection(m, 'ဂိုးပေါင်း (Over/Under)', 'ဂိုးအောက် (Under)', odds['underOdds'], goalLine: goalLine),
+                            onTap: () => _handleSelection(m, 'အနိုင်/အရှုံး', m['t2'], odds['awayWin'], lineVal: hdpVal),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                              decoration: BoxDecoration(color: isAwaySelected ? Colors.amber : Colors.grey.shade800, borderRadius: BorderRadius.circular(6)),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(child: Text(m['t2'], style: TextStyle(color: isAwaySelected ? Colors.black : Colors.white, fontWeight: FontWeight.bold, fontSize: 12), overflow: TextOverflow.ellipsis, textAlign: TextAlign.end)),
+                                  Text('${odds['awayWin']}', style: TextStyle(color: isAwaySelected ? Colors.black : Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 12)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    // -------------------------------------------------------------
+                    // အောက်တန်း : ဂိုးပေါ် (Over) | အလယ်တွင် အစိမ်းရောင် ဂိုးလိုင်း ကိန်းဂဏန်းအကွက် | ဂိုးအောက် (Under)
+                    // -------------------------------------------------------------
+                    Row(
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => _handleSelection(m, 'ဂိုးပေါင်း (Over/Under)', 'ဂိုးပေါ် (Over)', odds['overOdds'], lineVal: goalLineText),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                              decoration: BoxDecoration(color: isOverSelected ? Colors.amber : Colors.grey.shade800, borderRadius: BorderRadius.circular(6)),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text('ဂိုးပေါ်', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                                  Text('${odds['overOdds']}', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 12)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        // ပုံပါအတိုင်း အလယ်တွင် အစိမ်းရောင် ဂိုးလိုင်း ကိန်းဂဏန်းအကွက်
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade700,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(goalLineText, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => _handleSelection(m, 'ဂိုးပေါင်း (Over/Under)', 'ဂိုးအောက် (Under)', odds['underOdds'], lineVal: goalLineText),
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
                               decoration: BoxDecoration(color: isUnderSelected ? Colors.amber : Colors.grey.shade800, borderRadius: BorderRadius.circular(6)),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('ဂိုးအောက် (Under)', style: TextStyle(color: isUnderSelected ? Colors.black : Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
-                                  Text('${odds['underOdds']}', style: TextStyle(color: isUnderSelected ? Colors.black : Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 11)),
+                                  const Text('ဂိုးအောက်', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                                  Text('${odds['underOdds']}', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 12)),
                                 ],
                               ),
                             ),
@@ -1842,7 +1905,7 @@ class _ParlaySlipScreenState extends State<ParlaySlipScreen> {
                           color: const Color(0xFF1F1F1F),
                           child: ListTile(
                             title: Text(item['matchName'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                            subtitle: Text('ပွဲချိန်: ${item['matchTime']}\n${item['betType']} (${item['selection']}) [Goal Line: ${item['goalLine']}] | Odds: ${item['odds']}', style: const TextStyle(color: Colors.greenAccent)),
+                            subtitle: Text('ပွဲချိန်: ${item['matchTime']}\n${item['betType']} (${item['selection']}) [Line: ${item['lineVal']}] | Odds: ${item['odds']}', style: const TextStyle(color: Colors.greenAccent)),
                             isThreeLine: true,
                             trailing: IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
@@ -1880,7 +1943,7 @@ class _ParlaySlipScreenState extends State<ParlaySlipScreen> {
 }
 
 // -------------------------------------------------------------------------
-// My Bets Screen (လောင်းထားသော ပွဲစဉ်များ - အသေးစိတ် အပြည့်အစုံ ကြည့်ရှုရန်)
+// My Bets Screen (လောင်းထားသော ပွဲစဉ်များ အသေးစိတ် အပြည့်အစုံ)
 // -------------------------------------------------------------------------
 class MyBetsScreen extends StatelessWidget {
   const MyBetsScreen({super.key});
@@ -1913,7 +1976,6 @@ class MyBetsScreen extends StatelessWidget {
                           ],
                         ),
                         const Divider(color: Colors.grey),
-                        // လောင်းထားသော ပွဲစဉ် တစ်ခုချင်းစီ၏ အသေးစိတ် အချက်အလက်များ (အသင်း၊ ပွဲချိန်၊ Pick၊ ဂိုးလိုင်း/Handicap)
                         ...matches.map<Widget>((m) => Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: Column(
@@ -1921,7 +1983,7 @@ class MyBetsScreen extends StatelessWidget {
                             children: [
                               Text('⚽ ${m['matchName']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                               Text('🕒 ပွဲချိန်: ${m['matchTime']}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                              Text('📌 ရွေးချယ်မှု: ${m['betType']} -> ${m['selection']} [Line: ${m['goalLine']}] (Odds: ${m['odds']})', style: const TextStyle(color: Colors.greenAccent, fontSize: 12)),
+                              Text('📌 ရွေးချယ်မှု: ${m['betType']} -> ${m['selection']} [Line: ${m['lineVal']}] (Odds: ${m['odds']})', style: const TextStyle(color: Colors.greenAccent, fontSize: 12)),
                               const SizedBox(height: 4),
                             ],
                           ),
