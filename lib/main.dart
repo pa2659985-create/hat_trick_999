@@ -86,7 +86,7 @@ class ApiService {
           allMatches.add({
             'id': '${m['id']}',
             'league': m['competition']['name'] ?? 'League',
-            'time': m['utcDate'] != null ? m['utcDate'].toString().replaceFirst('T', ' ').substring(0, 16) : '05-09-2026 8:00 pm',
+            'time': m['utcDate'] != null ? m['utcDate'].toString().replaceFirst('T', ' ').substring(0, 16) : '13-09-2026 8:00 pm',
             't1': m['homeTeam']['name'] ?? 'Home Team',
             't2': m['awayTeam']['name'] ?? 'Away Team',
             'status': m['status'] ?? 'UPCOMING',
@@ -108,7 +108,7 @@ class ApiService {
       allMatches.add({
         'id': 'm1',
         'league': 'ASEAN Championship',
-        'time': '26-08-2026 7:30 pm',
+        'time': '13-09-2026 7:30 pm',
         't1': 'ဗီယက်နမ်',
         't2': 'ထိုင်း',
         'status': 'UPCOMING',
@@ -123,7 +123,7 @@ class ApiService {
       allMatches.add({
         'id': 'm2',
         'league': 'Uzbek League',
-        'time': '26-08-2026 8:30 pm',
+        'time': '13-09-2026 8:30 pm',
         't1': 'နာဆာဗူတိုရ်က်',
         't2': 'ဂျူနမ်ရန်ကုန်',
         'status': 'UPCOMING',
@@ -159,7 +159,7 @@ class ApiService {
             'league': m['competition']['name'] ?? 'League',
             'match': '${m['homeTeam']['name']} vs ${m['awayTeam']['name']}',
             'score': '${score['home'] ?? 0} - ${score['away'] ?? 0}',
-            'date': m['utcDate'] != null ? m['utcDate'].substring(0, 10) : '2026-09-05',
+            'date': m['utcDate'] != null ? m['utcDate'].substring(0, 10) : '2026-09-13',
             'result': 'ပြီးဆုံး (FT)',
           });
         }
@@ -173,7 +173,7 @@ class ApiService {
         'league': 'ASEAN Championship',
         'match': 'ဗီယက်နမ် vs ထိုင်း',
         'score': '2 - 1',
-        'date': '2026-08-26',
+        'date': '2026-09-13',
         'result': 'ပြီးဆုံး (FT)',
       });
     }
@@ -590,7 +590,6 @@ class BettingScreen extends StatefulWidget {
 class _BettingScreenState extends State<BettingScreen> {
   late Future<List<Map<String, dynamic>>> _matchesFuture;
   
-  // Single Bet အတွက် ရွေးချယ်မှုသိမ်းရန်
   Map<String, dynamic>? _selectedSingleBet;
   final TextEditingController _singleAmountController = TextEditingController();
 
@@ -602,7 +601,6 @@ class _BettingScreenState extends State<BettingScreen> {
 
   void _handleSelection(Map<String, dynamic> match, String betType, String selection, double odds) {
     if (widget.isParlay) {
-      // မောင်း (Parlay) အတွက် တစ်ပွဲလျှင် (၄) ကွက်စလုံးထဲမှ (၁) ကွက်သာ ရွေးခွင့်ရှိစေရန်
       setState(() {
         AppData.parlaySlip.removeWhere((item) => item['matchId'] == match['id']);
         
@@ -615,7 +613,6 @@ class _BettingScreenState extends State<BettingScreen> {
         });
       });
     } else {
-      // ဘော်ဒီ/ဂိုးပေါင်း (Single Bet - တစ်ပွဲတည်းသာ)
       setState(() {
         _selectedSingleBet = {
           'matchId': match['id'],
@@ -784,7 +781,6 @@ class _BettingScreenState extends State<BettingScreen> {
                     ),
                     const SizedBox(height: 8),
 
-                    // အိမ်ကွင်း / အဝေးကွင်း (၄ ကွက်စပ် ပုံစံ - 1 Selection per Match)
                     Row(
                       children: [
                         Expanded(
@@ -865,7 +861,6 @@ class _BettingScreenState extends State<BettingScreen> {
                     ),
                     const SizedBox(height: 6),
 
-                    // ဂိုးပေါ် / ဂိုးအောက် (အလယ်တွင် ကိန်းဂဏန်းသီးသန့်အကွက်ပါရှိပြီး အကွက်များထဲတွင် ဂဏန်းမပါပါ)
                     Row(
                       children: [
                         Expanded(
@@ -901,7 +896,6 @@ class _BettingScreenState extends State<BettingScreen> {
                             ),
                           ),
                         ),
-                        // အလယ်ဗဟို ကိန်းဂဏန်းပြရန် သီးသန့်အကွက်ငယ်
                         Container(
                           width: 45,
                           padding: const EdgeInsets.symmetric(vertical: 8),
@@ -994,13 +988,14 @@ class _ParlaySlipScreenState extends State<ParlaySlipScreen> {
 
   void _confirmParlayBet() async {
     int count = AppData.parlaySlip.length;
-    // မောင်း - အနည်းဆုံး ၂ ပွဲ၊ အများဆုံး ၁၅ ပွဲ တိကျစွာစစ်ဆေးရန်
+    
+    // မောင်း - အနည်းဆုံး ၂ သင်း (၂ ပွဲ)၊ အများဆုံး ၁၅ သင်း (၁၅ ပွဲ) သာ တိကျစွာစစ်ဆေးရန်
     if (count < 2) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('မောင်းလောင်းရန် အနည်းဆုံး ၂ ပွဲ ပါရှိရပါမည်။')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('မောင်းလောင်းရန် အနည်းဆုံး ၂ သင်း ပါရှိရပါမည်။')));
       return;
     }
     if (count > 15) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('အများဆုံး ၁၅ ပွဲထိသာ တစ်ကြိမ်တည်း လောင်းခွင့်ရှိပါသည်။ (၁၅ ပွဲထက်မကျော်ရပါ)')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('မောင်းလောင်းရာတွင် အများဆုံး ၁၅ သင်းသာ လောင်းခွင့်ရှိပါသည် (၁၅ ပွဲထက် မကျော်ရပါ)။')));
       return;
     }
 
@@ -1023,7 +1018,7 @@ class _ParlaySlipScreenState extends State<ParlaySlipScreen> {
       AppData.balance -= amount;
       AppData.activeBets.add({
         'betId': '${DateTime.now().millisecondsSinceEpoch}',
-        'type': 'မောင်း (${AppData.parlaySlip.length} ပွဲတွဲ)',
+        'type': 'မောင်း (${AppData.parlaySlip.length} သင်းတွဲ)',
         'matches': List.from(AppData.parlaySlip),
         'amount': amount,
         'totalOdds': totalOdds,
@@ -1055,7 +1050,7 @@ class _ParlaySlipScreenState extends State<ParlaySlipScreen> {
           children: [
             Expanded(
               child: AppData.parlaySlip.isEmpty
-                  ? const Center(child: Text('မောင်းစလစ်ထဲတွင် ပွဲစဉ်များ မရှိသေးပါ။ (အနည်းဆုံး ၂ ပွဲ၊ အများဆုံး ၁၅ ပွဲ)', style: TextStyle(color: Colors.grey)))
+                  ? const Center(child: Text('မောင်းစလစ်ထဲတွင် ပွဲစဉ်များ မရှိသေးပါ။ (အနည်းဆုံး ၂ သင်း၊ အများဆုံး ၁၅ သင်း)', style: TextStyle(color: Colors.grey)))
                   : ListView.builder(
                       itemCount: AppData.parlaySlip.length,
                       itemBuilder: (context, index) {
@@ -1129,7 +1124,7 @@ class _ParlaySlipScreenState extends State<ParlaySlipScreen> {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                   onPressed: _confirmParlayBet,
-                  child: const Text('မောင်းလောင်းမည် အတည်ပြုရန် (၂ မှ ၁၅ မောင်း)', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                  child: const Text('မောင်းလောင်းမည် (၂ မှ ၁၅ သင်းသာ)', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
                 ),
               ),
             ],
