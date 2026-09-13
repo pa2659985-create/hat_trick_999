@@ -284,7 +284,7 @@ class AppData {
   static List<Map<String, dynamic>> activeBets = [];
   static List<Map<String, dynamic>> parlaySlip = []; 
 
-  // Admin မှ တရားဝင် သတ်မှတ်ပေးထားသော မန်ဘာ (၁၀၀) စာရင်း
+  // Admin မှ တရားဝင် သတ်မှတ်ပေးထားသော မန်ဘာ (၁၀၀) စာရင်း (Username နှင့် Password အပြည့်အစုံပါဝင်)
   static List<Map<String, String>> authorizedMembers = List.generate(100, (index) {
     int id = index + 1;
     return {
@@ -293,11 +293,12 @@ class AppData {
     };
   });
 
-  // Admin မှ ထိန်းချုပ်ရန် မန်ဘာများစာရင်း အသေးစိတ်
+  // Admin မှ ဝင်ရောက်စီမံရန် မန်ဘာများစာရင်း အသေးစိတ် (Balance, Points, Password အပါအဝင် Full CRUD Control)
   static List<Map<String, dynamic>> allUsers = List.generate(100, (index) {
     int id = index + 1;
     return {
       'username': 'member$id',
+      'password': 'pass$id',
       'balance': 10000.0 * (index % 5 + 1),
       'points': 100 * (index % 3 + 1),
     };
@@ -593,8 +594,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             color: const Color(0xFF1F1F1F),
             child: ListTile(
               leading: const Icon(Icons.people, color: Colors.greenAccent),
-              title: const Text('၁။ တရားဝင် မန်ဘာ (၁၀၀) စာရင်းနှင့် ငွေစာရင်းများ စီမံရန်', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              subtitle: const Text('Member အားလုံး၏ ငွေနှင့် ပွိုင့်များကို ဝင်ရောက်ပြင်ဆင်ရန်', style: TextStyle(color: Colors.grey, fontSize: 12)),
+              title: const Text('၁။ တရားဝင် မန်ဘာ (၁၀၀) စာရင်းနှင့် ငွေစာရင်း/စကားဝှက် စီမံရန်', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              subtitle: const Text('Member အသစ်ထည့်ခြင်း၊ နာမည်/စကားဝှက်နှင့် ငွေစာရင်းများ ပြင်ဆင်ရန်', style: TextStyle(color: Colors.grey, fontSize: 12)),
               trailing: const Icon(Icons.chevron_right, color: Colors.grey),
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminUserManagementScreen()))
@@ -637,7 +638,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 }
 
 // -------------------------------------------------------------------------
-// Admin Member Management Screen
+// Admin Member Management Screen (Full CRUD for Members: Add, Edit User/Pass/Balance/Points, Delete)
 // -------------------------------------------------------------------------
 class AdminUserManagementScreen extends StatefulWidget {
   const AdminUserManagementScreen({super.key});
@@ -650,7 +651,16 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('တရားဝင် မန်ဘာ (၁၀၀) စာရင်း စီမံရန်')),
+      appBar: AppBar(
+        title: const Text('တရားဝင် မန်ဘာများ စီမံရန် (CRUD)'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_add, color: Colors.greenAccent),
+            onPressed: () => _showAddUserDialog(context),
+            tooltip: 'မန်ဘာအသစ် ထည့်ရန်',
+          ),
+        ],
+      ),
       body: ListView.builder(
         itemCount: AppData.allUsers.length,
         itemBuilder: (context, index) {
@@ -659,11 +669,27 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
             color: const Color(0xFF1F1F1F),
             margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             child: ListTile(
-              title: Text('Username: ${user['username']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              title: Text('Username: ${user['username']} | Pass: ${user['password']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               subtitle: Text('လက်ကျန်ငွေ: ${user['balance']} Ks | ပွိုင့်: ${user['points']} Pts', style: const TextStyle(color: Colors.greenAccent)),
-              trailing: IconButton(
-                icon: const Icon(Icons.edit, color: Colors.amber),
-                onPressed: () => _showEditUserDialog(context, user, index),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.amber),
+                    onPressed: () => _showEditUserDialog(context, user, index),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () {
+                      setState(() {
+                        String uName = user['username'];
+                        AppData.allUsers.removeAt(index);
+                        AppData.authorizedMembers.removeWhere((m) => m['username'] == uName);
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('မန်ဘာ အကောင့် ဖျက်ပြီးပါပြီ')));
+                    },
+                  ),
+                ],
               ),
             ),
           );
@@ -672,7 +698,60 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
     );
   }
 
+  void _showAddUserDialog(BuildContext context) {
+    final userCtrl = TextEditingController();
+    final passCtrl = TextEditingController();
+    final balanceCtrl = TextEditingController(text: '10000');
+    final pointsCtrl = TextEditingController(text: '100');
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1F1F1F),
+          title: const Text('မန်ဘာအသစ် ထည့်သွင်းရန်', style: TextStyle(color: Colors.white, fontSize: 16)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: userCtrl, decoration: const InputDecoration(labelText: 'Username အသစ်')),
+              TextField(controller: passCtrl, decoration: const InputDecoration(labelText: 'Password အသစ်')),
+              TextField(controller: balanceCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'စတင်ရန် လက်ကျန်ငွေ')),
+              TextField(controller: pointsCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'စတင်ရန် ပွိုင့်')),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('မလုပ်ပါ။', style: TextStyle(color: Colors.grey))),
+            TextButton(
+              onPressed: () {
+                String newU = userCtrl.text.trim();
+                String newP = passCtrl.text.trim();
+                if (newU.isNotEmpty && newP.isNotEmpty) {
+                  setState(() {
+                    AppData.authorizedMembers.add({'username': newU, 'password': newP});
+                    AppData.allUsers.add({
+                      'username': newU,
+                      'password': newP,
+                      'balance': double.tryParse(balanceCtrl.text) ?? 10000.0,
+                      'points': int.tryParse(pointsCtrl.text) ?? 100,
+                    });
+                  });
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('မန်ဘာအသစ် အောင်မြင်စွာ ထည့်ပြီးပါပြီ')));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Username နှင့် Password ထည့်ပါ။')));
+                }
+              },
+              child: const Text('ထည့်မည်', style: TextStyle(color: Colors.green)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showEditUserDialog(BuildContext context, Map<String, dynamic> user, int index) {
+    final userCtrl = TextEditingController(text: user['username']);
+    final passCtrl = TextEditingController(text: user['password']);
     final balanceCtrl = TextEditingController(text: '${user['balance']}');
     final pointsCtrl = TextEditingController(text: '${user['points']}');
 
@@ -685,6 +764,8 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              TextField(controller: userCtrl, decoration: const InputDecoration(labelText: 'Username')),
+              TextField(controller: passCtrl, decoration: const InputDecoration(labelText: 'Password')),
               TextField(controller: balanceCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'လက်ကျန်ငွေ (Balance)')),
               TextField(controller: pointsCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'ပွိုင့် (Points)')),
             ],
@@ -693,10 +774,24 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('မလုပ်ပါ။', style: TextStyle(color: Colors.grey))),
             TextButton(
               onPressed: () {
+                String oldU = user['username'];
+                String newU = userCtrl.text.trim();
+                String newP = passCtrl.text.trim();
+
                 setState(() {
+                  AppData.allUsers[index]['username'] = newU;
+                  AppData.allUsers[index]['password'] = newP;
                   AppData.allUsers[index]['balance'] = double.tryParse(balanceCtrl.text) ?? user['balance'];
                   AppData.allUsers[index]['points'] = int.tryParse(pointsCtrl.text) ?? user['points'];
-                  if (user['username'] == AppData.username) {
+
+                  // Authorized Members စာရင်းထဲပါ တိုက်ဆိုင်ပြောင်းလဲပေးခြင်း
+                  int authIndex = AppData.authorizedMembers.indexWhere((m) => m['username'] == oldU);
+                  if (authIndex != -1) {
+                    AppData.authorizedMembers[authIndex] = {'username': newU, 'password': newP};
+                  }
+
+                  if (oldU == AppData.username) {
+                    AppData.username = newU;
                     AppData.balance = AppData.allUsers[index]['balance'];
                     AppData.points = AppData.allUsers[index]['points'];
                   }
