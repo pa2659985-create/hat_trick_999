@@ -69,7 +69,6 @@ class ApiService {
   static const String apiKey = '5a87133d1c764efb8525d81e82d605fd'; 
   static const String baseUrl = 'https://api.football-data.org/v4/matches';
 
-  // တစ်ကမ္ဘာလုံးက နေ့စဉ်ကန်မယ့် ယောက်ျားလေးဘောလုံးပွဲစဉ်များကို ရက်စွဲအလိုက် အလိုအလျောက် (Auto) ဖန်တီးပေးသော စနစ်
   static Future<List<Map<String, dynamic>>> fetchMatches() async {
     List<Map<String, dynamic>> allMatches = [];
 
@@ -105,7 +104,6 @@ class ApiService {
       print('API Error: $e');
     }
 
-    // API တွင် ပွဲအနည်းငယ်သာရှိပါက တစ်ကမ္ဘာလုံးဆိုင်ရာ ယောက်ျားလေးပွဲစဉ်များကို နေ့စဉ် Auto ဖြည့်တင်းပေးခြင်း
     if (allMatches.length < 5) {
       allMatches.addAll([
         {
@@ -143,33 +141,6 @@ class ApiService {
           't2': 'ဒေါ့မွန်',
           'status': 'UPCOMING',
           'odds': {'homeWin': 1.60, 'awayWin': 2.20, 'centerVal': '3.5', 'over2.5': 1.65, 'under2.5': 2.10}
-        },
-        {
-          'id': 'auto_m5',
-          'league': 'UEFA Champions League',
-          'time': '14-09-2026 8:00 pm',
-          't1': 'ပီအက်စ်ဂျီ',
-          't2': 'ရီးရဲမက်ဒရิด',
-          'status': 'UPCOMING',
-          'odds': {'homeWin': 1.85, 'awayWin': 1.90, 'centerVal': '2.5', 'over2.5': 1.80, 'under2.5': 1.95}
-        },
-        {
-          'id': 'auto_m6',
-          'league': 'French Ligue 1',
-          'time': '14-09-2026 9:00 pm',
-          't1': 'မာဆေးလ်',
-          't2': 'မိုနာကို',
-          'status': 'UPCOMING',
-          'odds': {'homeWin': 1.95, 'awayWin': 1.85, 'centerVal': '2.5', 'over2.5': 1.90, 'under2.5': 1.85}
-        },
-        {
-          'id': 'auto_m7',
-          'league': 'International Friendlies',
-          'time': '15-09-2026 7:00 pm',
-          't1': 'ဘရာဇီး',
-          't2': 'အာဂျင်တီးနား',
-          'status': 'UPCOMING',
-          'odds': {'homeWin': 1.80, 'awayWin': 2.00, 'centerVal': '2.5', 'over2.5': 1.75, 'under2.5': 2.05}
         }
       ]);
     }
@@ -249,22 +220,26 @@ class ApiService {
 }
 
 class AppData {
-  static String displayName = 'User';
-  static String username = '';
+  static String displayName = 'မင်းမင်းအောင်';
+  static String username = 'zzzzztoe099';
   static String password = '123';
   static double balance = 0.0;
   static int points = 0;
+  static String selectedTeam = 'မြန်မာ';
+  static String selectedLanguage = 'မြန်မာ';
 
   static List<Map<String, dynamic>> activeBets = [];
   static List<Map<String, dynamic>> parlaySlip = []; 
 
   static Future<void> loadData() async {
     final prefs = await SharedPreferences.getInstance();
-    displayName = prefs.getString('displayName') ?? 'User';
-    username = prefs.getString('username') ?? '';
+    displayName = prefs.getString('displayName') ?? 'မင်းမင်းအောင်';
+    username = prefs.getString('username') ?? 'zzzzztoe099';
     password = prefs.getString('password') ?? '123';
     balance = prefs.getDouble('balance') ?? 0.0;
     points = prefs.getInt('points') ?? 0;
+    selectedTeam = prefs.getString('selectedTeam') ?? 'မြန်မာ';
+    selectedLanguage = prefs.getString('selectedLanguage') ?? 'မြန်မာ';
 
     try {
       if (username.isNotEmpty) {
@@ -287,6 +262,8 @@ class AppData {
     await prefs.setString('password', password);
     await prefs.setDouble('balance', balance);
     await prefs.setInt('points', points);
+    await prefs.setString('selectedTeam', selectedTeam);
+    await prefs.setString('selectedLanguage', selectedLanguage);
 
     try {
       if (username.isNotEmpty) {
@@ -436,20 +413,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
               accountEmail: Text('Username: ${AppData.username}', style: const TextStyle(color: Colors.grey)),
               currentAccountPicture: const CircleAvatar(backgroundColor: Colors.grey, child: Icon(Icons.person, color: Colors.white)),
               decoration: const BoxDecoration(color: Color(0xFF1F1F1F)),
+              otherAccountsPictures: [
+                IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.greenAccent),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()))
+                        .then((_) => _refresh());
+                  },
+                ),
+              ],
             ),
             ListTile(
-              leading: const Icon(Icons.manage_accounts, color: Colors.greenAccent),
-              title: const Text('ပရိုไฟล์ စီမံရန်', style: TextStyle(color: Colors.white)),
+              leading: const Icon(Icons.description, color: Colors.greenAccent),
+              title: const Text('စည်းကမ်းသတ်မှတ်ချက်များ', style: TextStyle(color: Colors.white)),
+              trailing: const Icon(Icons.chevron_right, color: Colors.grey),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()))
-                    .then((_) => _refresh());
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const TermsScreen()));
               },
+            ),
+            ListTile(
+              leading: const Icon(Icons.lock, color: Colors.greenAccent),
+              title: const Text('စကားဝှက် ပြောင်းရန်', style: TextStyle(color: Colors.white)),
+              trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const ChangePasswordScreen()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.sports_soccer, color: Colors.greenAccent),
+              title: const Text('အသင်း/အမည်', style: TextStyle(color: Colors.white)),
+              trailing: const Text('🇲🇲', style: TextStyle(fontSize: 20)),
+              onTap: () {
+                Navigator.pop(context);
+                _showTeamDialog(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.language, color: Colors.greenAccent),
+              title: const Text('ဘာသာစကားရွေးရန်', style: TextStyle(color: Colors.white)),
+              trailing: const Text('🇲🇲', style: TextStyle(fontSize: 20)),
+              onTap: () {
+                Navigator.pop(context);
+                _showLanguageDialog(context);
+              },
+            ),
+            const Divider(color: Colors.grey),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Text('Version 12.0.1', style: TextStyle(color: Colors.grey, fontSize: 12)),
             ),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text('ထွက်ရန်', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-              onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginScreen())),
+              onTap: () {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
+              },
             ),
           ],
         ),
@@ -536,6 +557,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  void _showTeamDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1F1F1F),
+        title: const Text('အသင်း/အမည် ရွေးချယ်ရန်', style: TextStyle(color: Colors.white)),
+        content: const Text('လက်ရှိအသင်းမှာ မြန်မာ နိုင်ငံအသင်း ဖြစ်ပါသည်။', style: TextStyle(color: Colors.grey)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('ပိတ်ရန်', style: TextStyle(color: Colors.greenAccent))),
+        ],
+      ),
+    );
+  }
+
+  void _showLanguageDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1F1F1F),
+        title: const Text('ဘာသာစကား ရွေးချယ်ရန်', style: TextStyle(color: Colors.white)),
+        content: const Text('လက်ရှိဘာသာစကားမှာ မြန်မာဘာသာ ဖြစ်ပါသည်။', style: TextStyle(color: Colors.grey)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('ပိတ်ရန်', style: TextStyle(color: Colors.greenAccent))),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMenuCard(BuildContext context, String title, IconData icon, Color color, Widget targetScreen) {
     return InkWell(
       onTap: () {
@@ -569,12 +618,10 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final _nameController = TextEditingController(text: AppData.displayName);
-  final _passController = TextEditingController(text: AppData.password);
 
   void _updateProfile() async {
     setState(() {
       AppData.displayName = _nameController.text;
-      AppData.password = _passController.text;
     });
     await AppData.saveData();
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပရိုไฟล์ အချက်အလက်များ သိမ်းဆည်းပြီးပါပြီ')));
@@ -593,9 +640,83 @@ class _ProfileScreenState extends State<ProfileScreen> {
               controller: _nameController,
               decoration: const InputDecoration(labelText: 'အမည်ပြောင်းရန်', filled: true, fillColor: Color(0xFF1F1F1F)),
             ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 45,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                onPressed: _updateProfile,
+                child: const Text('အချက်အလက် သိမ်းမည်', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class TermsScreen extends StatelessWidget {
+  const TermsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('စည်းကမ်းသတ်မှတ်ချက်များ')),
+      body: const Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Text(
+          '555SPORT ၏ စည်းကမ်းသတ်မှတ်ချက်များ -\n\n1. အကောင့်ဖွင့်လှစ်သူများသည် အချက်အလက် အမှန်အကန် ပေးရမည်။\n2. မောင်းလောင်းရာတွင် အနည်းဆုံး ၂ သင်းမှ အများဆုံး ၁၅ သင်းအထိ လောင်းခွင့်ရှိသည်။\n3. ငှက်နာမည် မှန်ကန်တူညီမှသာ ငွေထုတ်ယူခွင့်ရှိမည်။',
+          style: TextStyle(color: Colors.white, height: 1.5),
+        ),
+      ),
+    );
+  }
+}
+
+class ChangePasswordScreen extends StatefulWidget {
+  const ChangePasswordScreen({super.key});
+
+  @override
+  State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
+}
+
+class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
+  final _oldPassController = TextEditingController();
+  final _newPassController = TextEditingController();
+
+  void _changePassword() async {
+    if (_oldPassController.text == AppData.password) {
+      if (_newPassController.text.isNotEmpty) {
+        AppData.password = _newPassController.text;
+        await AppData.saveData();
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('စကားဝှက် အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ')));
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('စကားဝှက်အသစ် ထည့်ပါ။')));
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('စကားဝှက်ဟောင်း မမှန်ကန်ပါ။')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('စကားဝှက် ပြောင်းရန်')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _oldPassController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'စကားဝှက်ဟောင်း', filled: true, fillColor: Color(0xFF1F1F1F)),
+            ),
             const SizedBox(height: 16),
             TextField(
-              controller: _passController,
+              controller: _newPassController,
               obscureText: true,
               decoration: const InputDecoration(labelText: 'စကားဝှက်အသစ်', filled: true, fillColor: Color(0xFF1F1F1F)),
             ),
@@ -605,8 +726,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               height: 45,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                onPressed: _updateProfile,
-                child: const Text('အချက်အလက် သိမ်းမည်', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                onPressed: _changePassword,
+                child: const Text('ပြောင်းလဲမည်', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -1424,7 +1545,7 @@ class _FinishedResultsScreenState extends State<FinishedResultsScreen> {
 }
 
 class StandingsScreen extends StatefulWidget {
-  const StandingsScreen();
+  const StandingsScreen({super.key});
 
   @override
   State<StandingsScreen> createState() => _StandingsScreenState();
