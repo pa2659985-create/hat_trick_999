@@ -93,7 +93,7 @@ class ApiService {
             'odds': {
               'homeWin': 1.85,
               'awayWin': 1.95,
-              'centerVal': '2.5', // အလယ်ဗဟို ကိန်းဂဏန်းသီးသန့်အကွက်
+              'centerVal': '2.5',
               'over2.5': 1.90,
               'under2.5': 1.85,
             }
@@ -215,8 +215,8 @@ class AppData {
   static String displayName = 'User';
   static String username = '';
   static String password = '123';
-  static double balance = 0.0; // အကောင့်အသစ်အတွက် ငွေ 0
-  static int points = 0;       // အကောင့်အသစ်အတွက် ပွိုင့် 0
+  static double balance = 0.0;
+  static int points = 0;
 
   static List<Map<String, dynamic>> activeBets = [];
   static List<Map<String, dynamic>> parlaySlip = []; 
@@ -580,7 +580,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 }
 
 class BettingScreen extends StatefulWidget {
-  final bool isParlay; // true = မောင်း, false = ဘော်ဒီ/ဂိုးပေါင်း (Single)
+  final bool isParlay; 
   const BettingScreen({super.key, required this.isParlay});
 
   @override
@@ -599,30 +599,44 @@ class _BettingScreenState extends State<BettingScreen> {
     _matchesFuture = ApiService.fetchMatches();
   }
 
+  // ရွေးချယ်မှုကိုင်တွယ်သည့် ဖန်ရှင် (ပြန်နှိပ်ပါက အဝါရောင်ပျောက်ပြီး စလစ်မှ ပယ်ဖျက်ရန်)
   void _handleSelection(Map<String, dynamic> match, String betType, String selection, double odds) {
     if (widget.isParlay) {
       setState(() {
+        bool alreadyExists = AppData.parlaySlip.any(
+          (item) => item['matchId'] == match['id'] && item['betType'] == betType && item['selection'] == selection
+        );
+
         AppData.parlaySlip.removeWhere((item) => item['matchId'] == match['id']);
-        
-        AppData.parlaySlip.add({
-          'matchId': match['id'],
-          'matchName': '${match['t1']} vs ${match['t2']}',
-          'betType': betType,
-          'selection': selection,
-          'odds': odds,
-        });
+
+        if (!alreadyExists) {
+          AppData.parlaySlip.add({
+            'matchId': match['id'],
+            'matchName': '${match['t1']} vs ${match['t2']}',
+            'betType': betType,
+            'selection': selection,
+            'odds': odds,
+          });
+        }
       });
     } else {
       setState(() {
-        _selectedSingleBet = {
-          'matchId': match['id'],
-          'matchName': '${match['t1']} vs ${match['t2']}',
-          'betType': betType,
-          'selection': selection,
-          'odds': odds,
-        };
+        if (_selectedSingleBet != null &&
+            _selectedSingleBet!['matchId'] == match['id'] &&
+            _selectedSingleBet!['betType'] == betType &&
+            _selectedSingleBet!['selection'] == selection) {
+          _selectedSingleBet = null;
+        } else {
+          _selectedSingleBet = {
+            'matchId': match['id'],
+            'matchName': '${match['t1']} vs ${match['t2']}',
+            'betType': betType,
+            'selection': selection,
+            'odds': odds,
+          };
+          _showSingleBetBottomSheet();
+        }
       });
-      _showSingleBetBottomSheet();
     }
   }
 
@@ -989,7 +1003,7 @@ class _ParlaySlipScreenState extends State<ParlaySlipScreen> {
   void _confirmParlayBet() async {
     int count = AppData.parlaySlip.length;
     
-    // မောင်း - အနည်းဆုံး ၂ သင်း (၂ ပွဲ)၊ အများဆုံး ၁၅ သင်း (၁၅ ပွဲ) သာ တိကျစွာစစ်ဆေးရန်
+    // မောင်း - အနည်းဆုံး ၂ သင်း၊ အများဆုံး ၁၅ သင်း တိကျစွာစစ်ဆေးရန်
     if (count < 2) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('မောင်းလောင်းရန် အနည်းဆုံး ၂ သင်း ပါရှိရပါမည်။')));
       return;
