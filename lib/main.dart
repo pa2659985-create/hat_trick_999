@@ -284,7 +284,7 @@ class AppData {
   static List<Map<String, dynamic>> activeBets = [];
   static List<Map<String, dynamic>> parlaySlip = []; 
 
-  // Admin မှ ကြိုတင်သတ်မှတ်ပေးထားသော တရားဝင် Member (၁၀၀) စာရင်း အတု (Mock 100 Members Generator)
+  // Admin မှ တရားဝင် သတ်မှတ်ပေးထားသော မန်ဘာ (၁၀၀) စာရင်း
   static List<Map<String, String>> authorizedMembers = List.generate(100, (index) {
     int id = index + 1;
     return {
@@ -310,7 +310,6 @@ class AppData {
     selectedLanguage = prefs.getString('selectedLanguage') ?? 'မြန်မာ';
     isMaintenanceMode = prefs.getBool('isMaintenanceMode') ?? false;
 
-    // Firebase Firestore မှ Real-time ဒေတာ ရယူခြင်း
     try {
       if (username.isNotEmpty && username != '999admin') {
         var userDoc = await FirebaseFirestore.instance.collection('users').doc(username).get();
@@ -333,7 +332,6 @@ class AppData {
     await prefs.setString('selectedLanguage', selectedLanguage);
     await prefs.setBool('isMaintenanceMode', isMaintenanceMode);
 
-    // Firebase Firestore သို့ Real-time တိုက်ရိုက် သိမ်းဆည်းခြင်း
     try {
       if (username.isNotEmpty && username != '999admin') {
         await FirebaseFirestore.instance.collection('users').doc(username).set({
@@ -348,7 +346,6 @@ class AppData {
     }
   }
 
-  // Auto Settlement based on API Match Results
   static Future<void> autoCheckAndSettleBets() async {
     try {
       List<Map<String, dynamic>> finishedMatches = await ApiService.fetchOldMatches();
@@ -417,7 +414,7 @@ class AppData {
 }
 
 // -------------------------------------------------------------------------
-// Login Screen (တရားဝင် Member ၁၀၀ နှင့် အမှန်တကယ် ကိုက်ညီမှသာ ဝင်ခွင့်ရှိသောစနစ်)
+// Login Screen
 // -------------------------------------------------------------------------
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -435,7 +432,6 @@ class _LoginScreenState extends State<LoginScreen> {
     String pass = _passController.text.trim();
 
     if (uName.isNotEmpty && pass.isNotEmpty) {
-      // 1. Admin Login စစ်ဆေးခြင်း (999admin / admin999)
       if (uName == '999admin' && pass == 'admin999') {
         AppData.isAdmin = true;
         AppData.username = '999admin';
@@ -449,7 +445,6 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // 2. Maintenance Mode စစ်ဆေးခြင်း
       if (AppData.isMaintenanceMode) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('အက်ပ်ကို ခတ္တပိတ်ထားပါသည် (Maintenance Mode)။')),
@@ -457,7 +452,6 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // 3. တရားဝင် Member (၁၀၀) စာရင်းနှင့် တိုက်ဆိုင်စစ်ဆေးခြင်း
       bool isValidMember = AppData.authorizedMembers.any(
         (member) => member['username'] == uName && member['password'] == pass
       );
@@ -469,12 +463,10 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // 4. မှန်ကန်ပါက Member အကောင့်သို့ ဝင်ရောက်ခွင့်ပြုခြင်း
       AppData.isAdmin = false;
       AppData.username = uName;
       AppData.displayName = uName;
 
-      // မန်ဘာစာရင်းထဲမှ လက်ကျန်ငွေနှင့် ပွိုင့်များကို ထည့်သွင်းပေးခြင်း
       var matchedUser = AppData.allUsers.firstWhere((element) => element['username'] == uName);
       AppData.balance = matchedUser['balance'];
       AppData.points = matchedUser['points'];
@@ -549,7 +541,7 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 // -------------------------------------------------------------------------
-// Admin Master Control Panel (အစအဆုံး ပြီးပြည့်စုံသော ထိန်းချုပ်မှုစနစ်)
+// Admin Master Control Panel
 // -------------------------------------------------------------------------
 class AdminPanelScreen extends StatefulWidget {
   const AdminPanelScreen({super.key});
@@ -581,8 +573,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         children: [
           const Text('⚙️ အက်ပ်တစ်ခုလုံး မာစတာ ထိန်းချုပ်မှု', style: TextStyle(color: Colors.amber, fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
-
-          // 1. Maintenance Mode Switch
           Card(
             color: const Color(0xFF1F1F1F),
             child: SwitchListTile(
@@ -599,8 +589,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             ),
           ),
           const SizedBox(height: 16),
-
-          // 2. Multi-User & Balance Management Button (100 Members)
           Card(
             color: const Color(0xFF1F1F1F),
             child: ListTile(
@@ -615,8 +603,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             ),
           ),
           const SizedBox(height: 16),
-
-          // 3. Manual & Auto Bet Settlement Control
           Card(
             color: const Color(0xFF1F1F1F),
             child: ListTile(
@@ -631,8 +617,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             ),
           ),
           const SizedBox(height: 16),
-
-          // 4. Match & Odds Full CRUD Control
           Card(
             color: const Color(0xFF1F1F1F),
             child: ListTile(
@@ -653,7 +637,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 }
 
 // -------------------------------------------------------------------------
-// 1. Admin Member Management Screen (100 Members List & Balance Editor)
+// Admin Member Management Screen
 // -------------------------------------------------------------------------
 class AdminUserManagementScreen extends StatefulWidget {
   const AdminUserManagementScreen({super.key});
@@ -731,7 +715,7 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
 }
 
 // -------------------------------------------------------------------------
-// 2. Admin Bet Settlement Screen (Manual & Auto Settle Override)
+// Admin Bet Settlement Screen
 // -------------------------------------------------------------------------
 class AdminBetSettlementScreen extends StatefulWidget {
   const AdminBetSettlementScreen({super.key});
@@ -829,7 +813,7 @@ class _AdminBetSettlementScreenState extends State<AdminBetSettlementScreen> {
 }
 
 // -------------------------------------------------------------------------
-// 3. Admin Match Control Screen (Full CRUD)
+// Admin Match Control Screen (CRUD)
 // -------------------------------------------------------------------------
 class AdminMatchControlScreen extends StatefulWidget {
   const AdminMatchControlScreen({super.key});
@@ -999,7 +983,7 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
 }
 
 // -------------------------------------------------------------------------
-// User Dashboard & Betting System (ပုံမှန် User များအတွက်)
+// User Dashboard & Betting System
 // -------------------------------------------------------------------------
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -1267,7 +1251,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildMenuCard(BuildContext context, String title, IconData icon, Color color, Widget targetScreen) {
     return InkWell(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context => targetScreen)).then((_) => _refresh());
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => targetScreen),
+        ).then((_) => _refresh());
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
