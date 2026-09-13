@@ -518,7 +518,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     title: const Text('အကောင့်မှ ထွက်ရန်', style: TextStyle(color: Colors.white)),
                     content: const Text('အကောင့်မှ ထွက်မှာ သေချာပါသလား?', style: TextStyle(color: Colors.grey)),
                     actions: [
-                      TextButton(onPressed: () => Navigator.pop(context), theChild: const Text('မလုပ်ပါ။', style: TextStyle(color: Colors.grey))),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context), 
+                        child: const Text('မလုပ်ပါ။', style: TextStyle(color: Colors.grey)),
+                      ),
                       TextButton(
                         onPressed: () {
                           Navigator.pop(context);
@@ -616,7 +619,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // တကယ်အလုပ်လုပ်သော အသင်း/အမည် ရွေးချယ်မှု Dialog
   void _showTeamSelectionDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -652,7 +654,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // တကယ်အလုပ်လုပ်သော ဘာသာစကား (မြန်မာ/အင်္ဂလိပ်) ပြောင်းလဲမှု Dialog
   void _showLanguageSelectionDialog(BuildContext context) {
     showDialog(
       context: context,
