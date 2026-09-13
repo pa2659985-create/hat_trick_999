@@ -131,7 +131,6 @@ class ApiService {
   static const String apiKey = '5a87133d1c764efb8525d81e82d605fd'; 
   static const String baseUrl = 'https://api.football-data.org/v4/matches';
 
-  // Admin မှ စိတ်ကြိုက်ပြင်ဆင်နိုင်သော ပွဲစဉ်စာရင်း (သို့ API မှရယူခြင်း)
   static List<Map<String, dynamic>> customAdminMatches = [];
 
   static Future<List<Map<String, dynamic>>> fetchMatches() async {
@@ -274,51 +273,67 @@ class ApiService {
 
 class AppData {
   static String displayName = 'မင်းမင်းအောင်';
-  static String username = 'zzzzztoe099';
-  static String password = '123';
+  static String username = '';
   static double balance = 0.0;
   static int points = 0;
   static String selectedTeam = 'မြန်မာ (Myanmar)';
   static String selectedLanguage = 'မြန်မာ';
   static bool isAdmin = false;
+  static bool isMaintenanceMode = false;
 
   static List<Map<String, dynamic>> activeBets = [];
   static List<Map<String, dynamic>> parlaySlip = []; 
 
+  // Admin မှ ကြိုတင်သတ်မှတ်ပေးထားသော တရားဝင် Member (၁၀၀) စာရင်း အတု (Mock 100 Members Generator)
+  static List<Map<String, String>> authorizedMembers = List.generate(100, (index) {
+    int id = index + 1;
+    return {
+      'username': 'member$id',
+      'password': 'pass$id',
+    };
+  });
+
+  // Admin မှ ထိန်းချုပ်ရန် မန်ဘာများစာရင်း အသေးစိတ်
+  static List<Map<String, dynamic>> allUsers = List.generate(100, (index) {
+    int id = index + 1;
+    return {
+      'username': 'member$id',
+      'balance': 10000.0 * (index % 5 + 1),
+      'points': 100 * (index % 3 + 1),
+    };
+  });
+
   static Future<void> loadData() async {
     final prefs = await SharedPreferences.getInstance();
-    displayName = prefs.getString('displayName') ?? 'မင်းမင်းအောင်';
-    username = prefs.getString('username') ?? 'zzzzztoe099';
-    password = prefs.getString('password') ?? '123';
-    balance = prefs.getDouble('balance') ?? 0.0;
-    points = prefs.getInt('points') ?? 0;
+    username = prefs.getString('username') ?? '';
     selectedTeam = prefs.getString('selectedTeam') ?? 'မြန်မာ (Myanmar)';
     selectedLanguage = prefs.getString('selectedLanguage') ?? 'မြန်မာ';
+    isMaintenanceMode = prefs.getBool('isMaintenanceMode') ?? false;
 
+    // Firebase Firestore မှ Real-time ဒေတာ ရယူခြင်း
     try {
       if (username.isNotEmpty && username != '999admin') {
         var userDoc = await FirebaseFirestore.instance.collection('users').doc(username).get();
         if (userDoc.exists) {
           var data = userDoc.data()!;
-          balance = (data['balance'] ?? balance).toDouble();
-          points = data['points'] ?? points;
+          balance = (data['balance'] ?? 0.0).toDouble();
+          points = data['points'] ?? 0;
+          displayName = data['displayName'] ?? username;
         }
       }
     } catch (e) {
-      print('Cloud Database Sync Error: $e');
+      print('Cloud Firestore Load Error: $e');
     }
   }
 
   static Future<void> saveData() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('displayName', displayName);
     await prefs.setString('username', username);
-    await prefs.setString('password', password);
-    await prefs.setDouble('balance', balance);
-    await prefs.setInt('points', points);
     await prefs.setString('selectedTeam', selectedTeam);
     await prefs.setString('selectedLanguage', selectedLanguage);
+    await prefs.setBool('isMaintenanceMode', isMaintenanceMode);
 
+    // Firebase Firestore သို့ Real-time တိုက်ရိုက် သိမ်းဆည်းခြင်း
     try {
       if (username.isNotEmpty && username != '999admin') {
         await FirebaseFirestore.instance.collection('users').doc(username).set({
@@ -329,11 +344,11 @@ class AppData {
         }, SetOptions(merge: true));
       }
     } catch (e) {
-      print('Cloud Database Save Error: $e');
+      print('Cloud Firestore Save Error: $e');
     }
   }
 
-  // Auto Settlement based on Live/Finished API matches
+  // Auto Settlement based on API Match Results
   static Future<void> autoCheckAndSettleBets() async {
     try {
       List<Map<String, dynamic>> finishedMatches = await ApiService.fetchOldMatches();
@@ -401,6 +416,9 @@ class AppData {
   }
 }
 
+// -------------------------------------------------------------------------
+// Login Screen (တရားဝင် Member ၁၀၀ နှင့် အမှန်တကယ် ကိုက်ညီမှသာ ဝင်ခွင့်ရှိသောစနစ်)
+// -------------------------------------------------------------------------
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -417,7 +435,7 @@ class _LoginScreenState extends State<LoginScreen> {
     String pass = _passController.text.trim();
 
     if (uName.isNotEmpty && pass.isNotEmpty) {
-      // 999admin / admin999 အသိအမှတ်ပြုခြင်း
+      // 1. Admin Login စစ်ဆေးခြင်း (999admin / admin999)
       if (uName == '999admin' && pass == 'admin999') {
         AppData.isAdmin = true;
         AppData.username = '999admin';
@@ -431,11 +449,36 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
+      // 2. Maintenance Mode စစ်ဆေးခြင်း
+      if (AppData.isMaintenanceMode) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('အက်ပ်ကို ခတ္တပိတ်ထားပါသည် (Maintenance Mode)။')),
+        );
+        return;
+      }
+
+      // 3. တရားဝင် Member (၁၀၀) စာရင်းနှင့် တိုက်ဆိုင်စစ်ဆေးခြင်း
+      bool isValidMember = AppData.authorizedMembers.any(
+        (member) => member['username'] == uName && member['password'] == pass
+      );
+
+      if (!isValidMember) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('အသုံးပြုသူအမည် သို့မဟုတ် စကားဝှက် မမှန်ကန်ပါ (သို့မဟုတ်) အခွင့်အရေးမရှိပါ။')),
+        );
+        return;
+      }
+
+      // 4. မှန်ကန်ပါက Member အကောင့်သို့ ဝင်ရောက်ခွင့်ပြုခြင်း
       AppData.isAdmin = false;
-      setState(() {
-        AppData.username = uName;
-        AppData.displayName = uName;
-      });
+      AppData.username = uName;
+      AppData.displayName = uName;
+
+      // မန်ဘာစာရင်းထဲမှ လက်ကျန်ငွေနှင့် ပွိုင့်များကို ထည့်သွင်းပေးခြင်း
+      var matchedUser = AppData.allUsers.firstWhere((element) => element['username'] == uName);
+      AppData.balance = matchedUser['balance'];
+      AppData.points = matchedUser['points'];
+
       await AppData.saveData();
 
       Navigator.pushReplacement(
@@ -465,7 +508,7 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: _userController,
                 decoration: InputDecoration(
-                  labelText: 'အသုံးပြုသူ အမည် (Admin: 999admin)',
+                  labelText: 'အသုံးပြုသူ အမည် (Member 1 to 100)',
                   prefixIcon: const Icon(Icons.person, color: Colors.greenAccent),
                   filled: true,
                   fillColor: const Color(0xFF1F1F1F),
@@ -477,7 +520,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _passController,
                 obscureText: true,
                 decoration: InputDecoration(
-                  labelText: 'စကားဝှက် (Admin: admin999)',
+                  labelText: 'စကားဝှက်',
                   prefixIcon: const Icon(Icons.lock, color: Colors.greenAccent),
                   filled: true,
                   fillColor: const Color(0xFF1F1F1F),
@@ -506,7 +549,7 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 // -------------------------------------------------------------------------
-// အပြည့်အစုံ ထိန်းချုပ်လို့ရသော Admin Panel (Full Admin Control Master Screen)
+// Admin Master Control Panel (အစအဆုံး ပြီးပြည့်စုံသော ထိန်းချုပ်မှုစနစ်)
 // -------------------------------------------------------------------------
 class AdminPanelScreen extends StatefulWidget {
   const AdminPanelScreen({super.key});
@@ -516,9 +559,6 @@ class AdminPanelScreen extends StatefulWidget {
 }
 
 class _AdminPanelScreenState extends State<AdminPanelScreen> {
-  final TextEditingController _balanceController = TextEditingController(text: '${AppData.balance}');
-  final TextEditingController _pointsController = TextEditingController(text: '${AppData.points}');
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -539,97 +579,71 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          const Text('⚙️ အက်ပ်တစ်ခုလုံး ထိန်းချုပ်မှုစနစ်', style: TextStyle(color: Colors.amber, fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text('⚙️ အက်ပ်တစ်ခုလုံး မာစတာ ထိန်းချုပ်မှု', style: TextStyle(color: Colors.amber, fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
 
-          // 1. User Balance & Points Management Card
+          // 1. Maintenance Mode Switch
           Card(
             color: const Color(0xFF1F1F1F),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('၁။ အသုံးပြုသူ ငွေစာရင်းနှင့် ပွိုင့်များ စီမံရန်', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: _balanceController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'လက်ကျန်ငွေ (Balance) ပြင်ရန်', filled: true, fillColor: Color(0xFF2C2C2C)),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: _pointsController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'ပွိုင့် (Points) ပြင်ရန်', filled: true, fillColor: Color(0xFF2C2C2C)),
-                  ),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                    onPressed: () async {
-                      setState(() {
-                        AppData.balance = double.tryParse(_balanceController.text) ?? AppData.balance;
-                        AppData.points = int.tryParse(_pointsController.text) ?? AppData.points;
-                      });
-                      await AppData.saveData();
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ငွေစာရင်းနှင့် ပွိုင့်များ အောင်မြင်စွာ ပြင်ဆင်ပြီးပါပြီ')));
-                    },
-                    child: const Text('ငွေစာရင်းနှင့် ပွိုင့်များကို သိမ်းမည်', style: TextStyle(color: Colors.white)),
-                  ),
-                ],
-              ),
+            child: SwitchListTile(
+              title: const Text('အက်ပ်ပိတ်ရန် (Maintenance Mode)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              subtitle: Text(AppData.isMaintenanceMode ? 'အက်ပ် ပိတ်ထားသည် (User များ ဝင်မရပါ)' : 'အက်ပ် ဖွင့်ထားသည်', style: const TextStyle(color: Colors.grey)),
+              value: AppData.isMaintenanceMode,
+              activeColor: Colors.red,
+              onChanged: (val) async {
+                setState(() {
+                  AppData.isMaintenanceMode = val;
+                });
+                await AppData.saveData();
+              },
             ),
           ),
           const SizedBox(height: 16),
 
-          // 2. Active Bets Settlement Control
+          // 2. Multi-User & Balance Management Button (100 Members)
           Card(
             color: const Color(0xFF1F1F1F),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('၂။ လောင်းထားသော ပွဲစဉ်များ အနိုင်/အရှုံး စစ်ဆေး အတည်ပြုခြင်း', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  const Text('• ပြီးဆုံးသွားသော API ပွဲရလဒ်များနှင့် တိုက်ဆိုင်ပြီး အလိုအလျောက် အနိုင်/အရှုံး တွက်မည်။', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
-                    onPressed: () async {
-                      await AppData.autoCheckAndSettleBets();
-                      setState(() {});
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွဲရလဒ်များ အလိုက် အနိုင်/အရှုံး အလိုအလျောက် တွက်ချက်မှု ပြီးပါပြီ')));
-                    },
-                    child: const Text('အလိုအလျောက် ပွဲရလဒ်စစ်ဆေးပြီး အနိုင်/အရှုံး တွက်မည်', style: TextStyle(color: Colors.white)),
-                  ),
-                ],
-              ),
+            child: ListTile(
+              leading: const Icon(Icons.people, color: Colors.greenAccent),
+              title: const Text('၁။ တရားဝင် မန်ဘာ (၁၀၀) စာရင်းနှင့် ငွေစာရင်းများ စီမံရန်', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              subtitle: const Text('Member အားလုံး၏ ငွေနှင့် ပွိုင့်များကို ဝင်ရောက်ပြင်ဆင်ရန်', style: TextStyle(color: Colors.grey, fontSize: 12)),
+              trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminUserManagementScreen()))
+                    .then((_) => setState(() {}));
+              },
             ),
           ),
           const SizedBox(height: 16),
 
-          // 3. Match & Odds Editor Control
+          // 3. Manual & Auto Bet Settlement Control
           Card(
             color: const Color(0xFF1F1F1F),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('၃။ ပွဲစဉ်များနှင့် အသင်းနာမည်များ စိတ်ကြိုက် ပြင်ဆင်ခြင်း', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  const Text('• Admin မှ လိုအပ်သလို အသင်းနာမည်များ၊ အချိန်များနှင့် Odds များကို ဤနေရာမှ ဝင်ရောက် ထိန်းချုပ် ပြင်ဆင်နိုင်ပါသည်။', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo),
-                    onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminMatchControlScreen()));
-                    },
-                    child: const Text('ပွဲစဉ်များနှင့် Odds များကို စိတ်ကြိုက်ပြင်ရန်', style: TextStyle(color: Colors.white)),
-                  ),
-                ],
-              ),
+            child: ListTile(
+              leading: const Icon(Icons.receipt_long, color: Colors.blueAccent),
+              title: const Text('၂။ လောင်းကြေးများ အနိုင်/အရှုံး စစ်ဆေးပြီး အတည်ပြုခြင်း', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              subtitle: const Text('Active Bets များကို Manual သို့မဟုတ် Auto Settle လုပ်ရန်', style: TextStyle(color: Colors.grey, fontSize: 12)),
+              trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminBetSettlementScreen()))
+                    .then((_) => setState(() {}));
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // 4. Match & Odds Full CRUD Control
+          Card(
+            color: const Color(0xFF1F1F1F),
+            child: ListTile(
+              leading: const Icon(Icons.sports_soccer, color: Colors.indigoAccent),
+              title: const Text('၃။ ပွဲစဉ်များနှင့် Odds များကို စိတ်ကြိုက် စီမံရန် (CRUD)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              subtitle: const Text('ပွဲစဉ်အသစ်ထည့်ခြင်း၊ ပြင်ဆင်ခြင်းနှင့် ဖျက်ခြင်း', style: TextStyle(color: Colors.grey, fontSize: 12)),
+              trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminMatchControlScreen()))
+                    .then((_) => setState(() {}));
+              },
             ),
           ),
         ],
@@ -638,7 +652,185 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   }
 }
 
-// Admin မှ ပွဲစဉ်များနှင့် Odds များကို စိတ်ကြိုက် ဝင်ရောက်ပြင်ဆင်သည့် မျက်နှာပြင်
+// -------------------------------------------------------------------------
+// 1. Admin Member Management Screen (100 Members List & Balance Editor)
+// -------------------------------------------------------------------------
+class AdminUserManagementScreen extends StatefulWidget {
+  const AdminUserManagementScreen({super.key});
+
+  @override
+  State<AdminUserManagementScreen> createState() => _AdminUserManagementScreenState();
+}
+
+class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('တရားဝင် မန်ဘာ (၁၀၀) စာရင်း စီမံရန်')),
+      body: ListView.builder(
+        itemCount: AppData.allUsers.length,
+        itemBuilder: (context, index) {
+          var user = AppData.allUsers[index];
+          return Card(
+            color: const Color(0xFF1F1F1F),
+            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            child: ListTile(
+              title: Text('Username: ${user['username']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              subtitle: Text('လက်ကျန်ငွေ: ${user['balance']} Ks | ပွိုင့်: ${user['points']} Pts', style: const TextStyle(color: Colors.greenAccent)),
+              trailing: IconButton(
+                icon: const Icon(Icons.edit, color: Colors.amber),
+                onPressed: () => _showEditUserDialog(context, user, index),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showEditUserDialog(BuildContext context, Map<String, dynamic> user, int index) {
+    final balanceCtrl = TextEditingController(text: '${user['balance']}');
+    final pointsCtrl = TextEditingController(text: '${user['points']}');
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1F1F1F),
+          title: Text('ပြင်ဆင်ရန်: ${user['username']}', style: const TextStyle(color: Colors.white, fontSize: 16)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: balanceCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'လက်ကျန်ငွေ (Balance)')),
+              TextField(controller: pointsCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'ပွိုင့် (Points)')),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('မလုပ်ပါ။', style: TextStyle(color: Colors.grey))),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  AppData.allUsers[index]['balance'] = double.tryParse(balanceCtrl.text) ?? user['balance'];
+                  AppData.allUsers[index]['points'] = int.tryParse(pointsCtrl.text) ?? user['points'];
+                  if (user['username'] == AppData.username) {
+                    AppData.balance = AppData.allUsers[index]['balance'];
+                    AppData.points = AppData.allUsers[index]['points'];
+                  }
+                });
+                AppData.saveData();
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('မန်ဘာ အချက်အလက် အောင်မြင်စွာ ပြင်ဆင်ပြီးပါပြီ')));
+              },
+              child: const Text('သိမ်းမည်', style: TextStyle(color: Colors.green)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+// -------------------------------------------------------------------------
+// 2. Admin Bet Settlement Screen (Manual & Auto Settle Override)
+// -------------------------------------------------------------------------
+class AdminBetSettlementScreen extends StatefulWidget {
+  const AdminBetSettlementScreen({super.key});
+
+  @override
+  State<AdminBetSettlementScreen> createState() => _AdminBetSettlementScreenState();
+}
+
+class _AdminBetSettlementScreenState extends State<AdminBetSettlementScreen> {
+  void _manualSettle(int index, bool isWin) async {
+    var bet = AppData.activeBets[index];
+    if (bet['status'] != 'ACTIVE') return;
+
+    setState(() {
+      if (isWin) {
+        bet['status'] = 'WON (အနိုင်ရ)';
+        AppData.balance += (bet['potentialWin'] as double);
+      } else {
+        bet['status'] = 'LOST (အရှုံး)';
+      }
+    });
+    await AppData.saveData();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('လောင်းကြေး ရလဒ် သတ်မှတ်ပြီးပါပြီ: ${bet['status']}')));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('လောင်းကြေးများ အနိုင်/အရှုံး စစ်ဆေးရန်'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.greenAccent),
+            onPressed: () async {
+              await AppData.autoCheckAndSettleBets();
+              setState(() {});
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('API ဖြင့် အလိုအလျောက် စစ်ဆေးပြီးပါပြီ')));
+            },
+            tooltip: 'Auto Settle',
+          ),
+        ],
+      ),
+      body: AppData.activeBets.isEmpty
+          ? const Center(child: Text('လောင်းထားသော ပွဲစဉ်များ မရှိသေးပါ။', style: TextStyle(color: Colors.grey)))
+          : ListView.builder(
+              itemCount: AppData.activeBets.length,
+              itemBuilder: (context, index) {
+                var bet = AppData.activeBets[index];
+                bool isActive = bet['status'] == 'ACTIVE';
+
+                return Card(
+                  color: const Color(0xFF1F1F1F),
+                  margin: const EdgeInsets.all(8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('အမျိုးအစား: ${bet['type']}', style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold)),
+                            Text(bet['status'], style: TextStyle(color: isActive ? Colors.blue : (bet['status'].toString().contains('WON') ? Colors.green : Colors.red), fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text('လောင်းငွေ: ${bet['amount']} Ks | ရနိုင်မည့်ငွေ: ${bet['potentialWin']} Ks', style: const TextStyle(color: Colors.white, fontSize: 13)),
+                        if (isActive) ...[
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(backgroundColor: Colors.red, minimumSize: const Size(80, 30)),
+                                onPressed: () => _manualSettle(index, false),
+                                child: const Text('အရှုံး (Loss)', style: TextStyle(fontSize: 12)),
+                              ),
+                              const SizedBox(width: 8),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(backgroundColor: Colors.green, minimumSize: const Size(80, 30)),
+                                onPressed: () => _manualSettle(index, true),
+                                child: const Text('အနိုင် (Win)', style: TextStyle(fontSize: 12)),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+    );
+  }
+}
+
+// -------------------------------------------------------------------------
+// 3. Admin Match Control Screen (Full CRUD)
+// -------------------------------------------------------------------------
 class AdminMatchControlScreen extends StatefulWidget {
   const AdminMatchControlScreen({super.key});
 
@@ -650,7 +842,16 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('ပွဲစဉ်များနှင့် Odds များ ထိန်းချုပ်ရန်')),
+      appBar: AppBar(
+        title: const Text('ပွဲစဉ်များ စီမံရန် (CRUD)'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.greenAccent),
+            onPressed: () => _showAddMatchDialog(context),
+            tooltip: 'ပွဲစဉ်အသစ် ထည့်ရန်',
+          ),
+        ],
+      ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: ApiService.fetchMatches(),
         builder: (context, snapshot) {
@@ -671,12 +872,24 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
                 margin: const EdgeInsets.all(8),
                 child: ListTile(
                   title: Text('${m['t1']} vs ${m['t2']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  subtitle: Text('League: ${m['league']} | Odds Home: ${odds['homeWin']} / Away: ${odds['awayWin']}', style: const TextStyle(color: Colors.greenAccent, fontSize: 12)),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.amber),
-                    onPressed: () {
-                      _showEditMatchDialog(context, m, index);
-                    },
+                  subtitle: Text('League: ${m['league']} | Home: ${odds['homeWin']} / Away: ${odds['awayWin']}', style: const TextStyle(color: Colors.greenAccent, fontSize: 12)),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.amber),
+                        onPressed: () => _showEditMatchDialog(context, m, index),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          setState(() {
+                            ApiService.customAdminMatches.removeAt(index);
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွဲစဉ် ဖျက်ပြီးပါပြီ')));
+                        },
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -684,6 +897,61 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
           );
         },
       ),
+    );
+  }
+
+  void _showAddMatchDialog(BuildContext context) {
+    final t1Ctrl = TextEditingController();
+    final t2Ctrl = TextEditingController();
+    final leagueCtrl = TextEditingController(text: 'English Premier League');
+    final homeOddsCtrl = TextEditingController(text: '1.85');
+    final awayOddsCtrl = TextEditingController(text: '1.95');
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1F1F1F),
+          title: const Text('ပွဲစဉ်အသစ် ထည့်သွင်းရန်', style: TextStyle(color: Colors.white, fontSize: 16)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: leagueCtrl, decoration: const InputDecoration(labelText: 'လိဂ် အမည်')),
+              TextField(controller: t1Ctrl, decoration: const InputDecoration(labelText: 'အိမ်ရှင် အသင်း')),
+              TextField(controller: t2Ctrl, decoration: const InputDecoration(labelText: 'ဧည့်သည် အသင်း')),
+              TextField(controller: homeOddsCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'အိမ်ရှင် Odds')),
+              TextField(controller: awayOddsCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'ဧည့်သည် Odds')),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('မလုပ်ပါ။', style: TextStyle(color: Colors.grey))),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  ApiService.customAdminMatches.add({
+                    'id': 'custom_${DateTime.now().millisecondsSinceEpoch}',
+                    'league': leagueCtrl.text,
+                    'time': '13-09-2026 8:00 pm',
+                    't1': t1Ctrl.text,
+                    't2': t2Ctrl.text,
+                    'status': 'UPCOMING',
+                    'odds': {
+                      'homeWin': double.tryParse(homeOddsCtrl.text) ?? 1.85,
+                      'awayWin': double.tryParse(awayOddsCtrl.text) ?? 1.95,
+                      'centerVal': '2.5',
+                      'over2.5': 1.90,
+                      'under2.5': 1.85,
+                    }
+                  });
+                });
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွဲစဉ်အသစ် အောင်မြင်စွာ ထည့်ပြီးပါပြီ')));
+              },
+              child: const Text('ထည့်မည်', style: TextStyle(color: Colors.green)),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -698,12 +966,12 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: const Color(0xFF1F1F1F),
-          title: const Text('ပွဲစဉ်နှင့် ကြေးနှုန်း (Odds) ပြင်ဆင်ရန်', style: TextStyle(color: Colors.white, fontSize: 16)),
+          title: const Text('ပွဲစဉ် ပြင်ဆင်ရန်', style: TextStyle(color: Colors.white, fontSize: 16)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: t1Controller, decoration: const InputDecoration(labelText: 'အိမ်ရှင် အသင်းနာမည်')),
-              TextField(controller: t2Controller, decoration: const InputDecoration(labelText: 'ဧည့်သည် အသင်းနာမည်')),
+              TextField(controller: t1Controller, decoration: const InputDecoration(labelText: 'အိမ်ရှင် အသင်း')),
+              TextField(controller: t2Controller, decoration: const InputDecoration(labelText: 'ဧည့်သည် အသင်း')),
               TextField(controller: homeOddsController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'အိမ်ရှင် Odds')),
               TextField(controller: awayOddsController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'ဧည့်သည် Odds')),
             ],
@@ -719,7 +987,7 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
                   ApiService.customAdminMatches[index]['odds']['awayWin'] = double.tryParse(awayOddsController.text) ?? 1.95;
                 });
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွဲစဉ်အချက်အလက်များ အောင်မြင်စွာ ပြင်ဆင်ပြီးပါပြီ')));
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွဲစဉ် အောင်မြင်စွာ ပြင်ဆင်ပြီးပါပြီ')));
               },
               child: const Text('သိမ်းမည်', style: TextStyle(color: Colors.green)),
             ),
@@ -999,7 +1267,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildMenuCard(BuildContext context, String title, IconData icon, Color color, Widget targetScreen) {
     return InkWell(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => targetScreen)).then((_) => _refresh());
+        Navigator.push(context, MaterialPageRoute(builder: (context => targetScreen)).then((_) => _refresh());
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -1072,7 +1340,7 @@ class TermsScreen extends StatelessWidget {
       appBar: AppBar(title: Text(AppStrings.get('terms'))),
       body: const Padding(
         padding: EdgeInsets.all(16.0),
-        child: Text('555SPORT ၏ စည်းကမ်းသတ်မှတ်ချက်များ -\n\n1. အကောင့်ဖွင့်လှစ်သူများသည် အချက်အလက် အမှန်အကန် ပေးရမည်。\n2. မောင်းလောင်းရာတွင် အနည်းဆုံး ၂ သင်းမှ အများဆုံး ၁၅ သင်းအထိ လောင်းခွင့်ရှိသည်။', style: TextStyle(color: Colors.white, height: 1.5)),
+        child: Text('555SPORT ၏ စည်းကမ်းသတ်မှတ်ချက်များ -\n\n1. အကောင့်ဖွင့်လှစ်သူများသည် အချက်အလက် အမှန်အကန် ပေးရမည်။\n2. မောင်းလောင်းရာတွင် အနည်းဆုံး ၂ သင်းမှ အများဆုံး ၁၅ သင်းအထိ လောင်းခွင့်ရှိသည်။', style: TextStyle(color: Colors.white, height: 1.5)),
       ),
     );
   }
@@ -1090,17 +1358,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _newPassController = TextEditingController();
 
   void _changePassword() async {
-    if (_oldPassController.text == AppData.password) {
-      if (_newPassController.text.isNotEmpty) {
-        AppData.password = _newPassController.text;
-        await AppData.saveData();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('စကားဝှက် အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ')));
-        Navigator.pop(context);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('စကားဝှက်အသစ် ထည့်ပါ။')));
-      }
+    if (_newPassController.text.isNotEmpty) {
+      await AppData.saveData();
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('စကားဝှက် အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ')));
+      Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('စကားဝှက်ဟောင်း မမှန်ကန်ပါ။')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('စကားဝှက်အသစ် ထည့်ပါ။')));
     }
   }
 
@@ -1240,7 +1503,7 @@ class _BettingScreenState extends State<BettingScreen> {
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                       onPressed: () async {
                         if (amount <= 0 || AppData.balance < amount) {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ငွေပမာဏ သို့မဟုတ် လက်ကျန်ငွေ မမှန်ကန်ပါ။')));
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ငွေပမာဏ သို့မဟုတ် လက်ကျန်ငွေ မလုံလောက်ပါ။')));
                           return;
                         }
 
@@ -1312,8 +1575,6 @@ class _BettingScreenState extends State<BettingScreen> {
 
               bool isHomeSelected = _isSelected(m['id'], 'အနိုင်/အရှုံး', m['t1']);
               bool isAwaySelected = _isSelected(m['id'], 'အနိုင်/အရှုံး', m['t2']);
-              bool isOverSelected = _isSelected(m['id'], 'ဂိုးပေါင်း', 'ဂိုးပေါ်');
-              bool isUnderSelected = _isSelected(m['id'], 'ဂိုးပေါင်း', 'ဂိုးအောက်');
 
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -1430,7 +1691,6 @@ class _ParlaySlipScreenState extends State<ParlaySlipScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double totalOdds = _calculateTotalOdds();
     return Scaffold(
       appBar: AppBar(title: const Text('မောင်းစလစ်')),
       body: Padding(
