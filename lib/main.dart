@@ -28,14 +28,74 @@ void main() async {
   runApp(const HatTrickApp());
 }
 
+// ဘာသာစကား စီမံခန့်ခွဲမှုအတွက် Localization Helper
+class AppStrings {
+  static Map<String, Map<String, String>> localizedValues = {
+    'မြန်မာ': {
+      'appTitle': '555SPORT',
+      'balance': 'လက်ကျန်ငွေ',
+      'points': 'လက်ဆောင် ပွိုင့်များ',
+      'betAmount': 'လောင်းထားသောငွေ',
+      'parlay': 'မောင်း',
+      'single': 'ဘော်ဒီ/ဂိုးပေါင်း',
+      'myBets': 'လောင်းထားသောပွဲစဉ်များ',
+      'oldMatches': 'ပွဲစဉ်ဟောင်းများ',
+      'wallet': 'ငွေစာရင်း',
+      'results': 'ပွဲပြီး ရလဒ်များ',
+      'standings': 'အဆင့်ဇယား',
+      'exchange': 'ပွိုင့်လဲလှယ်',
+      'terms': 'စည်းကမ်းသတ်မှတ်ချက်များ',
+      'changePass': 'စကားဝှက် ပြောင်းရန်',
+      'teamName': 'အသင်း/အမည်',
+      'language': 'ဘာသာစကားရွေးရန်',
+      'logout': 'ထွက်ရန်',
+    },
+    'English': {
+      'appTitle': '555SPORT',
+      'balance': 'Balance',
+      'points': 'Bonus Points',
+      'betAmount': 'Active Bet Amount',
+      'parlay': 'Parlay',
+      'single': 'Single / Over Under',
+      'myBets': 'My Bets',
+      'oldMatches': 'Match History',
+      'wallet': 'Wallet',
+      'results': 'Finished Results',
+      'standings': 'Standings',
+      'exchange': 'Points Exchange',
+      'terms': 'Terms & Conditions',
+      'changePass': 'Change Password',
+      'teamName': 'Team / Name',
+      'language': 'Select Language',
+      'logout': 'Logout',
+    }
+  };
+
+  static String get(String key) {
+    return localizedValues[AppData.selectedLanguage]?[key] ?? localizedValues['မြန်မာ']![key]!;
+  }
+}
+
 class HatTrickApp extends StatefulWidget {
   const HatTrickApp({super.key});
+
+  static void setLocale(BuildContext context, String lang) {
+    _HatTrickAppState? state = context.findAncestorStateOfType<_HatTrickAppState>();
+    state?.setLanguage(lang);
+  }
 
   @override
   State<HatTrickApp> createState() => _HatTrickAppState();
 }
 
 class _HatTrickAppState extends State<HatTrickApp> {
+  void setLanguage(String lang) {
+    setState(() {
+      AppData.selectedLanguage = lang;
+    });
+    AppData.saveData();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -124,24 +184,6 @@ class ApiService {
           'status': 'UPCOMING',
           'odds': {'homeWin': 1.90, 'awayWin': 1.95, 'centerVal': '3.0', 'over2.5': 1.75, 'under2.5': 2.00}
         },
-        {
-          'id': 'auto_m3',
-          'league': 'Italian Serie A',
-          'time': '13-09-2026 11:30 pm',
-          't1': 'အေစီမီလန်',
-          't2': 'အင်တာမီလန်',
-          'status': 'UPCOMING',
-          'odds': {'homeWin': 2.10, 'awayWin': 1.75, 'centerVal': '2.5', 'over2.5': 1.95, 'under2.5': 1.80}
-        },
-        {
-          'id': 'auto_m4',
-          'league': 'German Bundesliga',
-          'time': '14-09-2026 1:30 am',
-          't1': 'ဘိုင်ယန်မြူးနစ်',
-          't2': 'ဒေါ့မွန်',
-          'status': 'UPCOMING',
-          'odds': {'homeWin': 1.60, 'awayWin': 2.20, 'centerVal': '3.5', 'over2.5': 1.65, 'under2.5': 2.10}
-        }
       ]);
     }
 
@@ -150,17 +192,14 @@ class ApiService {
 
   static Future<List<Map<String, dynamic>>> fetchOldMatches() async {
     List<Map<String, dynamic>> oldMatches = [];
-
     try {
       final response = await http.get(
         Uri.parse('$baseUrl?status=FINISHED'),
         headers: {'X-Auth-Token': apiKey},
       );
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         List matches = data['matches'];
-
         for (var m in matches) {
           final score = m['score']['fullTime'];
           oldMatches.add({
@@ -175,7 +214,6 @@ class ApiService {
     } catch (e) {
       print('Old Matches API Error: $e');
     }
-
     if (oldMatches.isEmpty) {
       oldMatches.add({
         'league': 'English Premier League',
@@ -185,7 +223,6 @@ class ApiService {
         'result': 'ပြီးဆုံး (FT)',
       });
     }
-
     return oldMatches;
   }
 
@@ -225,7 +262,7 @@ class AppData {
   static String password = '123';
   static double balance = 0.0;
   static int points = 0;
-  static String selectedTeam = 'မြန်မာ';
+  static String selectedTeam = 'မြန်မာ (Myanmar)';
   static String selectedLanguage = 'မြန်မာ';
 
   static List<Map<String, dynamic>> activeBets = [];
@@ -238,7 +275,7 @@ class AppData {
     password = prefs.getString('password') ?? '123';
     balance = prefs.getDouble('balance') ?? 0.0;
     points = prefs.getInt('points') ?? 0;
-    selectedTeam = prefs.getString('selectedTeam') ?? 'မြန်မာ';
+    selectedTeam = prefs.getString('selectedTeam') ?? 'မြန်မာ (Myanmar)';
     selectedLanguage = prefs.getString('selectedLanguage') ?? 'မြန်မာ';
 
     try {
@@ -426,7 +463,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.description, color: Colors.greenAccent),
-              title: const Text('စည်းကမ်းသတ်မှတ်ချက်များ', style: TextStyle(color: Colors.white)),
+              title: Text(AppStrings.get('terms'), style: const TextStyle(color: Colors.white)),
               trailing: const Icon(Icons.chevron_right, color: Colors.grey),
               onTap: () {
                 Navigator.pop(context);
@@ -435,7 +472,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.lock, color: Colors.greenAccent),
-              title: const Text('စကားဝှက် ပြောင်းရန်', style: TextStyle(color: Colors.white)),
+              title: Text(AppStrings.get('changePass'), style: const TextStyle(color: Colors.white)),
               trailing: const Icon(Icons.chevron_right, color: Colors.grey),
               onTap: () {
                 Navigator.pop(context);
@@ -444,42 +481,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.sports_soccer, color: Colors.greenAccent),
-              title: const Text('အသင်း/အမည်', style: TextStyle(color: Colors.white)),
-              trailing: const Text('🇲🇲', style: TextStyle(fontSize: 20)),
+              title: Text(AppStrings.get('teamName'), style: const TextStyle(color: Colors.white)),
+              trailing: Text(AppData.selectedTeam.contains('မြန်မာ') ? '🇲🇲' : '🌐', style: const TextStyle(fontSize: 20)),
               onTap: () {
                 Navigator.pop(context);
-                _showTeamDialog(context);
+                _showTeamSelectionDialog(context);
               },
             ),
             ListTile(
               leading: const Icon(Icons.language, color: Colors.greenAccent),
-              title: const Text('ဘာသာစကားရွေးရန်', style: TextStyle(color: Colors.white)),
-              trailing: const Text('🇲🇲', style: TextStyle(fontSize: 20)),
+              title: Text(AppStrings.get('language'), style: const TextStyle(color: Colors.white)),
+              trailing: Text(AppData.selectedLanguage == 'မြန်မာ' ? '🇲🇲' : '🇬🇧', style: const TextStyle(fontSize: 20)),
               onTap: () {
                 Navigator.pop(context);
-                _showLanguageDialog(context);
+                _showLanguageSelectionDialog(context);
               },
             ),
             const Divider(color: Colors.grey),
             ListTile(
               leading: const Icon(Icons.info, color: Colors.blueAccent),
-              title: const Text('Version 12.0.1 (အပ်ဒိတ်စစ်ဆေးရန်)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              title: const Text('Version 12.0.1 (Check Update)', style: TextStyle(color: Colors.white, fontSize: 13)),
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('လက်ရှိအသုံးပြုနေသည်မှာ ဗားရှင်းအသစ် ဖြစ်ပါသည်။')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('သင်သည် ဗားရှင်းအသစ် (Latest Version) ကို အသုံးပြုနေပါပြီ။')),
+                );
               },
             ),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('ထွက်ရန်', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+              title: Text(AppStrings.get('logout'), style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
               onTap: () {
                 showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
                     backgroundColor: const Color(0xFF1F1F1F),
                     title: const Text('အကောင့်မှ ထွက်ရန်', style: TextStyle(color: Colors.white)),
-                    content: const Text('သေချာပါသလား?', style: TextStyle(color: Colors.grey)),
+                    content: const Text('အကောင့်မှ ထွက်မှာ သေချာပါသလား?', style: TextStyle(color: Colors.grey)),
                     actions: [
-                      TextButton(onPressed: () => Navigator.pop(context), child: const Text('မလုပ်ပါ။', style: TextStyle(color: Colors.grey))),
+                      TextButton(onPressed: () => Navigator.pop(context), theChild: const Text('မလုပ်ပါ။', style: TextStyle(color: Colors.grey))),
                       TextButton(
                         onPressed: () {
                           Navigator.pop(context);
@@ -520,7 +559,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('လက်ကျန်ငွေ', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                          Text(AppStrings.get('balance'), style: const TextStyle(color: Colors.grey, fontSize: 11)),
                           const SizedBox(height: 2),
                           Text('${AppData.balance.toStringAsFixed(2)} Ks', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                         ],
@@ -530,7 +569,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         children: [
                           Row(
                             children: [
-                              const Text('လက်ဆောင် ပွိုင့်များ', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                              Text(AppStrings.get('points'), style: const TextStyle(color: Colors.grey, fontSize: 11)),
                               const SizedBox(width: 4),
                               const Icon(Icons.history, color: Colors.greenAccent, size: 14),
                             ],
@@ -545,7 +584,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('လောင်းထားသောငွေ', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                      Text(AppStrings.get('betAmount'), style: const TextStyle(color: Colors.grey, fontSize: 11)),
                       Text('${totalActiveBetsAmount.toStringAsFixed(1)} Ks', style: const TextStyle(color: Colors.amberAccent, fontSize: 14, fontWeight: FontWeight.bold)),
                     ],
                   )
@@ -561,14 +600,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisSpacing: 10,
               childAspectRatio: 2.2,
               children: [
-                _buildMenuCard(context, 'မောင်း', Icons.sports_score, Colors.green, const BettingScreen(isParlay: true)),
-                _buildMenuCard(context, 'ဘော်ဒီ/ဂိုးပေါင်း', Icons.sports_soccer, Colors.blue, const BettingScreen(isParlay: false)),
-                _buildMenuCard(context, 'လောင်းထားသောပွဲစဉ်များ', Icons.receipt_long, Colors.orange, const MyBetsScreen()),
-                _buildMenuCard(context, 'ပွဲစဉ်ဟောင်းများ', Icons.calendar_today, Colors.purple, const OldMatchesScreen()),
-                _buildMenuCard(context, 'ငွေစာရင်း', Icons.account_balance_wallet, Colors.teal, const WalletScreen()),
-                _buildMenuCard(context, 'ပွဲပြီး ရလဒ်များ', Icons.live_tv, Colors.amber, const FinishedResultsScreen()),
-                _buildMenuCard(context, 'အဆင့်ဇယား', Icons.emoji_events, Colors.indigo, const StandingsScreen()),
-                _buildMenuCard(context, 'ပွိုင့်လဲလှယ်', Icons.monetization_on, Colors.lightGreen, const PointsExchangeScreen()),
+                _buildMenuCard(context, AppStrings.get('parlay'), Icons.sports_score, Colors.green, const BettingScreen(isParlay: true)),
+                _buildMenuCard(context, AppStrings.get('single'), Icons.sports_soccer, Colors.blue, const BettingScreen(isParlay: false)),
+                _buildMenuCard(context, AppStrings.get('myBets'), Icons.receipt_long, Colors.orange, const MyBetsScreen()),
+                _buildMenuCard(context, AppStrings.get('oldMatches'), Icons.calendar_today, Colors.purple, const OldMatchesScreen()),
+                _buildMenuCard(context, AppStrings.get('wallet'), Icons.account_balance_wallet, Colors.teal, const WalletScreen()),
+                _buildMenuCard(context, AppStrings.get('results'), Icons.live_tv, Colors.amber, const FinishedResultsScreen()),
+                _buildMenuCard(context, AppStrings.get('standings'), Icons.emoji_events, Colors.indigo, const StandingsScreen()),
+                _buildMenuCard(context, AppStrings.get('exchange'), Icons.monetization_on, Colors.lightGreen, const PointsExchangeScreen()),
               ],
             ),
           ],
@@ -577,31 +616,73 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  void _showTeamDialog(BuildContext context) {
+  // တကယ်အလုပ်လုပ်သော အသင်း/အမည် ရွေးချယ်မှု Dialog
+  void _showTeamSelectionDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1F1F1F),
-        title: const Text('အသင်း/အမည် ရွေးချယ်ရန်', style: TextStyle(color: Colors.white)),
-        content: Text('လက်ရှိရွေးချယ်ထားသော အသင်း: ${AppData.selectedTeam}', style: const TextStyle(color: Colors.grey)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('ပိတ်ရန်', style: TextStyle(color: Colors.greenAccent))),
-        ],
-      ),
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1F1F1F),
+          title: const Text('အသင်း/အမည် ရွေးချယ်ရန်', style: TextStyle(color: Colors.white)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: const Text('မြန်မာ (Myanmar)', style: TextStyle(color: Colors.white)),
+                trailing: AppData.selectedTeam == 'မြန်မာ (Myanmar)' ? const Icon(Icons.check, color: Colors.green) : null,
+                onTap: () async {
+                  setState(() { AppData.selectedTeam = 'မြန်မာ (Myanmar)'; });
+                  await AppData.saveData();
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: const Text('ကမ္ဘာ့အသင်းများ (Global Teams)', style: TextStyle(color: Colors.white)),
+                trailing: AppData.selectedTeam == 'ကမ္ဘာ့အသင်းများ (Global Teams)' ? const Icon(Icons.check, color: Colors.green) : null,
+                onTap: () async {
+                  setState(() { AppData.selectedTeam = 'ကမ္ဘာ့အသင်းများ (Global Teams)'; });
+                  await AppData.saveData();
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  void _showLanguageDialog(BuildContext context) {
+  // တကယ်အလုပ်လုပ်သော ဘာသာစကား (မြန်မာ/အင်္ဂလိပ်) ပြောင်းလဲမှု Dialog
+  void _showLanguageSelectionDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1F1F1F),
-        title: const Text('ဘာသာစကား ရွေးချယ်ရန်', style: TextStyle(color: Colors.white)),
-        content: Text('လက်ရှိဘာသာစကား: ${AppData.selectedLanguage}', style: const TextStyle(color: Colors.grey)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('ပိတ်ရန်', style: TextStyle(color: Colors.greenAccent))),
-        ],
-      ),
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1F1F1F),
+          title: const Text('ဘာသာစကား ရွေးချယ်ရန် / Select Language', style: TextStyle(color: Colors.white, fontSize: 15)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: const Text('မြန်မာ (Myanmar)', style: TextStyle(color: Colors.white)),
+                trailing: AppData.selectedLanguage == 'မြန်မာ' ? const Icon(Icons.check, color: Colors.green) : null,
+                onTap: () {
+                  HatTrickApp.setLocale(context, 'မြန်မာ');
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: const Text('English', style: TextStyle(color: Colors.white)),
+                trailing: AppData.selectedLanguage == 'English' ? const Icon(Icons.check, color: Colors.green) : null,
+                onTap: () {
+                  HatTrickApp.setLocale(context, 'English');
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -683,12 +764,14 @@ class TermsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('စည်းကမ်းသတ်မှတ်ချက်များ')),
-      body: const Padding(
-        padding: EdgeInsets.all(16.0),
+      appBar: AppBar(title: Text(AppStrings.get('terms'))),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Text(
-          '555SPORT ၏ စည်းကမ်းသတ်မှတ်ချက်များ -\n\n1. အကောင့်ဖွင့်လှစ်သူများသည် အချက်အလက် အမှန်အကန် ပေးရမည်။\n2. မောင်းလောင်းရာတွင် အနည်းဆုံး ၂ သင်းမှ အများဆုံး ၁၅ သင်းအထိ လောင်းခွင့်ရှိသည်။\n3. ငှက်နာမည် မှန်ကန်တူညီမှသာ ငွေထုတ်ယူခွင့်ရှိမည်။',
-          style: TextStyle(color: Colors.white, height: 1.5),
+          AppData.selectedLanguage == 'မြန်မာ'
+              ? '555SPORT ၏ စည်းကမ်းသတ်မှတ်ချက်များ -\n\n1. အကောင့်ဖွင့်လှစ်သူများသည် အချက်အလက် အမှန်အကန် ပေးရမည်။\n2. မောင်းလောင်းရာတွင် အနည်းဆုံး ၂ သင်းမှ အများဆုံး ၁၅ သင်းအထိ လောင်းခွင့်ရှိသည်။\n3. ငှက်နာမည် မှန်ကန်တူညီမှသာ ငွေထုတ်ယူခွင့်ရှိမည်။'
+              : 'Terms & Conditions of 555SPORT -\n\n1. Users must provide accurate account information.\n2. Parlay bets must include between 2 and 15 selections.\n3. Withdrawal names must match correctly.',
+          style: const TextStyle(color: Colors.white, height: 1.5),
         ),
       ),
     );
@@ -724,7 +807,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('စကားဝှက် ပြောင်းရန်')),
+      appBar: AppBar(title: Text(AppStrings.get('changePass'))),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -767,7 +850,6 @@ class BettingScreen extends StatefulWidget {
 
 class _BettingScreenState extends State<BettingScreen> {
   late Future<List<Map<String, dynamic>>> _matchesFuture;
-  
   Map<String, dynamic>? _selectedSingleBet;
   final TextEditingController _singleAmountController = TextEditingController();
 
@@ -783,9 +865,7 @@ class _BettingScreenState extends State<BettingScreen> {
         bool alreadyExists = AppData.parlaySlip.any(
           (item) => item['matchId'] == match['id'] && item['betType'] == betType && item['selection'] == selection
         );
-
         AppData.parlaySlip.removeWhere((item) => item['matchId'] == match['id']);
-
         if (!alreadyExists) {
           AppData.parlaySlip.add({
             'matchId': match['id'],
@@ -847,7 +927,7 @@ class _BettingScreenState extends State<BettingScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('ဘော်ဒီ/ဂိုးပေါင်း (တစ်ပွဲလောင်းရန်)', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 16)),
+                  const Text('ဘော်ဒီ/ဂိုးပေါင်း (Single)', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 8),
                   Text('ပွဲစဉ်: ${_selectedSingleBet!['matchName']}', style: const TextStyle(color: Colors.white, fontSize: 13)),
                   Text('ရွေးချယ်မှု: ${_selectedSingleBet!['betType']} (${_selectedSingleBet!['selection']}) | Odds: ${_selectedSingleBet!['odds']}', style: const TextStyle(color: Colors.greenAccent, fontSize: 12)),
@@ -916,7 +996,7 @@ class _BettingScreenState extends State<BettingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isParlay ? 'မောင်း (Parlay)' : 'ဘော်ဒီ / ဂိုးပေါင်း (Single)'),
+        title: Text(widget.isParlay ? AppStrings.get('parlay') : AppStrings.get('single')),
         actions: [
           if (widget.isParlay)
             IconButton(
@@ -1066,22 +1146,8 @@ class _BettingScreenState extends State<BettingScreen> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    'ဂိုးပေါ်',
-                                    style: TextStyle(
-                                      color: isOverSelected ? Colors.black : Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  Text(
-                                    '+${odds['over2.5'].toStringAsFixed(0)}',
-                                    style: TextStyle(
-                                      color: isOverSelected ? Colors.black : Colors.greenAccent,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
+                                  const Text('ဂိုးပေါ်', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                                  Text('+${odds['over2.5'].toStringAsFixed(0)}', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 12)),
                                 ],
                               ),
                             ),
@@ -1113,22 +1179,8 @@ class _BettingScreenState extends State<BettingScreen> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    'ဂိုးအောက်',
-                                    style: TextStyle(
-                                      color: isUnderSelected ? Colors.black : Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  Text(
-                                    '+${odds['under2.5'].toStringAsFixed(0)}',
-                                    style: TextStyle(
-                                      color: isUnderSelected ? Colors.black : Colors.greenAccent,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
+                                  const Text('ဂိုးအောက်', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                                  Text('+${odds['under2.5'].toStringAsFixed(0)}', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 12)),
                                 ],
                               ),
                             ),
@@ -1179,23 +1231,18 @@ class _ParlaySlipScreenState extends State<ParlaySlipScreen> {
 
   void _confirmParlayBet() async {
     int count = AppData.parlaySlip.length;
-    
     if (count < 2) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('မောင်းလောင်းရန် အနည်းဆုံး ၂ သင်း ပါရှိရပါမည်။')));
       return;
     }
     if (count > 15) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('မောင်းလောင်းရာတွင် အများဆုံး ၁၅ သင်းသာ လောင်းခွင့်ရှိပါသည် (၁၅ ပွဲထက် မကျော်ရပါ)။')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('မောင်းလောင်းရာတွင် အများဆုံး ၁၅ သင်းသာ လောင်းခွင့်ရှိပါသည်။')));
       return;
     }
 
     double amount = double.tryParse(_amountController.text) ?? 0.0;
-    if (amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('လောင်းငွေ ပမာဏ မှန်ကန်စွာ ထည့်ပါ။')));
-      return;
-    }
-    if (AppData.balance < amount) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('လက်ကျန်ငွေ မလုံလောက်ပါ။')));
+    if (amount <= 0 || AppData.balance < amount) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ငွေပမာဏ သို့မဟုတ် လက်ကျန်ငွေ မမှန်ကန်ပါ။')));
       return;
     }
 
@@ -1240,7 +1287,7 @@ class _ParlaySlipScreenState extends State<ParlaySlipScreen> {
           children: [
             Expanded(
               child: AppData.parlaySlip.isEmpty
-                  ? const Center(child: Text('မောင်းစလစ်ထဲတွင် ပွဲစဉ်များ မရှိသေးပါ။ (အနည်းဆုံး ၂ သင်း၊ အများဆုံး ၁၅ သင်း)', style: TextStyle(color: Colors.grey)))
+                  ? const Center(child: Text('မောင်းစလစ်ထဲတွင် ပွဲစဉ်များ မရှိသေးပါ။ (၂ မှ ၁၅ သင်း)', style: TextStyle(color: Colors.grey)))
                   : ListView.builder(
                       itemCount: AppData.parlaySlip.length,
                       itemBuilder: (context, index) {
