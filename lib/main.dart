@@ -775,7 +775,6 @@ class _BettingScreenState extends State<BettingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // လိဂ်နာမည်နှင့် အချိန်
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -785,7 +784,7 @@ class _BettingScreenState extends State<BettingScreen> {
                     ),
                     const SizedBox(height: 8),
 
-                    // အထက်တန်း အသင်း ၂ သင်း (Home & Away with Odds) - ၄ ကွက်စပ် ပုံစံ
+                    // အိမ်ကွင်း / အဝေးကွင်း (၄ ကွက်စပ် ပုံစံ - 1 Selection per Match)
                     Row(
                       children: [
                         Expanded(
@@ -866,7 +865,7 @@ class _BettingScreenState extends State<BettingScreen> {
                     ),
                     const SizedBox(height: 6),
 
-                    // အောက်ဘက် ဂိုးပေါ် / ဂိုးအောက် နှင့် အလယ်တွင် ကိန်းဂဏန်း မပါသော သီးသန့်အကွက်ငယ်
+                    // ဂိုးပေါ် / ဂိုးအောက် (အလယ်တွင် ကိန်းဂဏန်းသီးသန့်အကွက်ပါရှိပြီး အကွက်များထဲတွင် ဂဏန်းမပါပါ)
                     Row(
                       children: [
                         Expanded(
@@ -902,7 +901,7 @@ class _BettingScreenState extends State<BettingScreen> {
                             ),
                           ),
                         ),
-                        // အလယ်ဗဟို ကိန်းဂဏန်းပြရန် သီးသန့်အကွက်ငယ် (ဂိုးပေါ်/ဂိုးအောက် အကွက်များထဲတွင် ကိန်းဂဏန်းမပါဘဲ ဤနေရာတွင်သာ ပြသည်)
+                        // အလယ်ဗဟို ကိန်းဂဏန်းပြရန် သီးသန့်အကွက်ငယ်
                         Container(
                           width: 45,
                           padding: const EdgeInsets.symmetric(vertical: 8),
@@ -981,27 +980,27 @@ class _ParlaySlipScreenState extends State<ParlaySlipScreen> {
     return AppData.parlaySlip.isEmpty ? 0.0 : total;
   }
 
-  // မြန်မာနိုင်ငံသုံး မောင်းဘောနပ်စ် စည်းမျဉ်း (အနည်းဆုံး ၂ ပွဲ၊ အများဆုံး ၁၅ ပွဲ)
   double _calculateBonusPercent() {
     int count = AppData.parlaySlip.length;
-    if (count >= 14) return 0.50; // ၁၄ မှ ၁၅ ပွဲ - 50%
-    if (count >= 12) return 0.40; // ၁၂ မှ ၁၃ ပွဲ - 40%
-    if (count >= 10) return 0.30; // ၁၀ မှ ၁၁ ပွဲ - 30%
-    if (count >= 8) return 0.25;  // ၈ မှ ၉ ပွဲ - 25%
-    if (count >= 6) return 0.20;  // ၆ မှ ၇ ပွဲ - 20%
-    if (count >= 4) return 0.15;  // ၄ မှ ၅ ပွဲ - 15%
-    if (count == 3) return 0.10;  // ၃ ပွဲ - 10%
-    return 0.0;                   // ၂ ပွဲ - 0%
+    if (count >= 14) return 0.50;
+    if (count >= 12) return 0.40;
+    if (count >= 10) return 0.30;
+    if (count >= 8) return 0.25;
+    if (count >= 6) return 0.20;
+    if (count >= 4) return 0.15;
+    if (count == 3) return 0.10;
+    return 0.0;
   }
 
   void _confirmParlayBet() async {
     int count = AppData.parlaySlip.length;
+    // မောင်း - အနည်းဆုံး ၂ ပွဲ၊ အများဆုံး ၁၅ ပွဲ တိကျစွာစစ်ဆေးရန်
     if (count < 2) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('မောင်းလောင်းရန် အနည်းဆုံး ၂ ပွဲ ပါရှိရပါမည်။')));
       return;
     }
     if (count > 15) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('အများဆုံး ၁၅ ပွဲထိသာ တစ်ကြိမ်တည်း လောင်းခွင့်ရှိပါသည်။')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('အများဆုံး ၁၅ ပွဲထိသာ တစ်ကြိမ်တည်း လောင်းခွင့်ရှိပါသည်။ (၁၅ ပွဲထက်မကျော်ရပါ)')));
       return;
     }
 
@@ -1056,7 +1055,7 @@ class _ParlaySlipScreenState extends State<ParlaySlipScreen> {
           children: [
             Expanded(
               child: AppData.parlaySlip.isEmpty
-                  ? const Center(child: Text('မောင်းစလစ်ထဲတွင် ပွဲစဉ်များ မရှိသေးပါ။ (အနည်းဆုံး ၂ ပွဲ လိုအပ်သည်)', style: TextStyle(color: Colors.grey)))
+                  ? const Center(child: Text('မောင်းစလစ်ထဲတွင် ပွဲစဉ်များ မရှိသေးပါ။ (အနည်းဆုံး ၂ ပွဲ၊ အများဆုံး ၁၅ ပွဲ)', style: TextStyle(color: Colors.grey)))
                   : ListView.builder(
                       itemCount: AppData.parlaySlip.length,
                       itemBuilder: (context, index) {
@@ -1262,7 +1261,6 @@ class _OldMatchesScreenState extends State<OldMatchesScreen> {
       appBar: AppBar(
         title: const Text('ပွဲစဉ်ဟောင်းများ'),
         actions: [
-          // ပွဲစဉ်ဟောင်းများ အပေါ်ဘက်ညာဘက်ထောင့်တွင် Calendar ခလုတ်
           IconButton(
             icon: const Icon(Icons.calendar_month, color: Colors.greenAccent),
             onPressed: () => _pickDate(context),
