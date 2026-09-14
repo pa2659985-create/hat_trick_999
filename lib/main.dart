@@ -16,6 +16,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 void main() async {
+  // Flutter ရဲ့ native bindings တွေ အသင့်ဖြစ်ကြောင်း သေချာစေရန်
   WidgetsFlutterBinding.ensureInitialized();
   
   try {
@@ -25,18 +26,17 @@ void main() async {
   }
 
   try {
+    // Firebase ကို အောင်မြင်စွာ စတင်ချိတ်ဆက်ရန်
     await Firebase.initializeApp();
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   } catch (e) {
     print('Firebase Init Error: $e');
   }
 
-  // App စစချင်းမှာ SharedPreferences မှတဆင့် အကောင့်ဝင်ထားမှုကို အရင်ဖတ်မည်
   await AppData.loadData();
   runApp(const HatTrickApp());
 }
 
-// ဘာသာစကား စီမံခန့်ခွဲမှုအတွက် Localization Helper
 class AppStrings {
   static Map<String, Map<String, String>> localizedValues = {
     'မြန်မာ': {
@@ -118,7 +118,6 @@ class _HatTrickAppState extends State<HatTrickApp> {
 
   @override
   Widget build(BuildContext context) {
-    // 💡 အကောင့်ဝင်ထားပြီးသားဆိုရင် Login ကို ကျော်ပြီး သက်ဆိုင်ရာ Dashboard သို့မဟုတ် Admin သို့ တန်းသွားမည်
     Widget initialScreen = const LoginScreen();
     if (AppData.username.isNotEmpty) {
       if (AppData.isAdmin) {
@@ -146,7 +145,13 @@ class _HatTrickAppState extends State<HatTrickApp> {
 }
 
 class ApiService {
-  static String get apiKey => dotenv.env['FOOTBALL_API_KEY'] ?? '5a87133d1c764efb8525d81e82d605fd'; 
+  static String get apiKey {
+    try {
+      return dotenv.env['FOOTBALL_API_KEY'] ?? '5a87133d1c764efb8525d81e82d605fd';
+    } catch (_) {
+      return '5a87133d1c764efb8525d81e82d605fd';
+    }
+  }
   static const String baseUrl = 'https://api.football-data.org/v4/matches';
 
   static List<Map<String, dynamic>> customAdminMatches = [];
@@ -166,7 +171,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        List matches = data['matches'];
+        List matches = data['matches'] ?? [];
         
         for (var m in matches) {
           String rawTime = m['utcDate'] != null ? m['utcDate'].toString() : '2026-09-14T15:00:00Z';
@@ -174,10 +179,10 @@ class ApiService {
 
           allMatches.add({
             'id': '${m['id']}',
-            'league': m['competition']['name'] ?? 'League',
+            'league': m['competition']?['name'] ?? 'League',
             'time': formattedDateTime,
-            't1': m['homeTeam']['name'] ?? 'Home Team',
-            't2': m['awayTeam']['name'] ?? 'Away Team',
+            't1': m['homeTeam']?['name'] ?? 'Home Team',
+            't2': m['awayTeam']?['name'] ?? 'Away Team',
             'status': m['status'] ?? 'UPCOMING',
             'odds': {
               'homeOddsText': '= -25',
@@ -248,13 +253,13 @@ class ApiService {
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        List matches = data['matches'];
+        List matches = data['matches'] ?? [];
         for (var m in matches) {
-          final score = m['score']['fullTime'];
+          final score = m['score']?['fullTime'] ?? {'home': 0, 'away': 0};
           oldMatches.add({
             'matchId': '${m['id']}',
-            'league': m['competition']['name'] ?? 'League',
-            'match': '${m['homeTeam']['name']} vs ${m['awayTeam']['name']}',
+            'league': m['competition']?['name'] ?? 'League',
+            'match': '${m['homeTeam']?['name']} vs ${m['awayTeam']?['name']}',
             'homeScore': score['home'] ?? 0,
             'awayScore': score['away'] ?? 0,
             'score': '${score['home'] ?? 0} - ${score['away'] ?? 0}',
@@ -292,11 +297,11 @@ class ApiService {
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        var table = data['standings'][0]['table'];
+        var table = data['standings']?[0]?['table'] ?? [];
         for (var row in table) {
           standings.add({
             'pos': row['position'],
-            'team': row['team']['name'],
+            'team': row['team']?['name'] ?? '',
             'played': row['playedGames'],
             'points': row['points'],
           });
@@ -344,7 +349,6 @@ class AppData {
     };
   });
 
-  // 💡 Session မပျောက်အောင် SharedPreferences မှ တဆင့် တိကျစွာ ဖတ်ရှုခြင်း
   static Future<void> loadData() async {
     final prefs = await SharedPreferences.getInstance();
     username = prefs.getString('username') ?? '';
@@ -362,8 +366,8 @@ class AppData {
         orElse: () => {},
       );
       if (matchedUser.isNotEmpty) {
-        balance = matchedUser['balance'];
-        points = matchedUser['points'];
+        balance = (matchedUser['balance'] as num).toDouble();
+        points = matchedUser['points'] as int;
       }
     }
 
@@ -382,7 +386,6 @@ class AppData {
     }
   }
 
-  // 💡 အချက်အလက် သိမ်းဆည်းခြင်း
   static Future<void> saveData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('username', username);
@@ -408,7 +411,6 @@ class AppData {
     }
   }
 
-  // 💡 Logout လုပ်သည့်အခါ Session ရှင်းလင်းရန်
   static Future<void> clearData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('username');
@@ -541,9 +543,9 @@ class _LoginScreenState extends State<LoginScreen> {
       AppData.username = uName;
       AppData.displayName = uName;
 
-      var matchedUser = AppData.allUsers.firstWhere((element) => element['username'] == uName);
-      AppData.balance = matchedUser['balance'];
-      AppData.points = matchedUser['points'];
+      var matchedUser = AppData.allUsers.firstWhere((element) => element['username'] == uName, orElse: () => {'balance': 0.0, 'points': 0});
+      AppData.balance = (matchedUser['balance'] as num).toDouble();
+      AppData.points = matchedUser['points'] as int;
 
       await AppData.saveData();
 
@@ -1515,14 +1517,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _updateProfile() async {
     setState(() { AppData.displayName = _nameController.text; });
     await AppData.saveData();
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပရိုไฟล์ အချက်အလက်များ သိမ်းဆည်းပြီးပါပြီ')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပရိုဖိုင် အချက်အလက်များ သိမ်းဆည်းပြီးပါပြီ')));
     Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('ပရိုไฟล์ စီမံရန်')),
+      appBar: AppBar(title: const Text('ပရိုဖိုင် စီမံရန်')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -1610,7 +1612,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 }
 
 // -------------------------------------------------------------------------
-// Betting Screen (MatchesScreen အနေဖြင့် အသုံးပြုနိုင်သည်)
+// Betting Screen
 // -------------------------------------------------------------------------
 class BettingScreen extends StatefulWidget {
   final bool isParlay; 
@@ -1863,7 +1865,7 @@ class _BettingScreenState extends State<BettingScreen> {
                       children: [
                         Expanded(
                           child: InkWell(
-                            onTap: () => _handleSelection(m, 'ဂိုးပေါင်း (Over/Under)', 'ဂိုးပေါ် (Over)', odds['overOdds'], lineVal: goalLineText),
+                            onTap: () => _handleSelection(m, 'ဂိုးပေါင်း (Over/Under)', 'ဂိုးပေါ် (Over)', (odds['overOdds'] as num).toDouble(), lineVal: goalLineText),
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
                               decoration: BoxDecoration(color: isOverSelected ? Colors.amber : const Color(0xFF1A3D25), borderRadius: BorderRadius.circular(6)),
@@ -1889,7 +1891,7 @@ class _BettingScreenState extends State<BettingScreen> {
                         const SizedBox(width: 6),
                         Expanded(
                           child: InkWell(
-                            onTap: () => _handleSelection(m, 'ဂိုးပေါင်း (Over/Under)', 'ဂိုးအောက် (Under)', odds['underOdds'], lineVal: goalLineText),
+                            onTap: () => _handleSelection(m, 'ဂိုးပေါင်း (Over/Under)', 'ဂိုးအောက် (Under)', (odds['underOdds'] as num).toDouble(), lineVal: goalLineText),
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
                               decoration: BoxDecoration(color: isUnderSelected ? Colors.amber : const Color(0xFF1A3D25), borderRadius: BorderRadius.circular(6)),
@@ -2072,7 +2074,7 @@ class MyBetsScreen extends StatelessWidget {
                               const SizedBox(height: 4),
                             ],
                           ),
-                        )).toList(),
+                        )),
                         const Divider(color: Colors.green),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -2094,7 +2096,7 @@ class MyBetsScreen extends StatelessWidget {
 }
 
 // -------------------------------------------------------------------------
-// Old Matches Screen (Calendar ပါဝင်သည်)
+// Old Matches Screen
 // -------------------------------------------------------------------------
 class OldMatchesScreen extends StatefulWidget {
   const OldMatchesScreen({super.key});
