@@ -32,7 +32,7 @@ void main() async {
 class AppStrings {
   static Map<String, Map<String, String>> localizedValues = {
     'မြန်မာ': {
-      'appTitle': '555SPORT',
+      'appTitle': 'Hat Trick',
       'balance': 'လက်ကျန်ငွေ',
       'points': 'လက်ဆောင် ပွိုင့်များ',
       'betAmount': 'လောင်းထားသောငွေ',
@@ -52,7 +52,7 @@ class AppStrings {
       'adminPanel': 'Admin ထိန်းချုပ်ရန်',
     },
     'English': {
-      'appTitle': '555SPORT',
+      'appTitle': 'Hat Trick',
       'balance': 'Balance',
       'points': 'Bonus Points',
       'betAmount': 'Active Bet Amount',
@@ -111,11 +111,11 @@ class _HatTrickAppState extends State<HatTrickApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '555SPORT',
+      title: 'Hat Trick',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0D1B12), // ဘောလုံးကွင်းစိမ်းရောင်ဆန်သော Dark Theme
+        scaffoldBackgroundColor: const Color(0xFF0D1B12),
         primarySwatch: Colors.green,
         appBarTheme: const AppBarTheme(
           backgroundColor: Color(0xFF132E1B),
@@ -258,16 +258,6 @@ class ApiService {
           'awayScore': 1,
           'score': '2 - 1',
           'date': '2026-09-13',
-          'result': 'ပြီးဆုံး (FT)',
-        },
-        {
-          'matchId': 'm_sample_2',
-          'league': 'English Premier League',
-          'match': 'မန်ချက်စတာယူနိုက်တက် vs လီဗာပူး',
-          'homeScore': 3,
-          'awayScore': 2,
-          'score': '3 - 2',
-          'date': '2026-09-12',
           'result': 'ပြီးဆုံး (FT)',
         },
       ]);
@@ -448,7 +438,7 @@ class AppData {
 }
 
 // -------------------------------------------------------------------------
-// Login Screen (ဘောလုံးပုံစံ အပြင်အဆင်ဖြင့် လှပစွာ)
+// Login Screen
 // -------------------------------------------------------------------------
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -522,11 +512,11 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF0A1F13), Color(0xFF133822), Color(0xFF07130C)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: const NetworkImage('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1000&auto=format&fit=crop'),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.75), BlendMode.darken),
           ),
         ),
         child: Center(
@@ -535,18 +525,17 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // ဘောလုံးပုံစံ အလှဆင် Icon
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.green.shade800.withOpacity(0.3),
+                    color: Colors.green.shade800.withOpacity(0.4),
                     border: Border.all(color: Colors.amber.shade400, width: 2),
                   ),
                   child: const Icon(Icons.sports_soccer, size: 64, color: Colors.amberAccent),
                 ),
                 const SizedBox(height: 16),
-                const Text('555SPORT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 36, letterSpacing: 1.5)),
+                const Text('Hat Trick', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 36, letterSpacing: 1.5)),
                 const SizedBox(height: 6),
                 const Text('⚽ နည်းနည်းလောင်း များများနိုင် ⚽', style: TextStyle(color: Colors.amberAccent, fontSize: 13, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 40),
@@ -557,7 +546,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     labelStyle: const TextStyle(color: Colors.grey),
                     prefixIcon: const Icon(Icons.person, color: Colors.greenAccent),
                     filled: true,
-                    fillColor: const Color(0xFF132E1B),
+                    fillColor: const Color(0xFF132E1B).withOpacity(0.85),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.green.shade800)),
                     focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.amber)),
                   ),
@@ -571,7 +560,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     labelStyle: const TextStyle(color: Colors.grey),
                     prefixIcon: const Icon(Icons.lock, color: Colors.greenAccent),
                     filled: true,
-                    fillColor: const Color(0xFF132E1B),
+                    fillColor: const Color(0xFF132E1B).withOpacity(0.85),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.green.shade800)),
                     focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.amber)),
                   ),
@@ -1149,7 +1138,7 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
 }
 
 // -------------------------------------------------------------------------
-// User Dashboard (ဘေဘောလုံးဒီဇိုင်းဆန်ဆန် လှပသော Home Screen)
+// User Dashboard
 // -------------------------------------------------------------------------
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -1192,8 +1181,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Icon(Icons.sports_football, color: Colors.greenAccent, size: 20),
             SizedBox(width: 6),
-            Text('555', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-            Text('SPORT', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 18)),
+            Text('Hat Trick', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
           ],
         ),
         centerTitle: true,
@@ -1266,95 +1254,103 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.amber.shade900.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.amber.shade700),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: const NetworkImage('https://images.unsplash.com/photo-1518091043644-c1d4457512c6?q=80&w=1000&auto=format&fit=crop'),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.8), BlendMode.darken),
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade900.withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.amber.shade700),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.amber, size: 18),
+                    SizedBox(width: 8),
+                    Expanded(child: Text('ငှက်နာမည် မှန်ကန်တူညီမှသာ ထုတ်ယူ၍ရနိုင်ပါမည်', style: TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold))),
+                  ],
+                ),
               ),
-              child: const Row(
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF132E1B).withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.green.shade700),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 8, offset: const Offset(0, 4))],
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(AppStrings.get('balance'), style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                            const SizedBox(height: 2),
+                            Text('${AppData.balance.toStringAsFixed(2)} Ks', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Row(
+                              children: [
+                                Text(AppStrings.get('points'), style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                                const SizedBox(width: 4),
+                                const Icon(Icons.star, color: Colors.amberAccent, size: 14),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text('${AppData.points}', style: const TextStyle(color: Colors.amberAccent, fontSize: 18, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const Divider(color: Colors.green, height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(AppStrings.get('betAmount'), style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                        Text('${totalActiveBetsAmount.toStringAsFixed(1)} Ks', style: const TextStyle(color: Colors.greenAccent, fontSize: 14, fontWeight: FontWeight.bold)),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                childAspectRatio: 2.2,
                 children: [
-                  Icon(Icons.info_outline, color: Colors.amber, size: 18),
-                  SizedBox(width: 8),
-                  Expanded(child: Text('ငှက်နာမည် မှန်ကန်တူညီမှသာ ထုတ်ယူ၍ရနိုင်ပါမည်', style: TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold))),
+                  _buildMenuCard(context, AppStrings.get('parlay'), Icons.sports_score, Colors.greenAccent, const BettingScreen(isParlay: true)),
+                  _buildMenuCard(context, AppStrings.get('single'), Icons.sports_soccer, Colors.amberAccent, const BettingScreen(isParlay: false)),
+                  _buildMenuCard(context, AppStrings.get('myBets'), Icons.receipt_long, Colors.orangeAccent, const MyBetsScreen()),
+                  _buildMenuCard(context, AppStrings.get('oldMatches'), Icons.calendar_today, Colors.purpleAccent, const OldMatchesScreen()),
+                  _buildMenuCard(context, AppStrings.get('wallet'), Icons.account_balance_wallet, Colors.tealAccent, const WalletScreen()),
+                  _buildMenuCard(context, AppStrings.get('results'), Icons.live_tv, Colors.amber, const FinishedResultsScreen()),
+                  _buildMenuCard(context, AppStrings.get('standings'), Icons.emoji_events, Colors.indigoAccent, const StandingsScreen()),
+                  _buildMenuCard(context, AppStrings.get('exchange'), Icons.monetization_on, Colors.lightGreenAccent, const PointsExchangeScreen()),
                 ],
               ),
-            ),
-            const SizedBox(height: 12),
-            // Balance Card (ဘောလုံးကွင်းစိမ်းရောင် Gradient)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xFF133822), Color(0xFF0F2A19)]),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.green.shade700),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 8, offset: const Offset(0, 4))],
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(AppStrings.get('balance'), style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                          const SizedBox(height: 2),
-                          Text('${AppData.balance.toStringAsFixed(2)} Ks', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Row(
-                            children: [
-                              Text(AppStrings.get('points'), style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                              const SizedBox(width: 4),
-                              const Icon(Icons.star, color: Colors.amberAccent, size: 14),
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          Text('${AppData.points}', style: const TextStyle(color: Colors.amberAccent, fontSize: 18, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const Divider(color: Colors.green, height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(AppStrings.get('betAmount'), style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                      Text('${totalActiveBetsAmount.toStringAsFixed(1)} Ks', style: const TextStyle(color: Colors.greenAccent, fontSize: 14, fontWeight: FontWeight.bold)),
-                    ],
-                  )
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              childAspectRatio: 2.2,
-              children: [
-                _buildMenuCard(context, AppStrings.get('parlay'), Icons.sports_score, Colors.greenAccent, const BettingScreen(isParlay: true)),
-                _buildMenuCard(context, AppStrings.get('single'), Icons.sports_soccer, Colors.amberAccent, const BettingScreen(isParlay: false)),
-                _buildMenuCard(context, AppStrings.get('myBets'), Icons.receipt_long, Colors.orangeAccent, const MyBetsScreen()),
-                _buildMenuCard(context, AppStrings.get('oldMatches'), Icons.calendar_today, Colors.purpleAccent, const OldMatchesScreen()),
-                _buildMenuCard(context, AppStrings.get('wallet'), Icons.account_balance_wallet, Colors.tealAccent, const WalletScreen()),
-                _buildMenuCard(context, AppStrings.get('results'), Icons.live_tv, Colors.amber, const FinishedResultsScreen()),
-                _buildMenuCard(context, AppStrings.get('standings'), Icons.emoji_events, Colors.indigoAccent, const StandingsScreen()),
-                _buildMenuCard(context, AppStrings.get('exchange'), Icons.monetization_on, Colors.lightGreenAccent, const PointsExchangeScreen()),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -1439,7 +1435,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFF132E1B),
+          color: const Color(0xFF132E1B).withOpacity(0.95),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: Colors.green.shade800),
         ),
@@ -1507,7 +1503,7 @@ class TermsScreen extends StatelessWidget {
       appBar: AppBar(title: Text(AppStrings.get('terms'))),
       body: const Padding(
         padding: EdgeInsets.all(16.0),
-        child: Text('555SPORT ၏ စည်းကမ်းသတ်မှတ်ချက်များ -\n\n1. အကောင့်ဖွင့်လှစ်သူများသည် အချက်အလက် အမှန်အကန် ပေးရမည်။\n2. မောင်းလောင်းရာတွင် အနည်းဆုံး ၂ သင်းမှ အများဆုံး ၁၅ သင်းအထိ လောင်းခွင့်ရှိသည်။', style: TextStyle(color: Colors.white, height: 1.5)),
+        child: Text('Hat Trick ၏ စည်းကမ်းသတ်မှတ်ချက်များ -\n\n1. အကောင့်ဖွင့်လှစ်သူများသည် အချက်အလက် အမှန်အကန် ပေးရမည်။\n2. မောင်းလောင်းရာတွင် အနည်းဆုံး ၂ သင်းမှ အများဆုံး ၁၅ သင်းအထိ လောင်းခွင့်ရှိသည်။', style: TextStyle(color: Colors.white, height: 1.5)),
       ),
     );
   }
@@ -1759,7 +1755,7 @@ class _BettingScreenState extends State<BettingScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF132E1B),
+                  color: const Color(0xFF132E1B).withOpacity(0.95),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.green.shade800),
                 ),
@@ -2047,7 +2043,7 @@ class MyBetsScreen extends StatelessWidget {
 }
 
 // -------------------------------------------------------------------------
-// Old Matches Screen (အပေါ်ညာဘက်ထောင့်တွင် ကယ်လန်ဒါ ထည့်သွင်းထားသည်)
+// Old Matches Screen (Calendar ပါဝင်သည်)
 // -------------------------------------------------------------------------
 class OldMatchesScreen extends StatefulWidget {
   const OldMatchesScreen({super.key});
