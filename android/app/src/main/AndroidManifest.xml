@@ -1,0 +1,11 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 🟢 ဒီနေရာမှာ အင်တာနက်သုံးခွင့် ခွင့်ပြုချက်ကို ထည့်ပါ -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application
+        android:label="hat_trick_999"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher">
+        ...
+
