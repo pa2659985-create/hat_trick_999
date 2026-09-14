@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // dotenv ကို ထည့်သွင်းထားသည်
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
@@ -17,6 +18,13 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // .env ဖိုင်ကို ဦးစွာ ခေါ်ယူခြင်း
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    print('Dotenv Load Error: $e');
+  }
+
   try {
     await Firebase.initializeApp();
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -128,7 +136,8 @@ class _HatTrickAppState extends State<HatTrickApp> {
 }
 
 class ApiService {
-  static const String apiKey = '5a87133d1c764efb8525d81e82d605fd'; 
+  // .env မှ API Key ကို လုံခြုံစွာ ခေါ်ယူသုံးစွဲခြင်း
+  static String get apiKey => dotenv.env['FOOTBALL_API_KEY'] ?? '5a87133d1c764efb8525d81e82d605fd'; 
   static const String baseUrl = 'https://api.football-data.org/v4/matches';
 
   static List<Map<String, dynamic>> customAdminMatches = [];
