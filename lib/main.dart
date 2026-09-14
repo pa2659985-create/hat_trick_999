@@ -36,7 +36,7 @@ class AppStrings {
       'balance': 'လက်ကျန်ငွေ',
       'points': 'လက်ဆောင် ပွိုင့်များ',
       'betAmount': 'လောင်းထားသောငွေ',
-      'parlay': 'မောင်း',
+      'parlay': 'မောင်း (Parlay)',
       'single': 'ဘော်ဒီ/ဂိုးပေါင်း',
       'myBets': 'လောင်းထားသောပွဲစဉ်များ',
       'oldMatches': 'ပွဲစဉ်ဟောင်းများ',
@@ -115,10 +115,10 @@ class _HatTrickAppState extends State<HatTrickApp> {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF121212),
+        scaffoldBackgroundColor: const Color(0xFF0D1B12), // ဘောလုံးကွင်းစိမ်းရောင်ဆန်သော Dark Theme
         primarySwatch: Colors.green,
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1F1F1F),
+          backgroundColor: Color(0xFF132E1B),
           elevation: 0,
         ),
       ),
@@ -151,7 +151,7 @@ class ApiService {
         List matches = data['matches'];
         
         for (var m in matches) {
-          String rawTime = m['utcDate'] != null ? m['utcDate'].toString() : '2026-09-05T15:00:00Z';
+          String rawTime = m['utcDate'] != null ? m['utcDate'].toString() : '2026-09-14T15:00:00Z';
           String formattedDateTime = _formatDateTimeToDDMMYYYYAMPM(rawTime);
 
           allMatches.add({
@@ -162,9 +162,9 @@ class ApiService {
             't2': m['awayTeam']['name'] ?? 'Away Team',
             'status': m['status'] ?? 'UPCOMING',
             'odds': {
-              'homeOddsText': '= -25',  // အိမ်ကွင်းဘက်တွင် ပြမည့် ကိန်းဂဏန်း/Odds
-              'awayOddsText': '1.95',    // အဝေးကွင်းဘက်တွင် ပြမည့် ကိန်းဂဏန်း/Odds
-              'goalLineText': '3 +80',   // ဂိုးပေါ်/ဂိုးအောက် အလယ်က အစိမ်းရောင်ကွက်
+              'homeOddsText': '= -25',
+              'awayOddsText': '1.95',
+              'goalLineText': '3 +80',
               'overOdds': 1.90,
               'underOdds': 1.85,
             }
@@ -180,7 +180,7 @@ class ApiService {
         {
           'id': 'auto_m1',
           'league': 'Indonesia Super League',
-          'time': '05-09-2026, 03:00 pm',
+          'time': '14-09-2026, 03:00 pm',
           't1': 'B ဆိုလို FC',
           't2': 'P ဆူရာဘាយ',
           'status': 'UPCOMING',
@@ -189,7 +189,7 @@ class ApiService {
         {
           'id': 'auto_m2',
           'league': 'Indonesia Super League',
-          'time': '05-09-2026, 03:00 pm',
+          'time': '14-09-2026, 03:00 pm',
           't1': 'ပါဆစ် K',
           't2': 'ဒီဝါ Utd FC',
           'status': 'UPCOMING',
@@ -217,7 +217,7 @@ class ApiService {
 
       return '$day-$month-$year, $hour:$minute $period';
     } catch (e) {
-      return '05-09-2026, 03:00 pm';
+      return '14-09-2026, 03:00 pm';
     }
   }
 
@@ -240,7 +240,7 @@ class ApiService {
             'homeScore': score['home'] ?? 0,
             'awayScore': score['away'] ?? 0,
             'score': '${score['home'] ?? 0} - ${score['away'] ?? 0}',
-            'date': m['utcDate'] != null ? m['utcDate'].substring(0, 10) : '2026-09-05',
+            'date': m['utcDate'] != null ? m['utcDate'].substring(0, 10) : '2026-09-13',
             'result': 'ပြီးဆုံး (FT)',
           });
         }
@@ -249,16 +249,28 @@ class ApiService {
       print('Old Matches API Error: $e');
     }
     if (oldMatches.isEmpty) {
-      oldMatches.add({
-        'matchId': 'm_sample_1',
-        'league': 'Indonesia Super League',
-        'match': 'B ဆိုလို FC vs P ဆူရာဘាយ',
-        'homeScore': 2,
-        'awayScore': 1,
-        'score': '2 - 1',
-        'date': '2026-09-05',
-        'result': 'ပြီးဆုံး (FT)',
-      });
+      oldMatches.addAll([
+        {
+          'matchId': 'm_sample_1',
+          'league': 'Indonesia Super League',
+          'match': 'B ဆိုလို FC vs P ဆူရာဘាយ',
+          'homeScore': 2,
+          'awayScore': 1,
+          'score': '2 - 1',
+          'date': '2026-09-13',
+          'result': 'ပြီးဆုံး (FT)',
+        },
+        {
+          'matchId': 'm_sample_2',
+          'league': 'English Premier League',
+          'match': 'မန်ချက်စတာယူနိုက်တက် vs လီဗာပူး',
+          'homeScore': 3,
+          'awayScore': 2,
+          'score': '3 - 2',
+          'date': '2026-09-12',
+          'result': 'ပြီးဆုံး (FT)',
+        },
+      ]);
     }
     return oldMatches;
   }
@@ -436,7 +448,7 @@ class AppData {
 }
 
 // -------------------------------------------------------------------------
-// Login Screen
+// Login Screen (ဘောလုံးပုံစံ အပြင်အဆင်ဖြင့် လှပစွာ)
 // -------------------------------------------------------------------------
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -509,52 +521,77 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text('555SPORT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 32)),
-              const SizedBox(height: 8),
-              const Text('နည်းနည်းလောင်း များများနိုင်', style: TextStyle(color: Colors.greenAccent, fontSize: 14)),
-              const SizedBox(height: 40),
-              TextField(
-                controller: _userController,
-                decoration: InputDecoration(
-                  labelText: 'အသုံးပြုသူ အမည် (Member 1 to 100)',
-                  prefixIcon: const Icon(Icons.person, color: Colors.greenAccent),
-                  filled: true,
-                  fillColor: const Color(0xFF1F1F1F),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _passController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'စကားဝှက်',
-                  prefixIcon: const Icon(Icons.lock, color: Colors.greenAccent),
-                  filled: true,
-                  fillColor: const Color(0xFF1F1F1F),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF0A1F13), Color(0xFF133822), Color(0xFF07130C)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // ဘောလုံးပုံစံ အလှဆင် Icon
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.green.shade800.withOpacity(0.3),
+                    border: Border.all(color: Colors.amber.shade400, width: 2),
                   ),
-                  onPressed: _login,
-                  child: const Text('အကောင့်ဝင်မည်', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                  child: const Icon(Icons.sports_soccer, size: 64, color: Colors.amberAccent),
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                const Text('555SPORT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 36, letterSpacing: 1.5)),
+                const SizedBox(height: 6),
+                const Text('⚽ နည်းနည်းလောင်း များများနိုင် ⚽', style: TextStyle(color: Colors.amberAccent, fontSize: 13, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 40),
+                TextField(
+                  controller: _userController,
+                  decoration: InputDecoration(
+                    labelText: 'အသုံးပြုသူ အမည် (Member 1 to 100)',
+                    labelStyle: const TextStyle(color: Colors.grey),
+                    prefixIcon: const Icon(Icons.person, color: Colors.greenAccent),
+                    filled: true,
+                    fillColor: const Color(0xFF132E1B),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.green.shade800)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.amber)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _passController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'စကားဝှက်',
+                    labelStyle: const TextStyle(color: Colors.grey),
+                    prefixIcon: const Icon(Icons.lock, color: Colors.greenAccent),
+                    filled: true,
+                    fillColor: const Color(0xFF132E1B),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.green.shade800)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.amber)),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green.shade700,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 5,
+                    ),
+                    onPressed: _login,
+                    child: const Text('အကောင့်ဝင်မည်', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -581,7 +618,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.red),
+            icon: const Icon(Icons.logout, color: Colors.redAccent),
             onPressed: () {
               AppData.isAdmin = false;
               Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
@@ -596,7 +633,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           const Text('⚙️ အက်ပ်တစ်ခုလုံး မာစတာ ထိန်းချုပ်မှု', style: TextStyle(color: Colors.amber, fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           Card(
-            color: const Color(0xFF1F1F1F),
+            color: const Color(0xFF132E1B),
             child: SwitchListTile(
               title: const Text('အက်ပ်ပိတ်ရန် (Maintenance Mode)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               subtitle: Text(AppData.isMaintenanceMode ? 'အက်ပ် ပိတ်ထားသည် (User များ ဝင်မရပါ)' : 'အက်ပ် ဖွင့်ထားသည်', style: const TextStyle(color: Colors.grey)),
@@ -612,7 +649,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           ),
           const SizedBox(height: 16),
           Card(
-            color: const Color(0xFF1F1F1F),
+            color: const Color(0xFF132E1B),
             child: ListTile(
               leading: const Icon(Icons.people, color: Colors.greenAccent),
               title: const Text('၁။ တရားဝင် မန်ဘာ (၁၀၀) စာရင်းနှင့် ငွေစာရင်း/စကားဝှက် စီမံရန်', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -626,7 +663,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           ),
           const SizedBox(height: 16),
           Card(
-            color: const Color(0xFF1F1F1F),
+            color: const Color(0xFF132E1B),
             child: ListTile(
               leading: const Icon(Icons.receipt_long, color: Colors.blueAccent),
               title: const Text('၂။ လောင်းကြေးများ အနိုင်/အရှုံး စစ်ဆေးပြီး အတည်ပြုခြင်း', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -640,9 +677,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           ),
           const SizedBox(height: 16),
           Card(
-            color: const Color(0xFF1F1F1F),
+            color: const Color(0xFF132E1B),
             child: ListTile(
-              leading: const Icon(Icons.sports_soccer, color: Colors.indigoAccent),
+              leading: const Icon(Icons.sports_soccer, color: Colors.amberAccent),
               title: const Text('၃။ ပွဲစဉ်များနှင့် Odds များကို စိတ်ကြိုက် စီမံရန် (CRUD)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               subtitle: const Text('ပွဲစဉ်အသစ်ထည့်ခြင်း၊ ပြင်ဆင်ခြင်းနှင့် ဖျက်ခြင်း', style: TextStyle(color: Colors.grey, fontSize: 12)),
               trailing: const Icon(Icons.chevron_right, color: Colors.grey),
@@ -687,7 +724,7 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
         itemBuilder: (context, index) {
           var user = AppData.allUsers[index];
           return Card(
-            color: const Color(0xFF1F1F1F),
+            color: const Color(0xFF132E1B),
             margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             child: ListTile(
               title: Text('Username: ${user['username']} | Pass: ${user['password']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -700,7 +737,7 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
                     onPressed: () => _showEditUserDialog(context, user, index),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
+                    icon: const Icon(Icons.delete, color: Colors.redAccent),
                     onPressed: () {
                       setState(() {
                         String uName = user['username'];
@@ -729,7 +766,7 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF1F1F1F),
+          backgroundColor: const Color(0xFF132E1B),
           title: const Text('မန်ဘာအသစ် ထည့်သွင်းရန်', style: TextStyle(color: Colors.white, fontSize: 16)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -780,7 +817,7 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF1F1F1F),
+          backgroundColor: const Color(0xFF132E1B),
           title: Text('ပြင်ဆင်ရန်: ${user['username']}', style: const TextStyle(color: Colors.white, fontSize: 16)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -882,7 +919,7 @@ class _AdminBetSettlementScreenState extends State<AdminBetSettlementScreen> {
                 bool isActive = bet['status'] == 'ACTIVE';
 
                 return Card(
-                  color: const Color(0xFF1F1F1F),
+                  color: const Color(0xFF132E1B),
                   margin: const EdgeInsets.all(8),
                   child: Padding(
                     padding: const EdgeInsets.all(12.0),
@@ -904,7 +941,7 @@ class _AdminBetSettlementScreenState extends State<AdminBetSettlementScreen> {
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               ElevatedButton(
-                                style: ElevatedButton.styleFrom(backgroundColor: Colors.red, minimumSize: const Size(80, 30)),
+                                style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, minimumSize: const Size(80, 30)),
                                 onPressed: () => _manualSettle(index, false),
                                 child: const Text('အရှုံး (Loss)', style: TextStyle(fontSize: 12)),
                               ),
@@ -928,7 +965,7 @@ class _AdminBetSettlementScreenState extends State<AdminBetSettlementScreen> {
 }
 
 // -------------------------------------------------------------------------
-// Admin Match Control Screen (CRUD for Home/Away Odds & Goal Line)
+// Admin Match Control Screen (CRUD)
 // -------------------------------------------------------------------------
 class AdminMatchControlScreen extends StatefulWidget {
   const AdminMatchControlScreen({super.key});
@@ -967,7 +1004,7 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
               var m = matches[index];
               var odds = m['odds'];
               return Card(
-                color: const Color(0xFF1F1F1F),
+                color: const Color(0xFF132E1B),
                 margin: const EdgeInsets.all(8),
                 child: ListTile(
                   title: Text('${m['t1']} vs ${m['t2']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -980,7 +1017,7 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
                         onPressed: () => _showEditMatchDialog(context, m, index),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
+                        icon: const Icon(Icons.delete, color: Colors.redAccent),
                         onPressed: () {
                           setState(() {
                             ApiService.customAdminMatches.removeAt(index);
@@ -1003,7 +1040,7 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
     final t1Ctrl = TextEditingController();
     final t2Ctrl = TextEditingController();
     final leagueCtrl = TextEditingController(text: 'Indonesia Super League');
-    final timeCtrl = TextEditingController(text: '05-09-2026, 03:00 pm');
+    final timeCtrl = TextEditingController(text: '14-09-2026, 03:00 pm');
     final homeOddsCtrl = TextEditingController(text: '= -25');
     final awayOddsCtrl = TextEditingController(text: '1.95');
     final goalLineCtrl = TextEditingController(text: '3 +80');
@@ -1012,7 +1049,7 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF1F1F1F),
+          backgroundColor: const Color(0xFF132E1B),
           title: const Text('ပွဲစဉ်အသစ် ထည့်သွင်းရန်', style: TextStyle(color: Colors.white, fontSize: 16)),
           content: SingleChildScrollView(
             child: Column(
@@ -1072,7 +1109,7 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF1F1F1F),
+          backgroundColor: const Color(0xFF132E1B),
           title: const Text('ပွဲစဉ်နှင့် ကိန်းဂဏန်းများ ပြင်ဆင်ရန်', style: TextStyle(color: Colors.white, fontSize: 16)),
           content: SingleChildScrollView(
             child: Column(
@@ -1112,7 +1149,7 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
 }
 
 // -------------------------------------------------------------------------
-// User Dashboard
+// User Dashboard (ဘေဘောလုံးဒီဇိုင်းဆန်ဆန် လှပသော Home Screen)
 // -------------------------------------------------------------------------
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -1147,12 +1184,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       key: _scaffoldKey,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white),
+          icon: const Icon(Icons.sports_soccer, color: Colors.amberAccent),
           onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
         title: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Icon(Icons.sports_football, color: Colors.greenAccent, size: 20),
+            SizedBox(width: 6),
             Text('555', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
             Text('SPORT', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 18)),
           ],
@@ -1160,18 +1199,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
         centerTitle: true,
       ),
       drawer: Drawer(
-        backgroundColor: const Color(0xFF2C2C2C),
+        backgroundColor: const Color(0xFF132E1B),
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
             UserAccountsDrawerHeader(
               accountName: Text(AppData.displayName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              accountEmail: Text('Username: ${AppData.username}', style: const TextStyle(color: Colors.grey)),
-              currentAccountPicture: const CircleAvatar(backgroundColor: Colors.grey, child: Icon(Icons.person, color: Colors.white)),
-              decoration: const BoxDecoration(color: Color(0xFF1F1F1F)),
+              accountEmail: Text('Username: ${AppData.username}', style: const TextStyle(color: Colors.amberAccent)),
+              currentAccountPicture: const CircleAvatar(backgroundColor: Colors.green, child: Icon(Icons.sports_soccer, color: Colors.white, size: 32)),
+              decoration: const BoxDecoration(color: Color(0xFF0D1B12)),
               otherAccountsPictures: [
                 IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.greenAccent),
+                  icon: const Icon(Icons.edit, color: Colors.amberAccent),
                   onPressed: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()))
@@ -1216,10 +1255,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _showLanguageSelectionDialog(context);
               },
             ),
-            const Divider(color: Colors.grey),
+            const Divider(color: Colors.green),
             ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: Text(AppStrings.get('logout'), style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+              leading: const Icon(Icons.logout, color: Colors.redAccent),
+              title: Text(AppStrings.get('logout'), style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
               onTap: () {
                 Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
               },
@@ -1232,17 +1271,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(color: Colors.amber.shade900.withOpacity(0.3), borderRadius: BorderRadius.circular(6)),
-              child: const Text('ငှက်နာမည် မှန်ကန်တူညီမှသာ ထုတ်ယူ၍ရနိုင်ပါမည်', style: TextStyle(color: Colors.amber, fontSize: 12)),
-            ),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFF1F1F1F),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey.shade800),
+                color: Colors.amber.shade900.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.amber.shade700),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.amber, size: 18),
+                  SizedBox(width: 8),
+                  Expanded(child: Text('ငှက်နာမည် မှန်ကန်တူညီမှသာ ထုတ်ယူ၍ရနိုင်ပါမည်', style: TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold))),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Balance Card (ဘောလုံးကွင်းစိမ်းရောင် Gradient)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [Color(0xFF133822), Color(0xFF0F2A19)]),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.green.shade700),
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 8, offset: const Offset(0, 4))],
               ),
               child: Column(
                 children: [
@@ -1254,7 +1305,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         children: [
                           Text(AppStrings.get('balance'), style: const TextStyle(color: Colors.grey, fontSize: 11)),
                           const SizedBox(height: 2),
-                          Text('${AppData.balance.toStringAsFixed(2)} Ks', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                          Text('${AppData.balance.toStringAsFixed(2)} Ks', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       Column(
@@ -1264,21 +1315,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             children: [
                               Text(AppStrings.get('points'), style: const TextStyle(color: Colors.grey, fontSize: 11)),
                               const SizedBox(width: 4),
-                              const Icon(Icons.history, color: Colors.greenAccent, size: 14),
+                              const Icon(Icons.star, color: Colors.amberAccent, size: 14),
                             ],
                           ),
                           const SizedBox(height: 2),
-                          Text('${AppData.points}', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                          Text('${AppData.points}', style: const TextStyle(color: Colors.amberAccent, fontSize: 18, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ],
                   ),
-                  const Divider(color: Colors.grey, height: 20),
+                  const Divider(color: Colors.green, height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(AppStrings.get('betAmount'), style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                      Text('${totalActiveBetsAmount.toStringAsFixed(1)} Ks', style: const TextStyle(color: Colors.amberAccent, fontSize: 14, fontWeight: FontWeight.bold)),
+                      Text('${totalActiveBetsAmount.toStringAsFixed(1)} Ks', style: const TextStyle(color: Colors.greenAccent, fontSize: 14, fontWeight: FontWeight.bold)),
                     ],
                   )
                 ],
@@ -1293,14 +1344,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisSpacing: 10,
               childAspectRatio: 2.2,
               children: [
-                _buildMenuCard(context, AppStrings.get('parlay'), Icons.sports_score, Colors.green, const BettingScreen(isParlay: true)),
-                _buildMenuCard(context, AppStrings.get('single'), Icons.sports_soccer, Colors.blue, const BettingScreen(isParlay: false)),
-                _buildMenuCard(context, AppStrings.get('myBets'), Icons.receipt_long, Colors.orange, const MyBetsScreen()),
-                _buildMenuCard(context, AppStrings.get('oldMatches'), Icons.calendar_today, Colors.purple, const OldMatchesScreen()),
-                _buildMenuCard(context, AppStrings.get('wallet'), Icons.account_balance_wallet, Colors.teal, const WalletScreen()),
+                _buildMenuCard(context, AppStrings.get('parlay'), Icons.sports_score, Colors.greenAccent, const BettingScreen(isParlay: true)),
+                _buildMenuCard(context, AppStrings.get('single'), Icons.sports_soccer, Colors.amberAccent, const BettingScreen(isParlay: false)),
+                _buildMenuCard(context, AppStrings.get('myBets'), Icons.receipt_long, Colors.orangeAccent, const MyBetsScreen()),
+                _buildMenuCard(context, AppStrings.get('oldMatches'), Icons.calendar_today, Colors.purpleAccent, const OldMatchesScreen()),
+                _buildMenuCard(context, AppStrings.get('wallet'), Icons.account_balance_wallet, Colors.tealAccent, const WalletScreen()),
                 _buildMenuCard(context, AppStrings.get('results'), Icons.live_tv, Colors.amber, const FinishedResultsScreen()),
-                _buildMenuCard(context, AppStrings.get('standings'), Icons.emoji_events, Colors.indigo, const StandingsScreen()),
-                _buildMenuCard(context, AppStrings.get('exchange'), Icons.monetization_on, Colors.lightGreen, const PointsExchangeScreen()),
+                _buildMenuCard(context, AppStrings.get('standings'), Icons.emoji_events, Colors.indigoAccent, const StandingsScreen()),
+                _buildMenuCard(context, AppStrings.get('exchange'), Icons.monetization_on, Colors.lightGreenAccent, const PointsExchangeScreen()),
               ],
             ),
           ],
@@ -1314,7 +1365,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF1F1F1F),
+          backgroundColor: const Color(0xFF132E1B),
           title: const Text('အသင်း/အမည် ရွေးချယ်ရန်', style: TextStyle(color: Colors.white)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1349,7 +1400,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF1F1F1F),
+          backgroundColor: const Color(0xFF132E1B),
           title: const Text('ဘာသာစကား ရွေးချယ်ရန် / Select Language', style: TextStyle(color: Colors.white, fontSize: 15)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1386,17 +1437,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ).then((_) => _refresh());
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFF1F1F1F),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.shade800),
+          color: const Color(0xFF132E1B),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.green.shade800),
         ),
         child: Row(
           children: [
-            Icon(icon, color: color, size: 26),
-            const SizedBox(width: 10),
-            Expanded(child: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
+            Icon(icon, color: color, size: 24),
+            const SizedBox(width: 8),
+            Expanded(child: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11))),
           ],
         ),
       ),
@@ -1429,7 +1480,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(controller: _nameController, decoration: const InputDecoration(labelText: 'အမည်ပြောင်းရန်', filled: true, fillColor: Color(0xFF1F1F1F))),
+            TextField(controller: _nameController, decoration: const InputDecoration(labelText: 'အမည်ပြောင်းရန်', filled: true, fillColor: Color(0xFF132E1B))),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
@@ -1491,9 +1542,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(controller: _oldPassController, obscureText: true, decoration: const InputDecoration(labelText: 'စကားဝှက်ဟောင်း', filled: true, fillColor: Color(0xFF1F1F1F))),
+            TextField(controller: _oldPassController, obscureText: true, decoration: const InputDecoration(labelText: 'စကားဝှက်ဟောင်း', filled: true, fillColor: Color(0xFF132E1B))),
             const SizedBox(height: 16),
-            TextField(controller: _newPassController, obscureText: true, decoration: const InputDecoration(labelText: 'စကားဝှက်အသစ်', filled: true, fillColor: Color(0xFF1F1F1F))),
+            TextField(controller: _newPassController, obscureText: true, decoration: const InputDecoration(labelText: 'စကားဝှက်အသစ်', filled: true, fillColor: Color(0xFF132E1B))),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
@@ -1512,7 +1563,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 }
 
 // -------------------------------------------------------------------------
-// Betting Screen (အိမ်ကွင်း/အဝေးကွင်း ခလုတ်ထဲတွင် ကိန်းဂဏန်းများပါရှိပြီး အလယ်အကွက်မရှိပါ)
+// Betting Screen
 // -------------------------------------------------------------------------
 class BettingScreen extends StatefulWidget {
   final bool isParlay; 
@@ -1592,7 +1643,7 @@ class _BettingScreenState extends State<BettingScreen> {
     if (_selectedSingleBet == null) return;
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1F1F1F),
+      backgroundColor: const Color(0xFF132E1B),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
@@ -1615,7 +1666,7 @@ class _BettingScreenState extends State<BettingScreen> {
                     controller: _singleAmountController,
                     keyboardType: TextInputType.number,
                     onChanged: (val) => setModalState(() {}),
-                    decoration: InputDecoration(labelText: 'လောင်းမည့် ငွေပမာဏ (Ks)', filled: true, fillColor: const Color(0xFF2C2C2C), border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))),
+                    decoration: InputDecoration(labelText: 'လောင်းမည့် ငွေပမာဏ (Ks)', filled: true, fillColor: const Color(0xFF0D1B12), border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))),
                   ),
                   const SizedBox(height: 8),
                   Text('အနိုင်ရမည့်ငွေ: ${potentialWin.toStringAsFixed(0)} Ks', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 14)),
@@ -1707,23 +1758,22 @@ class _BettingScreenState extends State<BettingScreen> {
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: const Color(0xFF1F1F1F), borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey.shade800)),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF132E1B),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.green.shade800),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ပွဲချိန် (ရက်၊ လ၊ နှစ် နှင့် AM/PM ပါဝင်သည်)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(m['league'], style: const TextStyle(color: Colors.greenAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                        Text(m['league'], style: const TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold)),
                         Text('ပွဲချိန် : ${m['time']}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
                       ],
                     ),
                     const SizedBox(height: 8),
-
-                    // -------------------------------------------------------------
-                    // အပေါ်တန်း : အိမ်ကွင်း အသင်း (ဘေးတွင် ကိန်းဂဏန်းပါသည်) | အဝေးကွင်း အသင်း (ဘေးတွင် ကိန်းဂဏန်းပါသည်) [အလယ်တွင် အကွက်မရှိတော့ပါ]
-                    // -------------------------------------------------------------
                     Row(
                       children: [
                         Expanded(
@@ -1731,7 +1781,7 @@ class _BettingScreenState extends State<BettingScreen> {
                             onTap: () => _handleSelection(m, 'အနိုင်/အရှုံး', m['t1'], 1.85, lineVal: homeOddsText),
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                              decoration: BoxDecoration(color: isHomeSelected ? Colors.amber : Colors.grey.shade800, borderRadius: BorderRadius.circular(6)),
+                              decoration: BoxDecoration(color: isHomeSelected ? Colors.amber : const Color(0xFF1A3D25), borderRadius: BorderRadius.circular(6)),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
@@ -1748,7 +1798,7 @@ class _BettingScreenState extends State<BettingScreen> {
                             onTap: () => _handleSelection(m, 'အနိုင်/အရှုံး', m['t2'], 1.95, lineVal: awayOddsText),
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                              decoration: BoxDecoration(color: isAwaySelected ? Colors.amber : Colors.grey.shade800, borderRadius: BorderRadius.circular(6)),
+                              decoration: BoxDecoration(color: isAwaySelected ? Colors.amber : const Color(0xFF1A3D25), borderRadius: BorderRadius.circular(6)),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
@@ -1761,12 +1811,7 @@ class _BettingScreenState extends State<BettingScreen> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 6),
-
-                    // -------------------------------------------------------------
-                    // အောက်တန်း : ဂိုးပေါ် (Over) | အလယ်တွင် အစိမ်းရောင် ဂိုးလိုင်း ကိန်းဂဏန်းအကွက် | ဂိုးအောက် (Under)
-                    // -------------------------------------------------------------
                     Row(
                       children: [
                         Expanded(
@@ -1774,19 +1819,18 @@ class _BettingScreenState extends State<BettingScreen> {
                             onTap: () => _handleSelection(m, 'ဂိုးပေါင်း (Over/Under)', 'ဂိုးပေါ် (Over)', odds['overOdds'], lineVal: goalLineText),
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                              decoration: BoxDecoration(color: isOverSelected ? Colors.amber : Colors.grey.shade800, borderRadius: BorderRadius.circular(6)),
+                              decoration: BoxDecoration(color: isOverSelected ? Colors.amber : const Color(0xFF1A3D25), borderRadius: BorderRadius.circular(6)),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text('ဂိုးပေါ်', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-                                  Text('${odds['overOdds']}', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 12)),
+                                  Text('ဂိုးပေါ်', style: TextStyle(color: isOverSelected ? Colors.black : Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                                  Text('${odds['overOdds']}', style: TextStyle(color: isOverSelected ? Colors.black : Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 12)),
                                 ],
                               ),
                             ),
                           ),
                         ),
                         const SizedBox(width: 6),
-                        // အလယ်တွင် အစိမ်းရောင် ဂိုးလိုင်း ကိန်းဂဏန်းအကွက်
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                           decoration: BoxDecoration(
@@ -1801,12 +1845,12 @@ class _BettingScreenState extends State<BettingScreen> {
                             onTap: () => _handleSelection(m, 'ဂိုးပေါင်း (Over/Under)', 'ဂိုးအောက် (Under)', odds['underOdds'], lineVal: goalLineText),
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                              decoration: BoxDecoration(color: isUnderSelected ? Colors.amber : Colors.grey.shade800, borderRadius: BorderRadius.circular(6)),
+                              decoration: BoxDecoration(color: isUnderSelected ? Colors.amber : const Color(0xFF1A3D25), borderRadius: BorderRadius.circular(6)),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text('ဂိုးအောက်', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-                                  Text('${odds['underOdds']}', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 12)),
+                                  Text('ဂိုးအောက်', style: TextStyle(color: isUnderSelected ? Colors.black : Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                                  Text('${odds['underOdds']}', style: TextStyle(color: isUnderSelected ? Colors.black : Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 12)),
                                 ],
                               ),
                             ),
@@ -1896,13 +1940,13 @@ class _ParlaySlipScreenState extends State<ParlaySlipScreen> {
                       itemBuilder: (context, index) {
                         final item = AppData.parlaySlip[index];
                         return Card(
-                          color: const Color(0xFF1F1F1F),
+                          color: const Color(0xFF132E1B),
                           child: ListTile(
                             title: Text(item['matchName'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                             subtitle: Text('ပွဲချိန်: ${item['matchTime']}\n${item['betType']} (${item['selection']}) [Line: ${item['lineVal']}] | Odds: ${item['odds']}', style: const TextStyle(color: Colors.greenAccent)),
                             isThreeLine: true,
                             trailing: IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
+                              icon: const Icon(Icons.delete, color: Colors.redAccent),
                               onPressed: () => setState(() => AppData.parlaySlip.removeAt(index)),
                             ),
                           ),
@@ -1916,7 +1960,7 @@ class _ParlaySlipScreenState extends State<ParlaySlipScreen> {
               TextField(
                 controller: _amountController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'လောင်းမည့် ငွေပမာဏ (Ks)', filled: true, fillColor: Color(0xFF2C2C2C)),
+                decoration: const InputDecoration(labelText: 'လောင်းမည့် ငွေပမာဏ (Ks)', filled: true, fillColor: Color(0xFF0D1B12)),
               ),
               const SizedBox(height: 12),
               SizedBox(
@@ -1955,7 +1999,7 @@ class MyBetsScreen extends StatelessWidget {
                 List matches = bet['matches'];
 
                 return Card(
-                  color: const Color(0xFF1F1F1F),
+                  color: const Color(0xFF132E1B),
                   margin: const EdgeInsets.all(8),
                   child: Padding(
                     padding: const EdgeInsets.all(12.0),
@@ -1969,7 +2013,7 @@ class MyBetsScreen extends StatelessWidget {
                             Text(bet['status'], style: TextStyle(color: bet['status'] == 'ACTIVE' ? Colors.blue : (bet['status'].toString().contains('WON') ? Colors.green : Colors.red), fontWeight: FontWeight.bold)),
                           ],
                         ),
-                        const Divider(color: Colors.grey),
+                        const Divider(color: Colors.green),
                         ...matches.map<Widget>((m) => Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: Column(
@@ -1982,7 +2026,7 @@ class MyBetsScreen extends StatelessWidget {
                             ],
                           ),
                         )).toList(),
-                        const Divider(color: Colors.grey),
+                        const Divider(color: Colors.green),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -2002,30 +2046,100 @@ class MyBetsScreen extends StatelessWidget {
   }
 }
 
-class OldMatchesScreen extends StatelessWidget {
+// -------------------------------------------------------------------------
+// Old Matches Screen (အပေါ်ညာဘက်ထောင့်တွင် ကယ်လန်ဒါ ထည့်သွင်းထားသည်)
+// -------------------------------------------------------------------------
+class OldMatchesScreen extends StatefulWidget {
   const OldMatchesScreen({super.key});
+
+  @override
+  State<OldMatchesScreen> createState() => _OldMatchesScreenState();
+}
+
+class _OldMatchesScreenState extends State<OldMatchesScreen> {
+  String? _selectedDateFilter;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('ပွဲစဉ်ဟောင်းများ')),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: ApiService.fetchOldMatches(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-          var list = snapshot.data!;
-          return ListView.builder(
-            itemCount: list.length,
-            itemBuilder: (context, index) {
-              var m = list[index];
-              return ListTile(
-                title: Text(m['match'], style: const TextStyle(color: Colors.white)),
-                subtitle: Text(m['league'], style: const TextStyle(color: Colors.grey)),
-                trailing: Text(m['score'], style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
+      appBar: AppBar(
+        title: const Text('ပွဲစဉ်ဟောင်းများ (Match History)'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_month, color: Colors.amberAccent),
+            onPressed: () async {
+              DateTime? pickedDate = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(2025),
+                lastDate: DateTime(2030),
               );
+              if (pickedDate != null) {
+                String formatted = "${pickedDate.year.toString().padLeft(4, '0')}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+                setState(() {
+                  _selectedDateFilter = formatted;
+                });
+              }
             },
-          );
-        },
+            tooltip: 'ရက်စွဲအလိုက် ရွေးရန် (Calendar)',
+          ),
+          if (_selectedDateFilter != null)
+            IconButton(
+              icon: const Icon(Icons.clear, color: Colors.redAccent),
+              onPressed: () => setState(() => _selectedDateFilter = null),
+              tooltip: 'စစ်ထုတ်မှု ဖြုတ်ရန်',
+            ),
+        ],
+      ),
+      body: Column(
+        children: [
+          if (_selectedDateFilter != null)
+            Container(
+              padding: const EdgeInsets.all(8),
+              color: Colors.green.shade900.withOpacity(0.4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('ရွေးချယ်ထားသော ရက်စွဲ: ', style: TextStyle(color: Colors.grey)),
+                  Text(_selectedDateFilter!, style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+          Expanded(
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: ApiService.fetchOldMatches(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                var list = snapshot.data!;
+
+                if (_selectedDateFilter != null) {
+                  list = list.where((m) => m['date'] == _selectedDateFilter).toList();
+                }
+
+                if (list.isEmpty) {
+                  return const Center(child: Text('ဤရက်စွဲအတွက် ပွဲစဉ်ဟောင်းများ မရှိပါ။', style: TextStyle(color: Colors.grey)));
+                }
+
+                return ListView.builder(
+                  itemCount: list.length,
+                  itemBuilder: (context, index) {
+                    var m = list[index];
+                    return Card(
+                      color: const Color(0xFF132E1B),
+                      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      child: ListTile(
+                        leading: const Icon(Icons.sports_soccer, color: Colors.amberAccent),
+                        title: Text(m['match'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        subtitle: Text('${m['league']} | ရက်စွဲ: ${m['date']}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                        trailing: Text(m['score'], style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 14)),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
