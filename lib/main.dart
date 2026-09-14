@@ -16,7 +16,6 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 void main() async {
-  // Flutter ရဲ့ native bindings တွေ အသင့်ဖြစ်ကြောင်း သေချာစေရန်
   WidgetsFlutterBinding.ensureInitialized();
   
   try {
@@ -26,14 +25,15 @@ void main() async {
   }
 
   try {
-    // Firebase ကို အောင်မြင်စွာ စတင်ချိတ်ဆက်ရန်
     await Firebase.initializeApp();
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   } catch (e) {
     print('Firebase Init Error: $e');
   }
 
+  // ဒီနေရာတွင် await ဖြင့် အရင်ဆုံး Data များကို သေချာ Load လုပ်စေသည်
   await AppData.loadData();
+  
   runApp(const HatTrickApp());
 }
 
