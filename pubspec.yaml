@@ -10,6 +10,17 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_dotenv: ^5.1.0 # (သို့မဟုတ် နောက်ဆုံးဗားရှင်း)
+  shared_preferences: ^2.2.2
+  http: ^1.2.0
+  firebase_core: ^2.27.0
+  firebase_messaging: ^14.7.19
+  cloud_firestore: ^4.15.8
+  
+flutter:
+  assets:
+    - .env
+
   
   # Firebase Packages
   firebase_core: ^2.24.2
