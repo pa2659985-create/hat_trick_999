@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "513315388896",
+    "project_id": "hattrickapp-2995d",
+    "storage_bucket": "hattrickapp-2995d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:513315388896:android:61ad238d008c8a3e7fff85",
+        "android_client_info": {
+          "package_name": "com.example.hat_trick_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYigsxNl3IiZWywTNrf6RjJZNll7bEIaU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
