@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart'; // dotenv ကို ထည့်သွင်းထားသည်
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
@@ -18,7 +18,6 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // .env ဖိုင်ကို ဦးစွာ ခေါ်ယူခြင်း
   try {
     await dotenv.load(fileName: ".env");
   } catch (e) {
@@ -136,7 +135,6 @@ class _HatTrickAppState extends State<HatTrickApp> {
 }
 
 class ApiService {
-  // .env မှ API Key ကို လုံခြုံစွာ ခေါ်ယူသုံးစွဲခြင်း
   static String get apiKey => dotenv.env['FOOTBALL_API_KEY'] ?? '5a87133d1c764efb8525d81e82d605fd'; 
   static const String baseUrl = 'https://api.football-data.org/v4/matches';
 
@@ -1568,7 +1566,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 }
 
 // -------------------------------------------------------------------------
-// Betting Screen
+// Betting Screen (MatchesScreen အနေဖြင့် အသုံးပြုနိုင်သည်)
 // -------------------------------------------------------------------------
 class BettingScreen extends StatefulWidget {
   final bool isParlay; 
