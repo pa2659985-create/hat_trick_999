@@ -31,6 +31,7 @@ void main() async {
     print('Firebase Init Error: $e');
   }
 
+  // App စစချင်းမှာ SharedPreferences မှတဆင့် အကောင့်ဝင်ထားမှုကို အရင်ဖတ်မည်
   await AppData.loadData();
   runApp(const HatTrickApp());
 }
@@ -117,6 +118,16 @@ class _HatTrickAppState extends State<HatTrickApp> {
 
   @override
   Widget build(BuildContext context) {
+    // 💡 အကောင့်ဝင်ထားပြီးသားဆိုရင် Login ကို ကျော်ပြီး သက်ဆိုင်ရာ Dashboard သို့မဟုတ် Admin သို့ တန်းသွားမည်
+    Widget initialScreen = const LoginScreen();
+    if (AppData.username.isNotEmpty) {
+      if (AppData.isAdmin) {
+        initialScreen = const AdminPanelScreen();
+      } else {
+        initialScreen = const DashboardScreen();
+      }
+    }
+
     return MaterialApp(
       title: 'Hat Trick',
       debugShowCheckedModeBanner: false,
@@ -129,7 +140,7 @@ class _HatTrickAppState extends State<HatTrickApp> {
           elevation: 0,
         ),
       ),
-      home: const LoginScreen(),
+      home: initialScreen,
     );
   }
 }
@@ -333,20 +344,36 @@ class AppData {
     };
   });
 
+  // 💡 Session မပျောက်အောင် SharedPreferences မှ တဆင့် တိကျစွာ ဖတ်ရှုခြင်း
   static Future<void> loadData() async {
     final prefs = await SharedPreferences.getInstance();
     username = prefs.getString('username') ?? '';
     selectedTeam = prefs.getString('selectedTeam') ?? 'မြန်မာ (Myanmar)';
     selectedLanguage = prefs.getString('selectedLanguage') ?? 'မြန်မာ';
     isMaintenanceMode = prefs.getBool('isMaintenanceMode') ?? false;
+    displayName = prefs.getString('displayName') ?? 'မင်းမင်းအောင်';
+    isAdmin = prefs.getBool('isAdmin') ?? false;
+    balance = prefs.getDouble('balance') ?? 0.0;
+    points = prefs.getInt('points') ?? 0;
+
+    if (username.isNotEmpty && username != '999admin') {
+      var matchedUser = allUsers.firstWhere(
+        (element) => element['username'] == username,
+        orElse: () => {},
+      );
+      if (matchedUser.isNotEmpty) {
+        balance = matchedUser['balance'];
+        points = matchedUser['points'];
+      }
+    }
 
     try {
       if (username.isNotEmpty && username != '999admin') {
         var userDoc = await FirebaseFirestore.instance.collection('users').doc(username).get();
         if (userDoc.exists) {
           var data = userDoc.data()!;
-          balance = (data['balance'] ?? 0.0).toDouble();
-          points = data['points'] ?? 0;
+          balance = (data['balance'] ?? balance).toDouble();
+          points = data['points'] ?? points;
           displayName = data['displayName'] ?? username;
         }
       }
@@ -355,12 +382,17 @@ class AppData {
     }
   }
 
+  // 💡 အချက်အလက် သိမ်းဆည်းခြင်း
   static Future<void> saveData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('username', username);
     await prefs.setString('selectedTeam', selectedTeam);
     await prefs.setString('selectedLanguage', selectedLanguage);
     await prefs.setBool('isMaintenanceMode', isMaintenanceMode);
+    await prefs.setString('displayName', displayName);
+    await prefs.setBool('isAdmin', isAdmin);
+    await prefs.setDouble('balance', balance);
+    await prefs.setInt('points', points);
 
     try {
       if (username.isNotEmpty && username != '999admin') {
@@ -374,6 +406,17 @@ class AppData {
     } catch (e) {
       print('Cloud Firestore Save Error: $e');
     }
+  }
+
+  // 💡 Logout လုပ်သည့်အခါ Session ရှင်းလင်းရန်
+  static Future<void> clearData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('username');
+    await prefs.setBool('isAdmin', false);
+    username = '';
+    isAdmin = false;
+    balance = 0.0;
+    points = 0;
   }
 
   static Future<void> autoCheckAndSettleBets() async {
@@ -615,8 +658,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.redAccent),
-            onPressed: () {
-              AppData.isAdmin = false;
+            onPressed: () async {
+              await AppData.clearData();
               Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
             },
             tooltip: 'ထွက်ရန်',
@@ -1254,7 +1297,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.redAccent),
               title: Text(AppStrings.get('logout'), style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
-              onTap: () {
+              onTap: () async {
+                await AppData.clearData();
                 Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
               },
             ),
