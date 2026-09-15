@@ -86,6 +86,26 @@ class AppStrings {
   }
 }
 
+// -------------------------------------------------------------------------
+// AuthWrapper (Login ဝင်ပြီးသား ဟုတ်မဟုတ် စစ်ဆေးပေးမည့် Widget)
+// -------------------------------------------------------------------------
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    Widget initialScreen = const LoginScreen();
+    if (AppData.username.isNotEmpty) {
+      if (AppData.isAdmin) {
+        initialScreen = const AdminPanelScreen();
+      } else {
+        initialScreen = const DashboardScreen();
+      }
+    }
+    return initialScreen;
+  }
+}
+
 class HatTrickApp extends StatefulWidget {
   const HatTrickApp({super.key});
 
@@ -118,15 +138,6 @@ class _HatTrickAppState extends State<HatTrickApp> {
 
   @override
   Widget build(BuildContext context) {
-    Widget initialScreen = const LoginScreen();
-    if (AppData.username.isNotEmpty) {
-      if (AppData.isAdmin) {
-        initialScreen = const AdminPanelScreen();
-      } else {
-        initialScreen = const DashboardScreen();
-      }
-    }
-
     return MaterialApp(
       title: 'Hat Trick',
       debugShowCheckedModeBanner: false,
@@ -138,8 +149,9 @@ class _HatTrickAppState extends State<HatTrickApp> {
           backgroundColor: Color(0xFF132E1B),
           elevation: 0,
         ),
+        useMaterial3: true,
       ),
-      home: initialScreen,
+      home: const AuthWrapper(),
     );
   }
 }
