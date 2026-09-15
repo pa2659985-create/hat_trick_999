@@ -31,7 +31,7 @@ void main() async {
     print('Firebase Init Error: $e');
   }
 
-  // ဒီနေရာတွင် await ဖြင့် အရင်ဆုံး Data များကို သေချာ Load လုပ်စေသည်
+  // အက်ပ်စတင်ရန် Data များကို အရင်ဆုံး Load လုပ်စေသည်
   await AppData.loadData();
   
   runApp(const HatTrickApp());
