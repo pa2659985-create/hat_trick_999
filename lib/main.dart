@@ -31,7 +31,6 @@ void main() async {
     print('Firebase Init Error: $e');
   }
 
-  // အက်ပ်စတင်ရန် Data များကို အရင်ဆုံး Load လုပ်စေသည်
   await AppData.loadData();
   
   runApp(const HatTrickApp());
@@ -86,9 +85,6 @@ class AppStrings {
   }
 }
 
-// -------------------------------------------------------------------------
-// AuthWrapper (Login ဝင်ပြီးသား ဟုတ်မဟုတ် စစ်ဆေးပေးမည့် Widget)
-// -------------------------------------------------------------------------
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
@@ -501,9 +497,6 @@ class AppData {
   }
 }
 
-// -------------------------------------------------------------------------
-// Login Screen
-// -------------------------------------------------------------------------
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -652,9 +645,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-// -------------------------------------------------------------------------
-// Admin Master Control Panel
-// -------------------------------------------------------------------------
 class AdminPanelScreen extends StatefulWidget {
   const AdminPanelScreen({super.key});
 
@@ -748,9 +738,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   }
 }
 
-// -------------------------------------------------------------------------
-// Admin Member Management Screen (Full CRUD)
-// -------------------------------------------------------------------------
 class AdminUserManagementScreen extends StatefulWidget {
   const AdminUserManagementScreen({super.key});
 
@@ -919,9 +906,6 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
   }
 }
 
-// -------------------------------------------------------------------------
-// Admin Bet Settlement Screen
-// -------------------------------------------------------------------------
 class AdminBetSettlementScreen extends StatefulWidget {
   const AdminBetSettlementScreen({super.key});
 
@@ -1018,7 +1002,7 @@ class _AdminBetSettlementScreenState extends State<AdminBetSettlementScreen> {
 }
 
 // -------------------------------------------------------------------------
-// Admin Match Control Screen (CRUD)
+// ၃။ Admin Match Control Screen (CRUD) - ပုံစံအသစ်ဖြင့် ပြင်ဆင်ပြီး
 // -------------------------------------------------------------------------
 class AdminMatchControlScreen extends StatefulWidget {
   const AdminMatchControlScreen({super.key});
@@ -1028,6 +1012,23 @@ class AdminMatchControlScreen extends StatefulWidget {
 }
 
 class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMatches();
+  }
+
+  Future<void> _loadMatches() async {
+    await ApiService.fetchMatches();
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1041,51 +1042,44 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
           ),
         ],
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: ApiService.fetchMatches(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('ပွဲစဉ်များ မရှိပါ။'));
-          }
-
-          var matches = snapshot.data!;
-          return ListView.builder(
-            itemCount: matches.length,
-            itemBuilder: (context, index) {
-              var m = matches[index];
-              var odds = m['odds'];
-              return Card(
-                color: const Color(0xFF132E1B),
-                margin: const EdgeInsets.all(8),
-                child: ListTile(
-                  title: Text('${m['t1']} vs ${m['t2']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  subtitle: Text('Home: ${odds['homeOddsText']} | Away: ${odds['awayOddsText']} | GoalLine: ${odds['goalLineText']}', style: const TextStyle(color: Colors.greenAccent, fontSize: 12)),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.amber),
-                        onPressed: () => _showEditMatchDialog(context, m, index),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ApiService.customAdminMatches.isEmpty
+              ? const Center(child: Text('ပွဲစဉ်များ မရှိပါ။', style: TextStyle(color: Colors.grey)))
+              : ListView.builder(
+                  itemCount: ApiService.customAdminMatches.length,
+                  itemBuilder: (context, index) {
+                    var m = ApiService.customAdminMatches[index];
+                    var odds = m['odds'] ?? {};
+                    return Card(
+                      color: const Color(0xFF132E1B),
+                      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      child: ListTile(
+                        title: Text('${m['t1']} vs ${m['t2']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        subtitle: Text('လိဂ်: ${m['league']}\nပွဲချိန်: ${m['time']}\nHome: ${odds['homeOddsText']} | Away: ${odds['awayOddsText']} | Goal: ${odds['goalLineText']}', style: const TextStyle(color: Colors.greenAccent, fontSize: 12)),
+                        isThreeLine: true,
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.amber),
+                              onPressed: () => _showEditMatchDialog(context, m, index),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.redAccent),
+                              onPressed: () {
+                                setState(() {
+                                  ApiService.customAdminMatches.removeAt(index);
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွဲစဉ် ဖျက်ပြီးပါပြီ')));
+                              },
+                            ),
+                          ],
+                        ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.redAccent),
-                        onPressed: () {
-                          setState(() {
-                            ApiService.customAdminMatches.removeAt(index);
-                          });
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွဲစဉ် ဖျက်ပြီးပါပြီ')));
-                        },
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
-              );
-            },
-          );
-        },
-      ),
     );
   }
 
@@ -1122,25 +1116,29 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('မလုပ်ပါ။', style: TextStyle(color: Colors.grey))),
             TextButton(
               onPressed: () {
-                setState(() {
-                  ApiService.customAdminMatches.add({
-                    'id': 'custom_${DateTime.now().millisecondsSinceEpoch}',
-                    'league': leagueCtrl.text,
-                    'time': timeCtrl.text,
-                    't1': t1Ctrl.text,
-                    't2': t2Ctrl.text,
-                    'status': 'UPCOMING',
-                    'odds': {
-                      'homeOddsText': homeOddsCtrl.text,
-                      'awayOddsText': awayOddsCtrl.text,
-                      'goalLineText': goalLineCtrl.text,
-                      'overOdds': 1.90,
-                      'underOdds': 1.85,
-                    }
+                if (t1Ctrl.text.trim().isNotEmpty && t2Ctrl.text.trim().isNotEmpty) {
+                  setState(() {
+                    ApiService.customAdminMatches.add({
+                      'id': 'custom_${DateTime.now().millisecondsSinceEpoch}',
+                      'league': leagueCtrl.text.trim(),
+                      'time': timeCtrl.text.trim(),
+                      't1': t1Ctrl.text.trim(),
+                      't2': t2Ctrl.text.trim(),
+                      'status': 'UPCOMING',
+                      'odds': {
+                        'homeOddsText': homeOddsCtrl.text.trim(),
+                        'awayOddsText': awayOddsCtrl.text.trim(),
+                        'goalLineText': goalLineCtrl.text.trim(),
+                        'overOdds': 1.90,
+                        'underOdds': 1.85,
+                      }
+                    });
                   });
-                });
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွဲစဉ်အသစ် အောင်မြင်စွာ ထည့်ပြီးပါပြီ')));
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွဲစဉ်အသစ် အောင်မြင်စွာ ထည့်ပြီးပါပြီ')));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('အသင်းနာမည်များ ထည့်သွင်းပေးပါ။')));
+                }
               },
               child: const Text('ထည့်မည်', style: TextStyle(color: Colors.green)),
             ),
@@ -1151,6 +1149,7 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
   }
 
   void _showEditMatchDialog(BuildContext context, Map<String, dynamic> match, int index) {
+    final leagueController = TextEditingController(text: match['league']);
     final t1Controller = TextEditingController(text: match['t1']);
     final t2Controller = TextEditingController(text: match['t2']);
     final timeController = TextEditingController(text: match['time']);
@@ -1168,6 +1167,7 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                TextField(controller: leagueController, decoration: const InputDecoration(labelText: 'လိဂ် အမည်')),
                 TextField(controller: t1Controller, decoration: const InputDecoration(labelText: 'အိမ်ရှင် အသင်း')),
                 TextField(controller: t2Controller, decoration: const InputDecoration(labelText: 'ဧည့်သည် အသင်း')),
                 TextField(controller: timeController, decoration: const InputDecoration(labelText: 'ပွဲချိန်')),
@@ -1182,12 +1182,13 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  ApiService.customAdminMatches[index]['t1'] = t1Controller.text;
-                  ApiService.customAdminMatches[index]['t2'] = t2Controller.text;
-                  ApiService.customAdminMatches[index]['time'] = timeController.text;
-                  ApiService.customAdminMatches[index]['odds']['homeOddsText'] = homeOddsController.text;
-                  ApiService.customAdminMatches[index]['odds']['awayOddsText'] = awayOddsController.text;
-                  ApiService.customAdminMatches[index]['odds']['goalLineText'] = goalLineController.text;
+                  ApiService.customAdminMatches[index]['league'] = leagueController.text.trim();
+                  ApiService.customAdminMatches[index]['t1'] = t1Controller.text.trim();
+                  ApiService.customAdminMatches[index]['t2'] = t2Controller.text.trim();
+                  ApiService.customAdminMatches[index]['time'] = timeController.text.trim();
+                  ApiService.customAdminMatches[index]['odds']['homeOddsText'] = homeOddsController.text.trim();
+                  ApiService.customAdminMatches[index]['odds']['awayOddsText'] = awayOddsController.text.trim();
+                  ApiService.customAdminMatches[index]['odds']['goalLineText'] = goalLineController.text.trim();
                 });
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွဲစဉ် အောင်မြင်စွာ ပြင်ဆင်ပြီးပါပြီ')));
@@ -1201,9 +1202,6 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
   }
 }
 
-// -------------------------------------------------------------------------
-// User Dashboard
-// -------------------------------------------------------------------------
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -1623,9 +1621,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   }
 }
 
-// -------------------------------------------------------------------------
-// Betting Screen
-// -------------------------------------------------------------------------
 class BettingScreen extends StatefulWidget {
   final bool isParlay; 
   const BettingScreen({super.key, required this.isParlay});
@@ -1930,9 +1925,6 @@ class _BettingScreenState extends State<BettingScreen> {
   }
 }
 
-// -------------------------------------------------------------------------
-// Parlay Slip Screen
-// -------------------------------------------------------------------------
 class ParlaySlipScreen extends StatefulWidget {
   const ParlaySlipScreen({super.key});
 
@@ -2041,9 +2033,6 @@ class _ParlaySlipScreenState extends State<ParlaySlipScreen> {
   }
 }
 
-// -------------------------------------------------------------------------
-// My Bets Screen
-// -------------------------------------------------------------------------
 class MyBetsScreen extends StatelessWidget {
   const MyBetsScreen({super.key});
 
@@ -2107,9 +2096,6 @@ class MyBetsScreen extends StatelessWidget {
   }
 }
 
-// -------------------------------------------------------------------------
-// Old Matches Screen
-// -------------------------------------------------------------------------
 class OldMatchesScreen extends StatefulWidget {
   const OldMatchesScreen({super.key});
 
