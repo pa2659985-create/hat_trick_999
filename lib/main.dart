@@ -31,7 +31,6 @@ void main() async {
     print('Firebase Init Error: $e');
   }
 
-  // အက်ပ်စစချင်း Cloud Firestore မှ ဒေတာများကို အရင်ဆွဲထုတ်မည်
   await AppData.loadData();
   
   runApp(const HatTrickApp());
@@ -361,7 +360,6 @@ class AppData {
 
   static List<Map<String, dynamic>> activeBets = [];
   static List<Map<String, dynamic>> parlaySlip = []; 
-
   static List<Map<String, dynamic>> allUsers = [];
 
   static Future<void> loadData() async {
@@ -381,7 +379,6 @@ class AppData {
       print('Settings Load Error: $e');
     }
 
-    // Cloud Firestore မှ users အားလုံးကို အမြဲတမ်း 100% တိကျစွာ ဆွဲထုတ်မည်
     try {
       var usersSnapshot = await FirebaseFirestore.instance.collection('users').get();
       allUsers.clear();
@@ -399,7 +396,6 @@ class AppData {
         }
       }
 
-      // မရှိသေးပါက Default မန်ဘာ ၁၀၀ ကို ဖန်တီးပေးမည်
       if (allUsers.isEmpty) {
         for (int i = 1; i <= 100; i++) {
           String uName = 'member$i';
@@ -604,7 +600,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // လော့ဂ်အင်မဝင်မီ Cloud မှ ဒေတာအသစ်များကို အကြွင်းမဲ့ ချက်ချင်းဆွဲထုတ်မည်
+      // လော့ဂ်အင်ဝင်ချိန်တိုင်း Cloud Firestore မှ ဒေတာအသစ်များကို အမြဲတမ်း ချက်ချင်း အရင်ဆွဲထုတ်မည်
       await AppData.loadData();
 
       var matchedUser = AppData.allUsers.firstWhere(
