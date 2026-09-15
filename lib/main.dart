@@ -31,6 +31,7 @@ void main() async {
     print('Firebase Init Error: $e');
   }
 
+  // အက်ပ်စစချင်း Cloud မှ မန်ဘာစာရင်းအားလုံးကို အရင်ဆွဲထုတ်မည်
   await AppData.loadData();
   
   runApp(const HatTrickApp());
@@ -165,7 +166,6 @@ class ApiService {
   static List<Map<String, dynamic>> customAdminMatches = [];
 
   static Future<List<Map<String, dynamic>>> fetchMatches() async {
-    // Cloud Firestore ထဲမှ Admin သတ်မှတ်ထားသော ပွဲစဉ်များကို ဦးစွာစစ်ဆေးရန်
     try {
       var matchSnapshot = await FirebaseFirestore.instance.collection('settings').doc('matches_data').get();
       if (matchSnapshot.exists && matchSnapshot.data()?['matches'] != null) {
@@ -373,7 +373,6 @@ class AppData {
     displayName = prefs.getString('displayName') ?? 'မင်းမင်းအောင်';
     isAdmin = prefs.getBool('isAdmin') ?? false;
 
-    // Cloud Firestore မှ App Settings (Maintenance Mode စသည်) ကို ဆွဲထုတ်ရန်
     try {
       var settingsDoc = await FirebaseFirestore.instance.collection('settings').doc('app_config').get();
       if (settingsDoc.exists) {
@@ -383,13 +382,13 @@ class AppData {
       print('Settings Load Error: $e');
     }
 
-    // Cloud Firestore မှ မန်ဘာစာရင်း အားလုံးကို အပြည့်အစုံ ဆွဲထုတ်ရန်
+    // Cloud Firestore ရှိ 'users' စုစုပေါင်းကို ပထမဆုံး အကြွင်းမဲ့ ဆွဲထုတ်မည်
     try {
       var usersSnapshot = await FirebaseFirestore.instance.collection('users').get();
-      if (usersSnapshot.docs.isNotEmpty) {
-        authorizedMembers.clear();
-        allUsers.clear();
+      authorizedMembers.clear();
+      allUsers.clear();
 
+      if (usersSnapshot.docs.isNotEmpty) {
         for (var doc in usersSnapshot.docs) {
           var data = doc.data();
           String uName = doc.id;
@@ -405,8 +404,10 @@ class AppData {
             'points': pts,
           });
         }
-      } else {
-        // ပထမအကြိမ်ဖြစ်ပါက Default မန်ဘာ ၁၀၀ ထည့်သွင်းပေးခြင်း
+      }
+
+      // လုံးဝ မရှိသေးပါက Default မန်ဘာ ၁၀၀ ကို ထည့်ပေးမည်
+      if (allUsers.isEmpty) {
         for (int i = 1; i <= 100; i++) {
           String uName = 'member$i';
           String pass = 'pass$i';
@@ -428,7 +429,6 @@ class AppData {
       print('Cloud Firestore Users Load Error: $e');
     }
 
-    // လက်ရှိ ဝင်ထားသော User ၏ Bet များကို Cloud Firestore မှ ဆွဲထုတ်ရန်
     if (username.isNotEmpty && username != '999admin') {
       var matchedUser = allUsers.firstWhere(
         (element) => element['username'] == username,
@@ -458,12 +458,10 @@ class AppData {
     await prefs.setBool('isAdmin', isAdmin);
 
     try {
-      // App Settings များကို Firestore သို့ သိမ်းဆည်းရန်
       await FirebaseFirestore.instance.collection('settings').doc('app_config').set({
         'isMaintenanceMode': isMaintenanceMode,
       }, SetOptions(merge: true));
 
-      // User ၏ Data များကို Firestore သို့ သိမ်းဆည်းရန်
       if (username.isNotEmpty && username != '999admin') {
         await FirebaseFirestore.instance.collection('users').doc(username).set({
           'displayName': displayName,
@@ -562,7 +560,6 @@ class AppData {
             bet['status'] = 'WON (အနိုင်ရ)';
             balance += (bet['potentialWin'] as double);
           }
-          // Firestore တွင်ပါ Bet status အပ်ဒိတ်လုပ်ရန်
           await saveBetToFirestore(bet);
         }
       }
@@ -609,6 +606,9 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
+      // လော့ဂ်အင်မဝင်မီ Cloud Firestore မှ authorizedMembers များကို နောက်တစ်ကြိမ် အသစ်ပြန်ဆွဲထုတ်စစ်ဆေးမည်
+      await AppData.loadData();
+
       bool isValidMember = AppData.authorizedMembers.any(
         (member) => member['username'] == uName && member['password'] == pass
       );
@@ -628,7 +628,6 @@ class _LoginScreenState extends State<LoginScreen> {
       AppData.balance = (matchedUser['balance'] as num).toDouble();
       AppData.points = matchedUser['points'] as int;
 
-      await AppData.loadData(); // Firestore မှ Bet များနှင့် အချက်အလက်များပါ ဆွဲထုတ်ရန်
       await AppData.saveData();
 
       Navigator.pushReplacement(
@@ -1702,7 +1701,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   void _changePassword() async {
     if (_newPassController.text.isNotEmpty) {
-      // AuthorizedMembers နှင့် allUsers ထဲတွင်ပါ password အပ်ဒိတ်လုပ်ရန်
       for (var m in AppData.authorizedMembers) {
         if (m['username'] == AppData.username) {
           m['password'] = _newPassController.text;
@@ -2414,6 +2412,8 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const double pointsValuePerUnit = 100;
+    const double moneyValuePerUnit = 1000;
     return Scaffold(
       appBar: AppBar(title: const Text('ပွိုင့်လဲလှယ်')),
       body: Center(
