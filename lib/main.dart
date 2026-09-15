@@ -165,6 +165,18 @@ class ApiService {
   static List<Map<String, dynamic>> customAdminMatches = [];
 
   static Future<List<Map<String, dynamic>>> fetchMatches() async {
+    // Cloud Firestore ထဲမှ Admin သတ်မှတ်ထားသော ပွဲစဉ်များကို ဦးစွာစစ်ဆေးရန်
+    try {
+      var matchSnapshot = await FirebaseFirestore.instance.collection('settings').doc('matches_data').get();
+      if (matchSnapshot.exists && matchSnapshot.data()?['matches'] != null) {
+        List storedMatches = matchSnapshot.data()?['matches'];
+        customAdminMatches = storedMatches.map((e) => Map<String, dynamic>.from(e)).toList();
+        return customAdminMatches;
+      }
+    } catch (e) {
+      print('Firestore Matches Load Error: $e');
+    }
+
     if (customAdminMatches.isNotEmpty) {
       return customAdminMatches;
     }
@@ -231,6 +243,17 @@ class ApiService {
 
     customAdminMatches = allMatches;
     return allMatches;
+  }
+
+  static Future<void> saveMatchesToFirestore() async {
+    try {
+      await FirebaseFirestore.instance.collection('settings').doc('matches_data').set({
+        'matches': customAdminMatches,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Firestore Matches Save Error: $e');
+    }
   }
 
   static String _formatDateTimeToDDMMYYYYAMPM(String utcDateStr) {
@@ -339,39 +362,34 @@ class AppData {
   static List<Map<String, dynamic>> activeBets = [];
   static List<Map<String, dynamic>> parlaySlip = []; 
 
-  static List<Map<String, String>> authorizedMembers = List.generate(100, (index) {
-    int id = index + 1;
-    return {
-      'username': 'member$id',
-      'password': 'pass$id',
-    };
-  });
-
-  static List<Map<String, dynamic>> allUsers = List.generate(100, (index) {
-    int id = index + 1;
-    return {
-      'username': 'member$id',
-      'password': 'pass$id',
-      'balance': 10000.0 * (index % 5 + 1),
-      'points': 100 * (index % 3 + 1),
-    };
-  });
+  static List<Map<String, String>> authorizedMembers = [];
+  static List<Map<String, dynamic>> allUsers = [];
 
   static Future<void> loadData() async {
     final prefs = await SharedPreferences.getInstance();
     username = prefs.getString('username') ?? '';
     selectedTeam = prefs.getString('selectedTeam') ?? 'မြန်မာ (Myanmar)';
     selectedLanguage = prefs.getString('selectedLanguage') ?? 'မြန်မာ';
-    isMaintenanceMode = prefs.getBool('isMaintenanceMode') ?? false;
     displayName = prefs.getString('displayName') ?? 'မင်းမင်းအောင်';
     isAdmin = prefs.getBool('isAdmin') ?? false;
-    balance = prefs.getDouble('balance') ?? 0.0;
-    points = prefs.getInt('points') ?? 0;
 
-    // Cloud Firestore မှ မန်ဘာစာရင်း အားလုံးကို အမြဲတမ်း ဆွဲထုတ်ရန်
+    // Cloud Firestore မှ App Settings (Maintenance Mode စသည်) ကို ဆွဲထုတ်ရန်
+    try {
+      var settingsDoc = await FirebaseFirestore.instance.collection('settings').doc('app_config').get();
+      if (settingsDoc.exists) {
+        isMaintenanceMode = settingsDoc.data()?['isMaintenanceMode'] ?? false;
+      }
+    } catch (e) {
+      print('Settings Load Error: $e');
+    }
+
+    // Cloud Firestore မှ မန်ဘာစာရင်း အားလုံးကို အပြည့်အစုံ ဆွဲထုတ်ရန်
     try {
       var usersSnapshot = await FirebaseFirestore.instance.collection('users').get();
       if (usersSnapshot.docs.isNotEmpty) {
+        authorizedMembers.clear();
+        allUsers.clear();
+
         for (var doc in usersSnapshot.docs) {
           var data = doc.data();
           String uName = doc.id;
@@ -379,40 +397,38 @@ class AppData {
           double bal = (data['balance'] ?? 10000.0).toDouble();
           int pts = data['points'] ?? 100;
 
-          // authorizedMembers ထဲတွင် ရှိပြီးသားလား စစ်ဆေးရန် (မရှိမှ ထည့်မည်)
-          bool existsInAuth = authorizedMembers.any((m) => m['username'] == uName);
-          if (!existsInAuth) {
-            authorizedMembers.add({'username': uName, 'password': pass});
-          } else {
-            int idx = authorizedMembers.indexWhere((m) => m['username'] == uName);
-            if (idx != -1) {
-              authorizedMembers[idx]['password'] = pass;
-            }
-          }
+          authorizedMembers.add({'username': uName, 'password': pass});
+          allUsers.add({
+            'username': uName,
+            'password': pass,
+            'balance': bal,
+            'points': pts,
+          });
+        }
+      } else {
+        // ပထမအကြိမ်ဖြစ်ပါက Default မန်ဘာ ၁၀၀ ထည့်သွင်းပေးခြင်း
+        for (int i = 1; i <= 100; i++) {
+          String uName = 'member$i';
+          String pass = 'pass$i';
+          double bal = 10000.0 * (i % 5 + 1);
+          int pts = 100 * (i % 3 + 1);
 
-          // allUsers ထဲတွင် ရှိပြီးသားလား စစ်ဆေးရန် (ရှိလျှင် Update, မရှိလျှင် Add)
-          bool existsInAll = allUsers.any((u) => u['username'] == uName);
-          if (!existsInAll) {
-            allUsers.add({
-              'username': uName,
-              'password': pass,
-              'balance': bal,
-              'points': pts,
-            });
-          } else {
-            int idx = allUsers.indexWhere((u) => u['username'] == uName);
-            if (idx != -1) {
-              allUsers[idx]['balance'] = bal;
-              allUsers[idx]['points'] = pts;
-              allUsers[idx]['password'] = pass;
-            }
-          }
+          authorizedMembers.add({'username': uName, 'password': pass});
+          allUsers.add({'username': uName, 'password': pass, 'balance': bal, 'points': pts});
+
+          await FirebaseFirestore.instance.collection('users').doc(uName).set({
+            'displayName': uName,
+            'password': pass,
+            'balance': bal,
+            'points': pts,
+          });
         }
       }
     } catch (e) {
       print('Cloud Firestore Users Load Error: $e');
     }
 
+    // လက်ရှိ ဝင်ထားသော User ၏ Bet များကို Cloud Firestore မှ ဆွဲထုတ်ရန်
     if (username.isNotEmpty && username != '999admin') {
       var matchedUser = allUsers.firstWhere(
         (element) => element['username'] == username,
@@ -421,6 +437,14 @@ class AppData {
       if (matchedUser.isNotEmpty) {
         balance = (matchedUser['balance'] as num).toDouble();
         points = matchedUser['points'] as int;
+        displayName = matchedUser['displayName'] ?? username;
+      }
+
+      try {
+        var betsSnapshot = await FirebaseFirestore.instance.collection('users').doc(username).collection('bets').get();
+        activeBets = betsSnapshot.docs.map((doc) => doc.data()).toList();
+      } catch (e) {
+        print('Bets Load Error: $e');
       }
     }
   }
@@ -430,13 +454,16 @@ class AppData {
     await prefs.setString('username', username);
     await prefs.setString('selectedTeam', selectedTeam);
     await prefs.setString('selectedLanguage', selectedLanguage);
-    await prefs.setBool('isMaintenanceMode', isMaintenanceMode);
     await prefs.setString('displayName', displayName);
     await prefs.setBool('isAdmin', isAdmin);
-    await prefs.setDouble('balance', balance);
-    await prefs.setInt('points', points);
 
     try {
+      // App Settings များကို Firestore သို့ သိမ်းဆည်းရန်
+      await FirebaseFirestore.instance.collection('settings').doc('app_config').set({
+        'isMaintenanceMode': isMaintenanceMode,
+      }, SetOptions(merge: true));
+
+      // User ၏ Data များကို Firestore သို့ သိမ်းဆည်းရန်
       if (username.isNotEmpty && username != '999admin') {
         await FirebaseFirestore.instance.collection('users').doc(username).set({
           'displayName': displayName,
@@ -450,6 +477,21 @@ class AppData {
     }
   }
 
+  static Future<void> saveBetToFirestore(Map<String, dynamic> betData) async {
+    try {
+      if (username.isNotEmpty && username != '999admin') {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(username)
+            .collection('bets')
+            .doc(betData['betId'])
+            .set(betData);
+      }
+    } catch (e) {
+      print('Firestore Bet Save Error: $e');
+    }
+  }
+
   static Future<void> clearData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('username');
@@ -458,6 +500,7 @@ class AppData {
     isAdmin = false;
     balance = 0.0;
     points = 0;
+    activeBets.clear();
   }
 
   static Future<void> autoCheckAndSettleBets() async {
@@ -519,6 +562,8 @@ class AppData {
             bet['status'] = 'WON (အနိုင်ရ)';
             balance += (bet['potentialWin'] as double);
           }
+          // Firestore တွင်ပါ Bet status အပ်ဒိတ်လုပ်ရန်
+          await saveBetToFirestore(bet);
         }
       }
       await saveData();
@@ -583,6 +628,7 @@ class _LoginScreenState extends State<LoginScreen> {
       AppData.balance = (matchedUser['balance'] as num).toDouble();
       AppData.points = matchedUser['points'] as int;
 
+      await AppData.loadData(); // Firestore မှ Bet များနှင့် အချက်အလက်များပါ ဆွဲထုတ်ရန်
       await AppData.saveData();
 
       Navigator.pushReplacement(
@@ -809,12 +855,17 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete, color: Colors.redAccent),
-                    onPressed: () {
+                    onPressed: () async {
+                      String uName = user['username'];
                       setState(() {
-                        String uName = user['username'];
                         AppData.allUsers.removeAt(index);
                         AppData.authorizedMembers.removeWhere((m) => m['username'] == uName);
                       });
+                      try {
+                        await FirebaseFirestore.instance.collection('users').doc(uName).delete();
+                      } catch (e) {
+                        print('Firestore Delete Error: $e');
+                      }
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('မန်ဘာ အကောင့် ဖျက်ပြီးပါပြီ')));
                     },
                   ),
@@ -944,6 +995,9 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
                 });
                 
                 try {
+                  if (oldU != newU) {
+                    await FirebaseFirestore.instance.collection('users').doc(oldU).delete();
+                  }
                   await FirebaseFirestore.instance.collection('users').doc(newU).set({
                     'displayName': newU,
                     'balance': newBalance,
@@ -988,6 +1042,7 @@ class _AdminBetSettlementScreenState extends State<AdminBetSettlementScreen> {
         bet['status'] = 'LOST (အရှုံး)';
       }
     });
+    await AppData.saveBetToFirestore(bet);
     await AppData.saveData();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('လောင်းကြေး ရလဒ် သတ်မှတ်ပြီးပါပြီ: ${bet['status']}')));
   }
@@ -1126,10 +1181,11 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete, color: Colors.redAccent),
-                              onPressed: () {
+                              onPressed: () async {
                                 setState(() {
                                   ApiService.customAdminMatches.removeAt(index);
                                 });
+                                await ApiService.saveMatchesToFirestore();
                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွဲစဉ် ဖျက်ပြီးပါပြီ')));
                               },
                             ),
@@ -1174,7 +1230,7 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('မလုပ်ပါ။', style: TextStyle(color: Colors.grey))),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 if (t1Ctrl.text.trim().isNotEmpty && t2Ctrl.text.trim().isNotEmpty) {
                   setState(() {
                     ApiService.customAdminMatches.add({
@@ -1193,6 +1249,7 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
                       }
                     });
                   });
+                  await ApiService.saveMatchesToFirestore();
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွဲစဉ်အသစ် အောင်မြင်စွာ ထည့်ပြီးပါပြီ')));
                 } else {
@@ -1239,7 +1296,7 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('မလုပ်ပါ။', style: TextStyle(color: Colors.grey))),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 setState(() {
                   ApiService.customAdminMatches[index]['league'] = leagueController.text.trim();
                   ApiService.customAdminMatches[index]['t1'] = t1Controller.text.trim();
@@ -1249,6 +1306,7 @@ class _AdminMatchControlScreenState extends State<AdminMatchControlScreen> {
                   ApiService.customAdminMatches[index]['odds']['awayOddsText'] = awayOddsController.text.trim();
                   ApiService.customAdminMatches[index]['odds']['goalLineText'] = goalLineController.text.trim();
                 });
+                await ApiService.saveMatchesToFirestore();
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွဲစဉ် အောင်မြင်စွာ ပြင်ဆင်ပြီးပါပြီ')));
               },
@@ -1644,6 +1702,26 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   void _changePassword() async {
     if (_newPassController.text.isNotEmpty) {
+      // AuthorizedMembers နှင့် allUsers ထဲတွင်ပါ password အပ်ဒိတ်လုပ်ရန်
+      for (var m in AppData.authorizedMembers) {
+        if (m['username'] == AppData.username) {
+          m['password'] = _newPassController.text;
+        }
+      }
+      for (var u in AppData.allUsers) {
+        if (u['username'] == AppData.username) {
+          u['password'] = _newPassController.text;
+        }
+      }
+
+      try {
+        await FirebaseFirestore.instance.collection('users').doc(AppData.username).set({
+          'password': _newPassController.text,
+        }, SetOptions(merge: true));
+      } catch (e) {
+        print('Password Update Error: $e');
+      }
+
       await AppData.saveData();
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('စကားဝှက် အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ')));
       Navigator.pop(context);
@@ -1797,19 +1875,23 @@ class _BettingScreenState extends State<BettingScreen> {
                           return;
                         }
 
+                        var newBet = {
+                          'betId': '${DateTime.now().millisecondsSinceEpoch}',
+                          'type': 'ဘော်ဒီ/ဂိုးပေါင်း (Single)',
+                          'matches': [_selectedSingleBet],
+                          'amount': amount,
+                          'totalOdds': _selectedSingleBet!['odds'],
+                          'potentialWin': potentialWin,
+                          'status': 'ACTIVE',
+                        };
+
                         setState(() {
                           AppData.balance -= amount;
-                          AppData.activeBets.add({
-                            'betId': '${DateTime.now().millisecondsSinceEpoch}',
-                            'type': 'ဘော်ဒီ/ဂိုးပေါင်း (Single)',
-                            'matches': [_selectedSingleBet],
-                            'amount': amount,
-                            'totalOdds': _selectedSingleBet!['odds'],
-                            'potentialWin': potentialWin,
-                            'status': 'ACTIVE',
-                          });
+                          AppData.activeBets.add(newBet);
                           _selectedSingleBet = null;
                         });
+
+                        await AppData.saveBetToFirestore(newBet);
                         await AppData.saveData();
 
                         Navigator.pop(context);
@@ -2016,20 +2098,25 @@ class _ParlaySlipScreenState extends State<ParlaySlipScreen> {
     double totalOdds = _calculateTotalOdds();
     double potentialWin = amount * totalOdds;
 
+    var newBet = {
+      'betId': '${DateTime.now().millisecondsSinceEpoch}',
+      'type': 'မောင်း (${AppData.parlaySlip.length} သင်းတွဲ)',
+      'matches': List.from(AppData.parlaySlip),
+      'amount': amount,
+      'totalOdds': totalOdds,
+      'potentialWin': potentialWin,
+      'status': 'ACTIVE',
+    };
+
     setState(() {
       AppData.balance -= amount;
-      AppData.activeBets.add({
-        'betId': '${DateTime.now().millisecondsSinceEpoch}',
-        'type': 'မောင်း (${AppData.parlaySlip.length} သင်းတွဲ)',
-        'matches': List.from(AppData.parlaySlip),
-        'amount': amount,
-        'totalOdds': totalOdds,
-        'potentialWin': potentialWin,
-        'status': 'ACTIVE',
-      });
+      AppData.activeBets.add(newBet);
       AppData.parlaySlip.clear();
     });
+
+    await AppData.saveBetToFirestore(newBet);
     await AppData.saveData();
+
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('မောင်းလောင်းခြင်း အောင်မြင်ပါသည်။')));
   }
