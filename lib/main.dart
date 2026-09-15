@@ -368,6 +368,51 @@ class AppData {
     balance = prefs.getDouble('balance') ?? 0.0;
     points = prefs.getInt('points') ?? 0;
 
+    // Cloud Firestore မှ မန်ဘာစာရင်း အားလုံးကို အမြဲတမ်း ဆွဲထုတ်ရန်
+    try {
+      var usersSnapshot = await FirebaseFirestore.instance.collection('users').get();
+      if (usersSnapshot.docs.isNotEmpty) {
+        for (var doc in usersSnapshot.docs) {
+          var data = doc.data();
+          String uName = doc.id;
+          String pass = data['password'] ?? 'pass123';
+          double bal = (data['balance'] ?? 10000.0).toDouble();
+          int pts = data['points'] ?? 100;
+
+          // authorizedMembers ထဲတွင် ရှိပြီးသားလား စစ်ဆေးရန် (မရှိမှ ထည့်မည်)
+          bool existsInAuth = authorizedMembers.any((m) => m['username'] == uName);
+          if (!existsInAuth) {
+            authorizedMembers.add({'username': uName, 'password': pass});
+          } else {
+            int idx = authorizedMembers.indexWhere((m) => m['username'] == uName);
+            if (idx != -1) {
+              authorizedMembers[idx]['password'] = pass;
+            }
+          }
+
+          // allUsers ထဲတွင် ရှိပြီးသားလား စစ်ဆေးရန် (ရှိလျှင် Update, မရှိလျှင် Add)
+          bool existsInAll = allUsers.any((u) => u['username'] == uName);
+          if (!existsInAll) {
+            allUsers.add({
+              'username': uName,
+              'password': pass,
+              'balance': bal,
+              'points': pts,
+            });
+          } else {
+            int idx = allUsers.indexWhere((u) => u['username'] == uName);
+            if (idx != -1) {
+              allUsers[idx]['balance'] = bal;
+              allUsers[idx]['points'] = pts;
+              allUsers[idx]['password'] = pass;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      print('Cloud Firestore Users Load Error: $e');
+    }
+
     if (username.isNotEmpty && username != '999admin') {
       var matchedUser = allUsers.firstWhere(
         (element) => element['username'] == username,
@@ -377,20 +422,6 @@ class AppData {
         balance = (matchedUser['balance'] as num).toDouble();
         points = matchedUser['points'] as int;
       }
-    }
-
-    try {
-      if (username.isNotEmpty && username != '999admin') {
-        var userDoc = await FirebaseFirestore.instance.collection('users').doc(username).get();
-        if (userDoc.exists) {
-          var data = userDoc.data()!;
-          balance = (data['balance'] ?? balance).toDouble();
-          points = data['points'] ?? points;
-          displayName = data['displayName'] ?? username;
-        }
-      }
-    } catch (e) {
-      print('Cloud Firestore Load Error: $e');
     }
   }
 
@@ -837,7 +868,6 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
                     });
                   });
 
-                  // Cloud Firestore ထဲသို့ တိုက်ရိုက် သိမ်းဆည်းခြင်း (Logout ထွက်လည်း မပျောက်တော့ပါ)
                   try {
                     await FirebaseFirestore.instance.collection('users').doc(newU).set({
                       'displayName': newU,
@@ -913,7 +943,6 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
                   }
                 });
                 
-                // Cloud Firestore တွင်ပါ အပ်ဒိတ်လုပ်ခြင်း
                 try {
                   await FirebaseFirestore.instance.collection('users').doc(newU).set({
                     'displayName': newU,
