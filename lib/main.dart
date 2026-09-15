@@ -2378,7 +2378,6 @@ class WalletScreen extends StatelessWidget {
 class PointsExchangeScreen extends StatefulWidget {
   const PointsExchangeScreen({super.key});
 
-  @value:
   @override
   State<PointsExchangeScreen> createState() => _PointsExchangeScreenState();
 }
