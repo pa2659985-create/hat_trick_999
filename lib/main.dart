@@ -820,21 +820,38 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('မလုပ်ပါ။', style: TextStyle(color: Colors.grey))),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 String newU = userCtrl.text.trim();
                 String newP = passCtrl.text.trim();
+                double newBalance = double.tryParse(balanceCtrl.text) ?? 10000.0;
+                int newPoints = int.tryParse(pointsCtrl.text) ?? 100;
+
                 if (newU.isNotEmpty && newP.isNotEmpty) {
                   setState(() {
                     AppData.authorizedMembers.add({'username': newU, 'password': newP});
                     AppData.allUsers.add({
                       'username': newU,
                       'password': newP,
-                      'balance': double.tryParse(balanceCtrl.text) ?? 10000.0,
-                      'points': int.tryParse(pointsCtrl.text) ?? 100,
+                      'balance': newBalance,
+                      'points': newPoints,
                     });
                   });
+
+                  // Cloud Firestore ထဲသို့ တိုက်ရိုက် သိမ်းဆည်းခြင်း (Logout ထွက်လည်း မပျောက်တော့ပါ)
+                  try {
+                    await FirebaseFirestore.instance.collection('users').doc(newU).set({
+                      'displayName': newU,
+                      'balance': newBalance,
+                      'points': newPoints,
+                      'password': newP,
+                      'createdAt': FieldValue.serverTimestamp(),
+                    });
+                  } catch (e) {
+                    print('Firestore User Save Error: $e');
+                  }
+
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('မန်ဘာအသစ် အောင်မြင်စွာ ထည့်ပြီးပါပြီ')));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('မန်ဘာအသစ် အောင်မြင်စွာ ထည့်ပြီး Cloud တွင် သိမ်းဆည်းပြီးပါပြီ')));
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Username နှင့် Password ထည့်ပါ။')));
                 }
@@ -871,16 +888,18 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('မလုပ်ပါ။', style: TextStyle(color: Colors.grey))),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 String oldU = user['username'];
                 String newU = userCtrl.text.trim();
                 String newP = passCtrl.text.trim();
+                double newBalance = double.tryParse(balanceCtrl.text) ?? user['balance'];
+                int newPoints = int.tryParse(pointsCtrl.text) ?? user['points'];
 
                 setState(() {
                   AppData.allUsers[index]['username'] = newU;
                   AppData.allUsers[index]['password'] = newP;
-                  AppData.allUsers[index]['balance'] = double.tryParse(balanceCtrl.text) ?? user['balance'];
-                  AppData.allUsers[index]['points'] = int.tryParse(pointsCtrl.text) ?? user['points'];
+                  AppData.allUsers[index]['balance'] = newBalance;
+                  AppData.allUsers[index]['points'] = newPoints;
 
                   int authIndex = AppData.authorizedMembers.indexWhere((m) => m['username'] == oldU);
                   if (authIndex != -1) {
@@ -889,10 +908,24 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
 
                   if (oldU == AppData.username) {
                     AppData.username = newU;
-                    AppData.balance = AppData.allUsers[index]['balance'];
-                    AppData.points = AppData.allUsers[index]['points'];
+                    AppData.balance = newBalance;
+                    AppData.points = newPoints;
                   }
                 });
+                
+                // Cloud Firestore တွင်ပါ အပ်ဒိတ်လုပ်ခြင်း
+                try {
+                  await FirebaseFirestore.instance.collection('users').doc(newU).set({
+                    'displayName': newU,
+                    'balance': newBalance,
+                    'points': newPoints,
+                    'password': newP,
+                    'lastUpdated': FieldValue.serverTimestamp(),
+                  }, SetOptions(merge: true));
+                } catch (e) {
+                  print('Firestore User Update Error: $e');
+                }
+
                 AppData.saveData();
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('မန်ဘာ အချက်အလက် အောင်မြင်စွာ ပြင်ဆင်ပြီးပါပြီ')));
