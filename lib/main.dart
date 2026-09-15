@@ -31,7 +31,7 @@ void main() async {
     print('Firebase Init Error: $e');
   }
 
-  // အက်ပ်စစချင်း Cloud မှ မန်ဘာစာရင်းအားလုံးကို အရင်ဆွဲထုတ်မည်
+  // အက်ပ်စစချင်း Cloud Firestore မှ ဒေတာများကို အရင်ဆွဲထုတ်မည်
   await AppData.loadData();
   
   runApp(const HatTrickApp());
@@ -362,7 +362,6 @@ class AppData {
   static List<Map<String, dynamic>> activeBets = [];
   static List<Map<String, dynamic>> parlaySlip = []; 
 
-  static List<Map<String, String>> authorizedMembers = [];
   static List<Map<String, dynamic>> allUsers = [];
 
   static Future<void> loadData() async {
@@ -382,31 +381,25 @@ class AppData {
       print('Settings Load Error: $e');
     }
 
-    // Cloud Firestore ရှိ 'users' စုစုပေါင်းကို ပထမဆုံး အကြွင်းမဲ့ ဆွဲထုတ်မည်
+    // Cloud Firestore မှ users အားလုံးကို အမြဲတမ်း 100% တိကျစွာ ဆွဲထုတ်မည်
     try {
       var usersSnapshot = await FirebaseFirestore.instance.collection('users').get();
-      authorizedMembers.clear();
       allUsers.clear();
 
       if (usersSnapshot.docs.isNotEmpty) {
         for (var doc in usersSnapshot.docs) {
           var data = doc.data();
-          String uName = doc.id;
-          String pass = data['password'] ?? 'pass123';
-          double bal = (data['balance'] ?? 10000.0).toDouble();
-          int pts = data['points'] ?? 100;
-
-          authorizedMembers.add({'username': uName, 'password': pass});
           allUsers.add({
-            'username': uName,
-            'password': pass,
-            'balance': bal,
-            'points': pts,
+            'username': doc.id,
+            'password': data['password'] ?? 'pass123',
+            'balance': (data['balance'] ?? 10000.0).toDouble(),
+            'points': data['points'] ?? 100,
+            'displayName': data['displayName'] ?? doc.id,
           });
         }
       }
 
-      // လုံးဝ မရှိသေးပါက Default မန်ဘာ ၁၀၀ ကို ထည့်ပေးမည်
+      // မရှိသေးပါက Default မန်ဘာ ၁၀၀ ကို ဖန်တီးပေးမည်
       if (allUsers.isEmpty) {
         for (int i = 1; i <= 100; i++) {
           String uName = 'member$i';
@@ -414,8 +407,13 @@ class AppData {
           double bal = 10000.0 * (i % 5 + 1);
           int pts = 100 * (i % 3 + 1);
 
-          authorizedMembers.add({'username': uName, 'password': pass});
-          allUsers.add({'username': uName, 'password': pass, 'balance': bal, 'points': pts});
+          allUsers.add({
+            'username': uName,
+            'password': pass,
+            'balance': bal,
+            'points': pts,
+            'displayName': uName,
+          });
 
           await FirebaseFirestore.instance.collection('users').doc(uName).set({
             'displayName': uName,
@@ -606,14 +604,15 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // လော့ဂ်အင်မဝင်မီ Cloud Firestore မှ authorizedMembers များကို နောက်တစ်ကြိမ် အသစ်ပြန်ဆွဲထုတ်စစ်ဆေးမည်
+      // လော့ဂ်အင်မဝင်မီ Cloud မှ ဒေတာအသစ်များကို အကြွင်းမဲ့ ချက်ချင်းဆွဲထုတ်မည်
       await AppData.loadData();
 
-      bool isValidMember = AppData.authorizedMembers.any(
-        (member) => member['username'] == uName && member['password'] == pass
+      var matchedUser = AppData.allUsers.firstWhere(
+        (element) => element['username'] == uName && element['password'] == pass,
+        orElse: () => {},
       );
 
-      if (!isValidMember) {
+      if (matchedUser.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('အသုံးပြုသူအမည် သို့မဟုတ် စကားဝှက် မမှန်ကန်ပါ (သို့မဟုတ်) အခွင့်အရေးမရှိပါ။')),
         );
@@ -621,10 +620,8 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       AppData.isAdmin = false;
-      AppData.username = uName;
-      AppData.displayName = uName;
-
-      var matchedUser = AppData.allUsers.firstWhere((element) => element['username'] == uName, orElse: () => {'balance': 0.0, 'points': 0});
+      AppData.username = matchedUser['username'];
+      AppData.displayName = matchedUser['displayName'] ?? uName;
       AppData.balance = (matchedUser['balance'] as num).toDouble();
       AppData.points = matchedUser['points'] as int;
 
@@ -858,7 +855,6 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
                       String uName = user['username'];
                       setState(() {
                         AppData.allUsers.removeAt(index);
-                        AppData.authorizedMembers.removeWhere((m) => m['username'] == uName);
                       });
                       try {
                         await FirebaseFirestore.instance.collection('users').doc(uName).delete();
@@ -909,21 +905,21 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
 
                 if (newU.isNotEmpty && newP.isNotEmpty) {
                   setState(() {
-                    AppData.authorizedMembers.add({'username': newU, 'password': newP});
                     AppData.allUsers.add({
                       'username': newU,
                       'password': newP,
                       'balance': newBalance,
                       'points': newPoints,
+                      'displayName': newU,
                     });
                   });
 
                   try {
                     await FirebaseFirestore.instance.collection('users').doc(newU).set({
                       'displayName': newU,
+                      'password': newP,
                       'balance': newBalance,
                       'points': newPoints,
-                      'password': newP,
                       'createdAt': FieldValue.serverTimestamp(),
                     });
                   } catch (e) {
@@ -980,11 +976,6 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
                   AppData.allUsers[index]['password'] = newP;
                   AppData.allUsers[index]['balance'] = newBalance;
                   AppData.allUsers[index]['points'] = newPoints;
-
-                  int authIndex = AppData.authorizedMembers.indexWhere((m) => m['username'] == oldU);
-                  if (authIndex != -1) {
-                    AppData.authorizedMembers[authIndex] = {'username': newU, 'password': newP};
-                  }
 
                   if (oldU == AppData.username) {
                     AppData.username = newU;
@@ -1701,11 +1692,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   void _changePassword() async {
     if (_newPassController.text.isNotEmpty) {
-      for (var m in AppData.authorizedMembers) {
-        if (m['username'] == AppData.username) {
-          m['password'] = _newPassController.text;
-        }
-      }
       for (var u in AppData.allUsers) {
         if (u['username'] == AppData.username) {
           u['password'] = _newPassController.text;
@@ -2392,6 +2378,7 @@ class WalletScreen extends StatelessWidget {
 class PointsExchangeScreen extends StatefulWidget {
   const PointsExchangeScreen({super.key});
 
+  @value:
   @override
   State<PointsExchangeScreen> createState() => _PointsExchangeScreenState();
 }
@@ -2412,8 +2399,6 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const double pointsValuePerUnit = 100;
-    const double moneyValuePerUnit = 1000;
     return Scaffold(
       appBar: AppBar(title: const Text('ပွိုင့်လဲလှယ်')),
       body: Center(
