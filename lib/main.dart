@@ -396,6 +396,7 @@ class AppData {
         }
       }
 
+      // အကယ်၍ Firestore ထဲမှာ မန်ဘာလုံးဝမရှိသေးပါက မန်ဘာ (၁၀၀) ကို အလိုအလျောက် တည်ဆောက်ပေးမည်
       if (allUsers.isEmpty) {
         for (int i = 1; i <= 100; i++) {
           String uName = 'member$i';
@@ -900,6 +901,20 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
                 int newPoints = int.tryParse(pointsCtrl.text) ?? 100;
 
                 if (newU.isNotEmpty && newP.isNotEmpty) {
+                  // Firestore သို့ တိုက်ရိုက် သိမ်းဆည်းခြင်း (သေချာစေရန် အရင်လုပ်မည်)
+                  try {
+                    await FirebaseFirestore.instance.collection('users').doc(newU).set({
+                      'displayName': newU,
+                      'password': newP,
+                      'balance': newBalance,
+                      'points': newPoints,
+                      'createdAt': FieldValue.serverTimestamp(),
+                    });
+                    print("Firestore သို့ မန်ဘာအသစ် အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ");
+                  } catch (e) {
+                    print('Firestore User Save Error: $e');
+                  }
+
                   setState(() {
                     AppData.allUsers.add({
                       'username': newU,
@@ -909,18 +924,6 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
                       'displayName': newU,
                     });
                   });
-
-                  try {
-                    await FirebaseFirestore.instance.collection('users').doc(newU).set({
-                      'displayName': newU,
-                      'password': newP,
-                      'balance': newBalance,
-                      'points': newPoints,
-                      'createdAt': FieldValue.serverTimestamp(),
-                    });
-                  } catch (e) {
-                    print('Firestore User Save Error: $e');
-                  }
 
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('မန်ဘာအသစ် အောင်မြင်စွာ ထည့်ပြီး Cloud တွင် သိမ်းဆည်းပြီးပါပြီ')));
