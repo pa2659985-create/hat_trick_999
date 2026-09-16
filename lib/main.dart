@@ -621,7 +621,7 @@ class _LoginScreenState extends State<LoginScreen> {
       AppData.balance = (matchedUser['balance'] as num).toDouble();
       AppData.points = matchedUser['points'] as int;
 
-      await AppData.loadData(); // Reload user bets from Firebase
+      await AppData.loadData();
       await AppData.saveData();
 
       Navigator.pushReplacement(
@@ -2281,7 +2281,7 @@ class _OldMatchesScreenState extends State<OldMatchesScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('ပွဲစဉ်ဟောင်းများ မရှိပါ။', style: TextStyle(color: Colors.grey)))
+            return const Center(child: Text('ပွဲစဉ်ဟောင်းများ မရှိပါ။', style: TextStyle(color: Colors.grey)));
           }
 
           var matches = snapshot.data!;
@@ -2358,20 +2358,25 @@ class FinishedResultsScreen extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('ရလဒ်များ မရှိပါ။', style: TextStyle(color: Colors.grey)))
+            return const Center(child: Text('ပြီးဆုံးသွားသော ပွဲစဉ်ရလဒ်များ မရှိပါ။', style: TextStyle(color: Colors.grey)));
           }
+
           final results = snapshot.data!;
           return ListView.builder(
             itemCount: results.length,
             itemBuilder: (context, index) {
-              var r = results[index];
+              final r = results[index];
               return Card(
                 color: const Color(0xFF132E1B),
                 margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 child: ListTile(
                   title: Text(r['match'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  subtitle: Text('လိဂ်: ${r['league']}\nရက်စွဲ: ${r['date']} | ${r['result']}', style: const TextStyle(color: Colors.greenAccent, fontSize: 12)),
-                  trailing: Text(r['score'], style: const TextStyle(color: Colors.amberAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+                  subtitle: Text('လိဂ်: ${r['league']}\nရက်စွဲ: ${r['date']}', style: const TextStyle(color: Colors.greenAccent, fontSize: 12)),
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(color: Colors.amber.shade800, borderRadius: BorderRadius.circular(8)),
+                    child: Text(r['score'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                  ),
                   isThreeLine: true,
                 ),
               );
@@ -2383,34 +2388,51 @@ class FinishedResultsScreen extends StatelessWidget {
   }
 }
 
-class StandingsScreen extends StatelessWidget {
+class StandingsScreen extends StatefulWidget {
   const StandingsScreen({super.key});
+
+  @override
+  State<StandingsScreen> createState() => _StandingsScreenState();
+}
+
+class _StandingsScreenState extends State<StandingsScreen> {
+  late Future<List<Map<String, dynamic>>> _standingsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _standingsFuture = ApiService.fetchStandings();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(AppStrings.get('standings'))),
       body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: ApiService.fetchStandings(),
+        future: _standingsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('အဆင့်ဇယား အချက်အလက် မရှိပါ။', style: TextStyle(color: Colors.grey)))
+            return const Center(child: Text('အဆင့်ဇယား အချက်အလက်များ မရှိပါ။', style: TextStyle(color: Colors.grey)));
           }
+
           final standings = snapshot.data!;
           return ListView.builder(
             itemCount: standings.length,
             itemBuilder: (context, index) {
-              var s = standings[index];
+              final row = standings[index];
               return Card(
                 color: const Color(0xFF132E1B),
                 margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 child: ListTile(
-                  leading: CircleAvatar(backgroundColor: Colors.green.shade800, child: Text('${s['pos']}', style: const TextStyle(color: Colors.white))),
-                  title: Text(s['team'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  subtitle: Text('ပွဲကစားပြီး: ${s['played']}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                  trailing: Text('${s['points']} ပွိုင့်', style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold)),
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.green.shade800,
+                    child: Text('${row['pos']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                  title: Text(row['team'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  subtitle: Text('ပွဲစဉ်: ${row['played']}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                  trailing: Text('${row['points']} Pts', style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 14)),
                 ),
               );
             },
@@ -2421,39 +2443,52 @@ class StandingsScreen extends StatelessWidget {
   }
 }
 
-class PointsExchangeScreen extends StatelessWidget {
+class PointsExchangeScreen extends StatefulWidget {
   const PointsExchangeScreen({super.key});
+
+  @override
+  State<PointsExchangeScreen> createState() => _PointsExchangeScreenState();
+}
+
+class _PointsExchangeScreenState extends State<PointsExchangeScreen> {
+  void _exchangePoints() async {
+    if (AppData.points >= 100) {
+      setState(() {
+        AppData.points -= 100;
+        AppData.balance += 5000.0;
+      });
+      await AppData.saveData();
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွိုင့် ၁၀၀ ကို ငွေကျပ် ၅၀၀၀ သို့ အောင်မြင်စွာ လဲလှယ်ပြီးပါပြီ')));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွိုင့် မလုံလောက်ပါ။ (အနည်းဆုံး ၁၀၀ လိုအပ်သည်)')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(AppStrings.get('exchange'))),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.monetization_on, size: 64, color: Colors.lightGreenAccent),
-              const SizedBox(height: 16),
-              Text('လက်ရှိ ပွိုင့်: ${AppData.points} Pts', style: const TextStyle(color: Colors.amberAccent, fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 24),
-              ElevatedButton(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.monetization_on, size: 64, color: Colors.amberAccent),
+            const SizedBox(height: 16),
+            Text('လက်ရှိ ပွိုင့်: ${AppData.points} Pts', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            const Text('၁၀၀ ပွိုင့် = ၅၀၀၀ ကျပ်', style: TextStyle(color: Colors.greenAccent, fontSize: 16)),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                onPressed: () {
-                  if (AppData.points >= 100) {
-                    AppData.points -= 100;
-                    AppData.balance += 1000.0;
-                    AppData.saveData();
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွိုင့် ၁၀၀ ကို ငွေကျပ် ၁,၀၀၀ သို့ အောင်မြင်စွာ လဲလှယ်ပြီးပါပြီ')));
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွိုင့် မလုံလောက်ပါ။ (အနည်းဆုံး ၁၀၀ လိုအပ်သည်)')));
-                  }
-                },
-                child: const Text('ပွိုင့် ၁၀၀ = ၁,၀၀၀ ကျပ် လဲမည်', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                onPressed: _exchangePoints,
+                child: const Text('ငွေကျပ်သို့ လဲလှယ်မည်', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
