@@ -396,7 +396,6 @@ class AppData {
         }
       }
 
-      // အကယ်၍ Firestore ထဲမှာ မန်ဘာလုံးဝမရှိသေးပါက မန်ဘာ (၁၀၀) ကို အလိုအလျောက် တည်ဆောက်ပေးမည်
       if (allUsers.isEmpty) {
         for (int i = 1; i <= 100; i++) {
           String uName = 'member$i';
@@ -901,7 +900,6 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
                 int newPoints = int.tryParse(pointsCtrl.text) ?? 100;
 
                 if (newU.isNotEmpty && newP.isNotEmpty) {
-                  // Firestore သို့ တိုက်ရိုက် သိမ်းဆည်းခြင်း (သေချာစေရန် အရင်လုပ်မည်)
                   try {
                     await FirebaseFirestore.instance.collection('users').doc(newU).set({
                       'displayName': newU,
@@ -910,7 +908,6 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
                       'points': newPoints,
                       'createdAt': FieldValue.serverTimestamp(),
                     });
-                    print("Firestore သို့ မန်ဘာအသစ် အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ");
                   } catch (e) {
                     print('Firestore User Save Error: $e');
                   }
@@ -926,7 +923,7 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
                   });
 
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('မန်ဘာအသစ် အောင်မြင်စွာ ထည့်ပြီး Cloud တွင် သိမ်းဆည်းပြီးပါပြီ')));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('မန်ဘာအသစ် အောင်မြင်စွာ ထည့်ပြီးပါပြီ')));
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Username နှင့် Password ထည့်ပါ။')));
                 }
@@ -2234,6 +2231,13 @@ class OldMatchesScreen extends StatefulWidget {
 
 class _OldMatchesScreenState extends State<OldMatchesScreen> {
   String? _selectedDateFilter;
+  late Future<List<Map<String, dynamic>>> _oldMatchesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _oldMatchesFuture = ApiService.fetchOldMatches();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -2251,105 +2255,60 @@ class _OldMatchesScreenState extends State<OldMatchesScreen> {
                 lastDate: DateTime(2030),
               );
               if (pickedDate != null) {
-                String formatted = "${pickedDate.year.toString().padLeft(4, '0')}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
                 setState(() {
-                  _selectedDateFilter = formatted;
+                  _selectedDateFilter = "${pickedDate.year.toString().padLeft(4, '0')}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
                 });
               }
             },
-            tooltip: 'ရက်စွဲအလိုက် ရွေးရန် (Calendar)',
+            tooltip: 'ရက်စွဲအလိုက် စစ်ရန်',
           ),
           if (_selectedDateFilter != null)
             IconButton(
               icon: const Icon(Icons.clear, color: Colors.redAccent),
-              onPressed: () => setState(() => _selectedDateFilter = null),
-              tooltip: 'စစ်ထုတ်မှု ဖြုတ်ရန်',
-            ),
-        ],
-      ),
-      body: Column(
-        children: [
-          if (_selectedDateFilter != null)
-            Container(
-              padding: const EdgeInsets.all(8),
-              color: Colors.green.shade900.withOpacity(0.4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('ရွေးချယ်ထားသော ရက်စွဲ: ', style: TextStyle(color: Colors.grey)),
-                  Text(_selectedDateFilter!, style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold)),
-                ],
-              ),
-            ),
-          Expanded(
-            child: FutureBuilder<List<Map<String, dynamic>>>(
-              future: ApiService.fetchOldMatches(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-                var list = snapshot.data!;
-
-                if (_selectedDateFilter != null) {
-                  list = list.where((m) => m['date'] == _selectedDateFilter).toList();
-                }
-
-                if (list.isEmpty) {
-                  return const Center(child: Text('ဤရက်စွဲအတွက် ပွဲစဉ်ဟောင်းများ မရှိပါ။', style: TextStyle(color: Colors.grey)));
-                }
-
-                return ListView.builder(
-                  itemCount: list.length,
-                  itemBuilder: (context, index) {
-                    var m = list[index];
-                    return Card(
-                      color: const Color(0xFF132E1B),
-                      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      child: ListTile(
-                        leading: const Icon(Icons.sports_soccer, color: Colors.amberAccent),
-                        title: Text(m['match'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                        subtitle: Text('${m['league']} | ရက်စွဲ: ${m['date']}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                        trailing: Text(m['score'], style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 14)),
-                      ),
-                    );
-                  },
-                );
+              onPressed: () {
+                setState(() {
+                  _selectedDateFilter = null;
+                });
               },
+              tooltip: 'စစ်ထုတ်မှု ဖယ်ရှားရန်',
             ),
-          ),
         ],
       ),
-    );
-  }
-}
-
-class FinishedResultsScreen extends StatelessWidget {
-  const FinishedResultsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const OldMatchesScreen();
-  }
-}
-
-class StandingsScreen extends StatelessWidget {
-  const StandingsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('အဆင့်ဇယား')),
       body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: ApiService.fetchStandings(),
+        future: _oldMatchesFuture,
         builder: (context, snapshot) {
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-          var list = snapshot.data!;
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('ပွဲစဉ်ဟောင်းများ မရှိပါ။', style: TextStyle(color: Colors.grey)));
+          }
+
+          var matches = snapshot.data!;
+          if (_selectedDateFilter != null) {
+            matches = matches.where((m) => m['date'] == _selectedDateFilter).toList();
+          }
+
+          if (matches.isEmpty) {
+            return Center(child: Text('ရွေးထားသောရက် (${_selectedDateFilter ?? ""}) တွင် ပွဲစဉ်ဟောင်းများ မရှိပါ။', style: const TextStyle(color: Colors.grey)));
+          }
+
           return ListView.builder(
-            itemCount: list.length,
+            itemCount: matches.length,
             itemBuilder: (context, index) {
-              var s = list[index];
-              return ListTile(
-                leading: Text('${s['pos']}', style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold)),
-                title: Text(s['team'], style: const TextStyle(color: Colors.white)),
-                trailing: Text('${s['points']} Pts', style: const TextStyle(color: Colors.greenAccent)),
+              var m = matches[index];
+              return Card(
+                color: const Color(0xFF132E1B),
+                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                child: ListTile(
+                  title: Text(m['match'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  subtitle: Text('လိဂ်: ${m['league']}\nရက်စွဲ: ${m['date']} | အခြေအနေ: ${m['result']}', style: const TextStyle(color: Colors.greenAccent, fontSize: 12)),
+                  trailing: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: Colors.green.shade800, borderRadius: BorderRadius.circular(8)),
+                    child: Text(m['score'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                  ),
+                  isThreeLine: true,
+                ),
               );
             },
           );
@@ -2365,52 +2324,135 @@ class WalletScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('ငွေစာရင်း')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Text('လက်ကျန်ငွေစုစုပေါင်း: ${AppData.balance.toStringAsFixed(2)} Ks', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+      appBar: AppBar(title: Text(AppStrings.get('wallet'))),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.account_balance_wallet, size: 64, color: Colors.tealAccent),
+              const SizedBox(height: 16),
+              Text('လက်ကျန်ငွေ: ${AppData.balance.toStringAsFixed(2)} Ks', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 24),
+              const Text('ငွေသွင်း/ငွေထုတ် လုပ်ဆောင်ရန် Admin သို့ ဆက်သွယ်ပါ။', style: TextStyle(color: Colors.grey), textAlign: TextAlign.center),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
-class PointsExchangeScreen extends StatefulWidget {
-  const PointsExchangeScreen({super.key});
-
-  @override
-  State<PointsExchangeScreen> createState() => _PointsExchangeScreenState();
-}
-
-class _PointsExchangeScreenState extends State<PointsExchangeScreen> {
-  void _exchange() async {
-    if (AppData.points >= 100) {
-      setState(() {
-        AppData.points -= 100;
-        AppData.balance += 1000.0;
-      });
-      await AppData.saveData();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွိုင့် ၁၀၀ ကို ငွေကျပ် ၁၀၀၀ သို့ လဲလှယ်ပြီးပါပြီ')));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွိုင့် မလုံလောက်ပါ။')));
-    }
-  }
+class FinishedResultsScreen extends StatelessWidget {
+  const FinishedResultsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('ပွိုင့်လဲလှယ်')),
+      appBar: AppBar(title: Text(AppStrings.get('results'))),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: ApiService.fetchOldMatches(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('ရလဒ်များ မရှိပါ။', style: TextStyle(color: Colors.grey)));
+          }
+          final results = snapshot.data!;
+          return ListView.builder(
+            itemCount: results.length,
+            itemBuilder: (context, index) {
+              var r = results[index];
+              return Card(
+                color: const Color(0xFF132E1B),
+                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                child: ListTile(
+                  title: Text(r['match'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  subtitle: Text('လိဂ်: ${r['league']}\nရက်စွဲ: ${r['date']} | ${r['result']}', style: const TextStyle(color: Colors.greenAccent, fontSize: 12)),
+                  trailing: Text(r['score'], style: const TextStyle(color: Colors.amberAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+                  isThreeLine: true,
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class StandingsScreen extends StatelessWidget {
+  const StandingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(AppStrings.get('standings'))),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: ApiService.fetchStandings(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('အဆင့်ဇယား အချက်အလက် မရှိပါ။', style: TextStyle(color: Colors.grey)));
+          }
+          final standings = snapshot.data!;
+          return ListView.builder(
+            itemCount: standings.length,
+            itemBuilder: (context, index) {
+              var s = standings[index];
+              return Card(
+                color: const Color(0xFF132E1B),
+                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                child: ListTile(
+                  leading: CircleAvatar(backgroundColor: Colors.green.shade800, child: Text('${s['pos']}', style: const TextStyle(color: Colors.white))),
+                  title: Text(s['team'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  subtitle: Text('ပွဲကစားပြီး: ${s['played']}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                  trailing: Text('${s['points']} ပွိုင့်', style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold)),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class PointsExchangeScreen extends StatelessWidget {
+  const PointsExchangeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(AppStrings.get('exchange'))),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('လက်ရှိ ပွိုင့်: ${AppData.points} Pts', style: const TextStyle(fontSize: 20, color: Colors.amber)),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo),
-              onPressed: _exchange,
-              child: const Text('ပွိုင့်လဲမည် (100 Pts = 1000 Ks)', style: TextStyle(color: Colors.white)),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.monetization_on, size: 64, color: Colors.lightGreenAccent),
+              const SizedBox(height: 16),
+              Text('လက်ရှိ ပွိုင့်: ${AppData.points} Pts', style: const TextStyle(color: Colors.amberAccent, fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                onPressed: () {
+                  if (AppData.points >= 100) {
+                    AppData.points -= 100;
+                    AppData.balance += 1000.0;
+                    AppData.saveData();
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွိုင့် ၁၀၀ ကို ငွေကျပ် ၁,၀၀၀ သို့ အောင်မြင်စွာ လဲလှယ်ပြီးပါပြီ')));
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ပွိုင့် မလုံလောက်ပါ။ (အနည်းဆုံး ၁၀၀ လိုအပ်သည်)')));
+                  }
+                },
+                child: const Text('ပွိုင့် ၁၀၀ = ၁,၀၀၀ ကျပ် လဲမည်', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
         ),
       ),
     );
