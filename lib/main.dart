@@ -487,6 +487,7 @@ class AppData {
   static Future<void> clearData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('username');
+    await prefs.remove('displayName');
     await prefs.setBool('isAdmin', false);
     username = '';
     isAdmin = false;
@@ -600,7 +601,6 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // လော့ဂ်အင်ဝင်ချိန်တိုင်း Cloud Firestore မှ ဒေတာအသစ်များကို အမြဲတမ်း ချက်ချင်း အရင်ဆွဲထုတ်မည်
       await AppData.loadData();
 
       var matchedUser = AppData.allUsers.firstWhere(
