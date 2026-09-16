@@ -621,6 +621,7 @@ class _LoginScreenState extends State<LoginScreen> {
       AppData.balance = (matchedUser['balance'] as num).toDouble();
       AppData.points = matchedUser['points'] as int;
 
+      await AppData.loadData(); // Reload user bets from Firebase
       await AppData.saveData();
 
       Navigator.pushReplacement(
@@ -2280,7 +2281,7 @@ class _OldMatchesScreenState extends State<OldMatchesScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('ပွဲစဉ်ဟောင်းများ မရှိပါ။', style: TextStyle(color: Colors.grey)));
+            return const Center(child: Text('ပွဲစဉ်ဟောင်းများ မရှိပါ။', style: TextStyle(color: Colors.grey)))
           }
 
           var matches = snapshot.data!;
@@ -2357,7 +2358,7 @@ class FinishedResultsScreen extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('ရလဒ်များ မရှိပါ။', style: TextStyle(color: Colors.grey)));
+            return const Center(child: Text('ရလဒ်များ မရှိပါ။', style: TextStyle(color: Colors.grey)))
           }
           final results = snapshot.data!;
           return ListView.builder(
@@ -2395,7 +2396,7 @@ class StandingsScreen extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('အဆင့်ဇယား အချက်အလက် မရှိပါ။', style: TextStyle(color: Colors.grey)));
+            return const Center(child: Text('အဆင့်ဇယား အချက်အလက် မရှိပါ။', style: TextStyle(color: Colors.grey)))
           }
           final standings = snapshot.data!;
           return ListView.builder(
